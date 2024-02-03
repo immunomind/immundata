@@ -4,22 +4,26 @@ ImmunData <- R6Class(
   public = list(
     data = NULL,
 
-    initialize = function(data) {
+    initialize = function(data, engine) {
       self$data <- data
     },
 
     filter = function(...) {
-      self$data <- dplyr::filter(self$data, ...)
+      self$data <- filter(self$data, ...)
       return(self)
     },
 
     select = function(...) {
-      self$data <- dplyr::select(self$data, ...)
+      self$data <- select(self$data, ...)
       return(self)
     },
 
+    group_by = function(...) {
+
+    },
+
     summarize = function(...) {
-      self$data <- dplyr::summarise(self$data, ...)
+      self$data <- summarise(self$data, ...)
       return(self)
     },
 
