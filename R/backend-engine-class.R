@@ -11,9 +11,6 @@
 #' @examples
 #' engine <- BackendEngine$new()
 #' dataset <- engine$create_dataset(data.frame(x = 1:10, y = 11:20))
-library(R6)
-library(checkmate)
-
 BackendEngine <- R6Class("BackendEngine",
   public = list(
 
@@ -31,17 +28,20 @@ BackendEngine <- R6Class("BackendEngine",
 
     #' @description Create a new dataset with this engine as a backend computation engine
     #' @details
-        #' Processes input data and creates a dataset suitable for analysis.
-        #' Currently, this method acts as a placeholder and returns the input data directly.
-        #' Future implementations should include data processing logic.
-    #' @param source A data frame or similar object to be processed into a dataset.
+    #' Processes input data and creates a dataset suitable for analysis.
+    #' Currently, this method acts as a placeholder and returns the input data directly.
+    #' Future implementations should include data processing logic.
+    #' @param .source A data frame or similar object to be processed into a dataset.
     #' @return The processed dataset, which is currently the input data unmodified.
     #' @examples
-        #' engine <- BackendEngine$new()
-        #' dataset <- engine$create_dataset(data.frame(x = 1:10, y = 11:20))
-        #' print(dataset)
-    create_dataset = function(source) {
+    #' engine <- BackendEngine$new()
+    #' dataset <- engine$create_dataset(data.frame(x = 1:10, y = 11:20))
+    #' print(dataset)
+    create_dataset = function(.source) {
       stop(MESSAGES[["NotImpl"]])
     }
   )
 )
+
+
+# DataFrameBackend
