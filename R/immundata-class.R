@@ -22,16 +22,86 @@ immdata@asClonotype("aa+v") %>%
 
 immdata@as("aa+v") %>%
   repOverlap()
+
+
+Option 1 "magic class": put "as" into ImmunData$new()
+> imd <- ImmunData$new(immdata, .rep="Sample", .cl="ab+nt+vj")
+
+Option 2 "no magic": "as" separately
+> imd <- ImmunData$new(immdata)
+> imd_sample_cln <- ImmunData$as(.rep="Sample", .cl="ab+nt+vj")
+
+Option 3 "true magic": full flexibility
+> imd <- ImmunData$new(immdata, .rep="Sample", .cl="ab+nt+vj")
+> new_imd <- imd$as(.rep=c("Sample", "Cluster"), .cl="ab+aa+vj")
+
+Problems for Option 3:
+> imd <- ImmunData$new(immdata, .rep="Sample", .cl="ab+nt+vj")
+> imd2 <- imd %>% select(V.name)  # imd2$dataset == imd$dataset %>% dplyr::select(V.name)
+> imd3 <- imd2$as(.rep=c("Sample", "Cluster"), .cl="ab+aa+vj")  # should return the error
+
+ImmunData states:
+1) no repertoire/clonotypes models -> no group by "sample" and "aa+vj"
+2) yes repertoire/clonotype models -> there was a group by "sample" and "aa+vj"
+3) after applying at least one dplyr function
+
+gordon <- ImmunData%new(load_gordon_data())  # raw data is still here
+gordon_beta <- gordon$as("Sample", "b+nt+vj")  # grouped by Sample and selected+grouped by beta+nuc+V+J
+gordon_beta %>%
+  filter(Metadata.Response %in% c("CR", "PR")) %>%
+  geneUsage()
+
+>>>loader = ImmuneRepertoireLoader$new("/path/to/airr/data")
+>>>loader$detectedAIRRdatasets()
+"datasetMiXCR1.txt"
+"datasetMiXCR2.txt"
+"datasetMiXCR3.txt"
+"datasetMiXCR5.txt"
+>>>immdata = loader$getRepertoire(.ds = "datasetMiXCR1.txt", .rep="Sample", .cl="b+nt+vj")
 '
 
+# Engine for data loader that is also executes finalize because of e.g., database connections
 
+library(R6)
+
+#' @importFrom R6 R6Class
+ImmunDataLoader <- R6Class(
+  "ImmunDataLoader",
+  private = list(
+    source_path = "",
+    engine = NULL,
+    scan_files = function(.format = NA) {
+      # Get all files recursively
+    }
+  ),
+  public = list(
+    initialize = function(.path, .engine = "df", .format = NA) {
+
+    },
+    finalize = function() {
+
+    },
+    list = function() {
+
+    },
+    load = function() {
+
+    },
+    load_all = function() {
+
+    }
+  )
+)
 
 #' @importFrom R6 R6Class
 ImmunData <- R6Class(
   "ImmunData",
   private = list(
     dataset = NULL,
-    metadata = NULL
+    metadata = NULL,
+    repertoire_model = c(),
+    clonotype_model = c(),
+    repertoire_names = c()
   ),
   public = list(
     initialize = function(dataset, metadata = NULL) {
@@ -66,6 +136,34 @@ ImmunData <- R6Class(
         private$metadata <- metadata
       }
     },
+    as = function(.rep = "Sample", .cl = "ab+cdr3aa+vj") {
+      # TODO: store default .rep for single-cell in future
+      # TODO: Sort by proportion
+      # TODO: two types of ImmunData - raw without casting "as', and processed after
+      # casting "as".
+      # TODO: check for consistency of columns so no columns "Sample" are presented in
+      # addition to Metadata's sample. Or maybe just store metadata columns in a separate
+      # vector, and that's it. Also provide additional functions like "strip all metadata columns"
+      # TODO: if the ImmunData has already been grouped by repertoire, then .rep should behave like
+      # .cl for user's convenience. E.g., immdata$as("Sample")$as("aa+v") is the same as immdata$as("Sample", "aa+v")
+      for (i in 1:length(.rep)) {
+        col_name <- .rep[i]
+        if (!(col_name %in% colnames(private$dataset))) {
+          .rep[i] <- paste0("Metadata.", col_name)
+        }
+      }
+
+      ImmunData$new(
+        private$dataset %>% group_by(Metadata.Sample),
+        private$metadata
+      )
+    },
+    to_list = function() {
+      dataset <- private$dataset %>% group_split()
+      names(dataset) <- private$repertoire_names
+      metadata <- NULL
+      list(data = dataset, meta = metadata)
+    },
     filter = function(...) {
       ImmunData$new(
         private$dataset %>% filter(...),
@@ -84,34 +182,14 @@ ImmunData <- R6Class(
         private$metadata
       )
     },
-    summarize = function(...) {
+    summarise = function(...) {
       ImmunData$new(
-        private$dataset %>% summarize(...),
+        private$dataset %>% summarise(...),
         private$metadata
       )
     },
     collect = function() {
       private$dataset %>% collect()
-    },
-    as = function(.rep = "Sample", .cl = "aa+v") {
-      # TODO: store default .by for single-cell in future
-      # TODO: Sort by proportion
-      for (i in 1:length(.by)) {
-        col_name = .by[i]
-        if (!(col_name %in% colnames(private$dataset))) {
-          .by[i] = paste0("Metadata.", col_name)
-        }
-      }
-
-      ImmunData$new(
-        private$dataset %>% group_by(Metadata.Sample),
-        private$metadata
-      )
-    },
-    to_list = function() {
-      # TODO: group_split and/or check
-      list(data = private$dataset %>% collect(),
-           meta = private$metadata)
     }
   )
 )
@@ -125,7 +203,14 @@ collect.ImmunData <- function(.immdata, ...) {
   .immdata$collect(...)
 }
 
+summarise.ImmunData <- function(.immdata, ...) {
+  .immdata$summarise(...)
+}
 
-imd <- ImmunData$new(immdata)
-imd2 <- imd %>% select(CDR3.aa)
-imd2 %>% collect()
+summarize.ImmunData <- function(.immdata, ...) {
+  .immdata$summarise(...)
+}
+
+group_by.ImmunData <- function(.immdata, ...) {
+  .immdata$group_by(...)
+}
