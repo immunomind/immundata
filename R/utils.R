@@ -23,7 +23,7 @@ validate_clonotype_model <- function(.input) {
   # Define regex patterns for valid inputs
   valid_chain <- "^(a|b|g|d|k|l|h)+$"
   valid_sequence <- "cdr[123]|fr[1234]"
-  valid_gene <- "^[vjdc]*$"  # Allow missing V, J, D, C or any combination
+  valid_gene <- "^[vjdc]*$" # Allow missing V, J, D, C or any combination
 
   # Split the input string
   components <- unlist(stringr::str_split(input, "\\+"))
@@ -39,8 +39,10 @@ validate_clonotype_model <- function(.input) {
   }
 
   # Map chain shorthand to full names
-  chain_names <- c(a = "Alpha", b = "Beta", g = "Gamma", d = "Delta",
-                   k = "Kappa", l = "Lambda", h = "Heavy")
+  chain_names <- c(
+    a = "Alpha", b = "Beta", g = "Gamma", d = "Delta",
+    k = "Kappa", l = "Lambda", h = "Heavy"
+  )
   chain <- strsplit(chain_component, "")[[1]]
   chain <- chain_names[chain]
 
