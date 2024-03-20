@@ -74,7 +74,7 @@ ImmunDataLoader <- R6Class(
 
       library(immunarch)
       data(immdata)
-      immdata$data <- lapply(names(immdata$data), function (df_name) immdata$data[[df_name]] |> mutate(Sample = df_name))
+      immdata$data <- lapply(names(immdata$data), function(df_name) immdata$data[[df_name]] |> mutate(Sample = df_name))
       immdata$data <- do.call(rbind, immdata$data)
       imd <- private$backend$new(immdata$data, immdata$meta)
 

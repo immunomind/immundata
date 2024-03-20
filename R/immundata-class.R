@@ -236,9 +236,7 @@ group_by.ImmunData <- function(.immdata, ...) {
 DataFrameImmunData <- R6Class(
   "DataFrameImmunData",
   inherit = ImmunData,
-  private = list(
-
-  ),
+  private = list(),
   public = list(
     initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
       private$dataset <- as_tibble(.dataset)
@@ -253,9 +251,7 @@ DataFrameImmunData <- R6Class(
 DataTableImmunData <- R6Class(
   "DataTableImmunData",
   inherit = ImmunData,
-  private = list(
-
-  ),
+  private = list(),
   public = list(
     initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
       private$dataset <- as_tidytable(.dataset)
