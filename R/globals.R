@@ -1,4 +1,4 @@
 #' @keywords internal
-MESSAGES = list(
+MESSAGES <- list(
   "NotImpl" = "Error: the method is not implemented."
 )

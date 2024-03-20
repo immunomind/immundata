@@ -1,11 +1,12 @@
+.immundataglobalenv <- new.env(parent = emptyenv())
+
 .onLoad <- function(libname, pkgname) {
   message("Loading immundata version ", packageVersion(pkgname))
 
   # Do registry stuff here
-  .BACKEND_REGISTRY_CLASS <- BackendEngineRegistry$new()
-  .BACKEND_REGISTRY_CLASS$register(c("df", "data.frame"), BackendEngine)
+  assign("backend_registry", BackendRegistry$new(), envir = .immundataglobalenv)
 
-  loader <- ImmunDataLoader("./", "df")
+  register_backends()
 }
 
 .onUnload <- function(libpath) {
@@ -14,6 +15,12 @@
   # Cleanup created datasets, close connection
 }
 
-get_available_engines <- function() {
-  .BACKEND_REGISTRY_CLASS$engines()
+register_backends <- function() {
+  .immundataglobalenv$backend_registry$register(c("df", "data.frame"), DataFrameImmunData)
+  .immundataglobalenv$backend_registry$register(c("dt", "data.table"), DataTableImmunData)
+}
+
+#' @export
+get_available_backends <- function() {
+  .immundataglobalenv$backend_registry$names()
 }

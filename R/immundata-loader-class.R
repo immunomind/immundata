@@ -1,12 +1,12 @@
 #' ImmunDataLoader
 #'
 #' A class for loading immunological data. This loader supports different backend
-#' engines for data processing and can handle multiple data formats.
+#' backends for data processing and can handle multiple data formats.
 #'
 #' @name ImmunDataLoader
 #' @export
 #' @examples
-#' loader <- ImmunDataLoader$new(".path/to/data", .engine = "df")
+#' loader <- ImmunDataLoader$new(".path/to/data", .backend = "df")
 #' data_list <- loader$list()
 #' data <- loader$load("specific_data_file.csv")
 #' all_data <- loader$load_all()
@@ -14,7 +14,7 @@ ImmunDataLoader <- R6Class(
   "ImmunDataLoader",
   private = list(
     source_path = "",
-    engine = NULL,
+    backend = NULL,
     scan_files = function(.format = NA) {
       # Placeholder: Implement logic to get all files recursively based on the specified format.
       # This can use list.files() with pattern argument if .format is not NA
@@ -24,33 +24,30 @@ ImmunDataLoader <- R6Class(
   public = list(
 
     #' @description Constructor for ImmunDataLoader
-    #' @details Initializes a new ImmunDataLoader object with a specified source path and backend engine.
+    #' @details Initializes a new ImmunDataLoader object with a specified source path and backend backend.
     #' @param .path Character; the path to the directory containing data files.
-    #' @param .engine Character or BackendEngine; the backend engine to use for data processing. Default is "df".
+    #' @param .backend Character or Backend; the backend backend to use for data processing. Default is "df".
     #' @param .format Character; the format of the data files to load. This parameter is optional and defaults to NA.
-    initialize = function(.path, .engine = "df", .format = NA) {
-      assertCharacter(.path, min.len = 1)
+    initialize = function(.path, .backend = "df", .recursive = c(TRUE, FALSE), .cache = c(TRUE, FALSE), .format = NA) {
+      assert_character(.path, max.len = 1)
+      assert_logical(.recursive[1])
+      assert_logical(.cache[1])
       assert(
-        checkChoice(.engine, get_available_engines()),
-        checkR6(.engine, "BackendEngine")
+        check_choice(.backend, get_available_backends()),
+        check_r6_gen(.backend)
       )
       assert(
-        checkCharacter(.format),
-        checkScalarNA(.format)
+        check_character(.format),
+        check_scalar_na(.format)
       )
-
 
       private$source_path <- .path
-      # Assuming a function getEngine or similar logic to resolve .engine
-      # to a BackendEngine object if .engine is a character string.
-      # For simplicity, this placeholder does not implement the actual retrieval.
-      if (is.character(.engine)) {
-        # Example: private$engine <- BackendEngineRegistry$getEngine(.engine)
-        private$engine <- .engine # Placeholder
+
+      if (is.character(.backend)) {
+        private$backend <- .immundataglobalenv$backend_registry$get(.backend)
       } else {
-        private$engine <- .engine
+        private$backend <- .backend
       }
-      # Optionally call private$scan_files(.format) to initialize file listing
     },
 
     #' @description Finalizer for ImmunDataLoader
@@ -69,25 +66,26 @@ ImmunDataLoader <- R6Class(
     },
 
     #' @description Load a Specific Data File
-    #' @details Loads a specific data file by name using the configured backend engine.
-    #' @param .filename Character; the name of the file to load.
-    #' @return Data frame or other structure containing the loaded data, depending on the backend engine.
+    #' @details Loads a specific data file by name using the configured backend backend.
+    #' @param .filename Character; the name of the file to load. Could be a vector if you want to load several files.
+    #' @return Data frame or other structure containing the loaded data, depending on the backend backend.
     load = function(.filename) {
-      assertCharacter(.filename, min.len = 1, add = "Filename must be a non-empty string.")
+      assert_character(.filename, min.len = 1, add = "Filename must be a non-empty string.")
 
-      # Implement logic to load a single file specified by filename.
-      # This method would use the backend engine to process the data.
-      # Placeholder implementation:
-      # filePath <- file.path(private$source_path, filename)
-      # data <- read.csv(filePath) # Simplified example; actual implementation depends on the engine
-      # return(data)
+      library(immunarch)
+      data(immdata)
+      immdata$data <- lapply(names(immdata$data), function (df_name) immdata$data[[df_name]] |> mutate(Sample = df_name))
+      immdata$data <- do.call(rbind, immdata$data)
+      imd <- private$backend$new(immdata$data, immdata$meta)
+
+      imd
     },
 
     #' @description Load All Data Files
-    #' @details Loads all available data files using the configured backend engine.
-    #' @return List of data frames or other structures containing the loaded data, depending on the backend engine.
+    #' @details Loads all available data files using the configured backend backend.
+    #' @return List of data frames or other structures containing the loaded data, depending on the backend backend.
     load_all = function() {
-      # Load all files found by private$scan_files and process them with the engine.
+      # Load all files found by private$scan_files and process them with the backend.
       # Placeholder: Iterate over files returned by private$scan_files and load each.
       # Return a list or combined dataset of all loaded data.
     }

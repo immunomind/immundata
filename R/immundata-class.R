@@ -60,103 +60,125 @@ gordon_beta %>%
 >>>immdata = loader$getRepertoire(.ds = "datasetMiXCR1.txt", .rep="Sample", .cl="b+nt+vj")
 '
 
-# Engine for data loader that is also executes finalize because of e.g., database connections
+
+# https://dplyr.tidyverse.org/reference/index.html
+# https://dplyr.tidyverse.org/reference/dplyr_extending.html
+# https://github.com/tidyverse/dplyr/blob/b359331a448a693546d77245b0de4d405bab3886/NAMESPACE#L58
+# https://cran.r-project.org/web/packages/checkmate/index.html
+
 
 library(R6)
 
-#' @importFrom R6 R6Class
-ImmunDataLoader <- R6Class(
-  "ImmunDataLoader",
-  private = list(
-    source_path = "",
-    engine = NULL,
-    scan_files = function(.format = NA) {
-      # Get all files recursively
-    }
-  ),
+RepertoireModel <- R6Class(
+  "RepertoireModel",
   public = list(
-    initialize = function(.path, .engine = "df", .format = NA) {
+    by = "",
+    names = "",
+    initialize = function(.by, .names) {
+      ###
+      # Argument type checks
+      ###
+      assert_character(.by, min.chars = 1, min.len = 1)
+      assert(
+        check_character(.names, min.chars = 1, .min.len = 1),
+        check_function(.names)
+      )
 
+      ###
+      # Body
+      ###
+      self$by <- .by
+      self$names <- .names # TODO: when do we call the function to generate repertoire names?
     },
-    finalize = function() {
-
-    },
-    list = function() {
-
-    },
-    load = function() {
-
-    },
-    load_all = function() {
+    print = function() {
 
     }
   )
 )
 
+ClonotypeModel <- R6Class(
+  "ClonotypeModel",
+  public = list(
+    initialize = function(.code = "", .chain = "", .sequence = "", .gene = "") {
+      assert_clonotype_info <- function(.chain, .sequence, .gene) {
+        assert(
+          assert_character(.chain, pattern = ""),
+          assert_character(.sequence, pattern = ""),
+          assert_character(.gene, pattern = ""),
+          combine = "and"
+        )
+      }
+
+      ###
+      # Argument type checks
+      ###
+      assert(
+        assert_character(.code, .min.len = 1),
+        assert_clonotype_info(.chain, .sequence, .gene)
+      )
+
+      if (nchar(.code)) {
+        .code <- stringr::str_split(input, "\\+") |> unlist() # Yes, I do like pipes, they improve the readability.
+        # .chain
+        # .sequence
+        # .gene
+        assert_clonotype_info(.chain, .sequence, .gene)
+      }
+
+      ###
+      # Body
+      ###
+    }
+  )
+)
+
 #' @importFrom R6 R6Class
+#' @export
 ImmunData <- R6Class(
   "ImmunData",
   private = list(
     dataset = NULL,
     metadata = NULL,
-    repertoire_model = c(),
-    clonotype_model = c(),
-    repertoire_names = c()
+    repertoire_model = NULL,
+    clonotype_model = NULL,
+    repertoire_names = NULL
+    # from_list
+    # from_table
+    # from_text_file
+    # from_database
   ),
   public = list(
-    initialize = function(dataset, metadata = NULL) {
-      if (inherits(dataset, "list")) {
-        # If dataset is a list with "data" and "meta" from immunarch
-        if (all(c("data", "meta") %in% names(dataset))) {
-          metadata <- dataset$meta
-          dataset <- dataset$data
-        }
-        # TODO: if no metadata, and metadata is NULL
-
-        # If dataset is a list with immune repertoires, and metadata is passed separately
-        private$dataset <- lapply(names(dataset), function(df_name) {
-          metadata_row <- metadata %>%
-            filter(Sample == df_name)
-          metadata_row <- rename_all(
-            metadata_row,
-            function(x) paste("Metadata", x, sep = ".")
-          )
-
-          metadata_row <- metadata_row %>% slice(rep(1:n(), each = nrow(dataset[[df_name]])))
-
-          bind_cols(dataset[[df_name]], metadata_row)
-        })
-
-        private$dataset <- do.call(rbind, private$dataset)
-
-        private$metadata <- metadata
-      } else {
-        # If dataset is a single immune repertoire file
-        private$dataset <- dataset
-        private$metadata <- metadata
-      }
-    },
-    as = function(.rep = "Sample", .cl = "ab+cdr3aa+vj") {
-      # TODO: store default .rep for single-cell in future
-      # TODO: Sort by proportion
-      # TODO: two types of ImmunData - raw without casting "as', and processed after
-      # casting "as".
-      # TODO: check for consistency of columns so no columns "Sample" are presented in
-      # addition to Metadata's sample. Or maybe just store metadata columns in a separate
-      # vector, and that's it. Also provide additional functions like "strip all metadata columns"
-      # TODO: if the ImmunData has already been grouped by repertoire, then .rep should behave like
-      # .cl for user's convenience. E.g., immdata$as("Sample")$as("aa+v") is the same as immdata$as("Sample", "aa+v")
-      for (i in 1:length(.rep)) {
-        col_name <- .rep[i]
-        if (!(col_name %in% colnames(private$dataset))) {
-          .rep[i] <- paste0("Metadata.", col_name)
-        }
-      }
-
-      ImmunData$new(
-        private$dataset %>% group_by(Metadata.Sample),
-        private$metadata
-      )
+    initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
+      # if (inherits(dataset, "list")) {
+      #   # If dataset is a list with "data" and "meta" from immunarch
+      #   if (all(c("data", "meta") %in% names(dataset))) {
+      #     metadata <- dataset$meta
+      #     dataset <- dataset$data
+      #   }
+      #   # TODO: if no metadata, and metadata is NULL
+      #
+      #   # If dataset is a list with immune repertoires, and metadata is passed separately
+      #   private$dataset <- lapply(names(dataset), function(df_name) {
+      #     metadata_row <- metadata %>%
+      #       filter(Sample == df_name)
+      #     metadata_row <- rename_all(
+      #       metadata_row,
+      #       function(x) paste("Metadata", x, sep = ".")
+      #     )
+      #
+      #     metadata_row <- metadata_row %>% slice(rep(1:n(), each = nrow(dataset[[df_name]])))
+      #
+      #     bind_cols(dataset[[df_name]], metadata_row)
+      #   })
+      #
+      #   private$dataset <- do.call(rbind, private$dataset)
+      #
+      #   private$metadata <- metadata
+      # } else {
+      #   # If dataset is a single immune repertoire file
+      #   private$dataset <- dataset
+      #   private$metadata <- metadata
+      # }
     },
     to_list = function() {
       dataset <- private$dataset %>% group_split()
@@ -165,31 +187,25 @@ ImmunData <- R6Class(
       list(data = dataset, meta = metadata)
     },
     filter = function(...) {
-      ImmunData$new(
-        private$dataset %>% filter(...),
-        private$metadata
-      )
+      private$dataset %>% filter(...)
     },
     select = function(...) {
-      ImmunData$new(
-        private$dataset %>% select(...),
-        private$metadata
-      )
+      private$dataset %>% select(...)
     },
     group_by = function(...) {
-      ImmunData$new(
-        private$dataset %>% group_by(...),
-        private$metadata
-      )
+      private$dataset %>% group_by(...)
     },
     summarise = function(...) {
-      ImmunData$new(
-        private$dataset %>% summarise(...),
-        private$metadata
-      )
+      private$dataset %>% summarise(...)
     },
     collect = function() {
       private$dataset %>% collect()
+    },
+    `[[` = function(name) {
+      if (!name %in% names(private$dataset)) {
+        stop("Repertoire '", name, "' not found in the data.", call. = FALSE)
+      }
+      return(self$data[[name]])
     }
   )
 )
@@ -214,3 +230,36 @@ summarize.ImmunData <- function(.immdata, ...) {
 group_by.ImmunData <- function(.immdata, ...) {
   .immdata$group_by(...)
 }
+
+#' @importFrom tibble as_tibble
+#' @export
+DataFrameImmunData <- R6Class(
+  "DataFrameImmunData",
+  inherit = ImmunData,
+  private = list(
+
+  ),
+  public = list(
+    initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
+      private$dataset <- as_tibble(.dataset)
+      private$metadata <- as_tibble(.metadata)
+    }
+  )
+)
+
+
+#' @importFrom tidytable as_tidytable
+#' @export
+DataTableImmunData <- R6Class(
+  "DataTableImmunData",
+  inherit = ImmunData,
+  private = list(
+
+  ),
+  public = list(
+    initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
+      private$dataset <- as_tidytable(.dataset)
+      private$metadata <- as_tibble(.metadata)
+    }
+  )
+)
