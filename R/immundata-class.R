@@ -1,73 +1,7 @@
-'
-# old ways:
-singledata %>%
-  clonotypeModel("aa+v") %>%
-  repertoireModel(group_by = c("Sample")) %>%
-  immdata %>%
-  repOverlap()
-
-# new ways:
-singledata %>%
-  repertoireModel(group_by = c("Sample")) %>%
-  immdata %>%
-  asClonotype("aa+v") %>%
-  repOverlap()
-
-# new ways II:
-immdata = singledata %>%
-  repertoireModel(group_by = c("Sample"))
-
-immdata@asClonotype("aa+v") %>%
-  repOverlap()
-
-immdata@as("aa+v") %>%
-  repOverlap()
-
-
-Option 1 "magic class": put "as" into ImmunData$new()
-> imd <- ImmunData$new(immdata, .rep="Sample", .cl="ab+nt+vj")
-
-Option 2 "no magic": "as" separately
-> imd <- ImmunData$new(immdata)
-> imd_sample_cln <- ImmunData$as(.rep="Sample", .cl="ab+nt+vj")
-
-Option 3 "true magic": full flexibility
-> imd <- ImmunData$new(immdata, .rep="Sample", .cl="ab+nt+vj")
-> new_imd <- imd$as(.rep=c("Sample", "Cluster"), .cl="ab+aa+vj")
-
-Problems for Option 3:
-> imd <- ImmunData$new(immdata, .rep="Sample", .cl="ab+nt+vj")
-> imd2 <- imd %>% select(V.name)  # imd2$dataset == imd$dataset %>% dplyr::select(V.name)
-> imd3 <- imd2$as(.rep=c("Sample", "Cluster"), .cl="ab+aa+vj")  # should return the error
-
-ImmunData states:
-1) no repertoire/clonotypes models -> no group by "sample" and "aa+vj"
-2) yes repertoire/clonotype models -> there was a group by "sample" and "aa+vj"
-3) after applying at least one dplyr function
-
-gordon <- ImmunData%new(load_gordon_data())  # raw data is still here
-gordon_beta <- gordon$as("Sample", "b+nt+vj")  # grouped by Sample and selected+grouped by beta+nuc+V+J
-gordon_beta %>%
-  filter(Metadata.Response %in% c("CR", "PR")) %>%
-  geneUsage()
-
->>>loader = ImmuneRepertoireLoader$new("/path/to/airr/data")
->>>loader$detectedAIRRdatasets()
-"datasetMiXCR1.txt"
-"datasetMiXCR2.txt"
-"datasetMiXCR3.txt"
-"datasetMiXCR5.txt"
->>>immdata = loader$getRepertoire(.ds = "datasetMiXCR1.txt", .rep="Sample", .cl="b+nt+vj")
-'
-
-
 # https://dplyr.tidyverse.org/reference/index.html
 # https://dplyr.tidyverse.org/reference/dplyr_extending.html
 # https://github.com/tidyverse/dplyr/blob/b359331a448a693546d77245b0de4d405bab3886/NAMESPACE#L58
 # https://cran.r-project.org/web/packages/checkmate/index.html
-
-
-library(R6)
 
 RepertoireModel <- R6Class(
   "RepertoireModel",
@@ -80,7 +14,7 @@ RepertoireModel <- R6Class(
       ###
       assert_character(.by, min.chars = 1, min.len = 1)
       assert(
-        check_character(.names, min.chars = 1, .min.len = 1),
+        check_character(.names, min.chars = 1, min.len = 1),
         check_function(.names)
       )
 
@@ -102,9 +36,9 @@ ClonotypeModel <- R6Class(
     initialize = function(.code = "", .chain = "", .sequence = "", .gene = "") {
       assert_clonotype_info <- function(.chain, .sequence, .gene) {
         assert(
-          assert_character(.chain, pattern = ""),
-          assert_character(.sequence, pattern = ""),
-          assert_character(.gene, pattern = ""),
+          check_character(.chain, pattern = ""),
+          check_character(.sequence, pattern = ""),
+          check_character(.gene, pattern = ""),
           combine = "and"
         )
       }
@@ -113,8 +47,8 @@ ClonotypeModel <- R6Class(
       # Argument type checks
       ###
       assert(
-        assert_character(.code, .min.len = 1),
-        assert_clonotype_info(.chain, .sequence, .gene)
+        check_character(.code),
+        check_clonotype_info(.chain, .sequence, .gene)
       )
 
       if (nchar(.code)) {
@@ -141,14 +75,29 @@ ImmunData <- R6Class(
     metadata = NULL,
     repertoire_model = NULL,
     clonotype_model = NULL,
-    repertoire_names = NULL
+    repertoire_names = NULL,
+    # from_data_frame
     # from_list
-    # from_table
     # from_text_file
+    # from_folder
     # from_database
+    # from_immundata_file
+    # from_immundata_database
+
+    create_instance = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
+      stop(MESSAGES$NotImpl)
+    }
   ),
   public = list(
+
+    ####
+    ## Basic interface
+    ####
     initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
+      private$dataset <- .dataset
+      private$metadata <- .metadata
+      private$repertoire_model <- .repertoire_model
+      private$clonotype_model <- .clonotype_model
       # if (inherits(dataset, "list")) {
       #   # If dataset is a list with "data" and "meta" from immunarch
       #   if (all(c("data", "meta") %in% names(dataset))) {
@@ -180,63 +129,212 @@ ImmunData <- R6Class(
       #   private$metadata <- metadata
       # }
     },
+    finalize = function() {
+
+    },
     to_list = function() {
       dataset <- private$dataset %>% group_split()
       names(dataset) <- private$repertoire_names
       metadata <- NULL
       list(data = dataset, meta = metadata)
     },
+    print = function() {
+      class(self)
+    },
+
+    ####
+    ## Row operations
+    ####
+
+    arrange = function(...) {
+      private$create_instance(
+        .dataset = private$dataset %>% arrange(...),
+        .metadata = private$metadata
+      )
+    },
     filter = function(...) {
-      private$dataset %>% filter(...)
+      private$create_instance(
+        .dataset = private$dataset %>% filter(...),
+        .metadata = private$metadata
+      )
+    },
+    slice = function(...) {
+      private$create_instance(
+        .dataset = private$dataset %>% slice(...),
+        .metadata = private$metadata
+      )
+    },
+    slice_head = function(...) {
+      private$create_instance(
+        .dataset = private$dataset %>% slice_head(...),
+        .metadata = private$metadata
+      )
+    },
+    slice_tail = function(...) {
+      private$create_instance(
+        .dataset = private$dataset %>% slice_tail(...),
+        .metadata = private$metadata
+      )
+    },
+
+    ####
+    ## Column operations
+    ####
+
+    mutate = function(...) {
+      private$create_instance(
+        .dataset = private$dataset %>% mutate(...),
+        .metadata = private$metadata
+      )
     },
     select = function(...) {
-      private$dataset %>% select(...)
+      private$create_instance(
+        .dataset = private$dataset %>% select(...),
+        .metadata = private$metadata
+      )
+    },
+
+    ####
+    ## Group operations
+    ####
+
+    count = function(...) {
+      private$create_instance(
+        .dataset = private$dataset %>% count(...),
+        .metadata = private$metadata
+      )
     },
     group_by = function(...) {
-      private$dataset %>% group_by(...)
+      private$create_instance(
+        .dataset = private$dataset %>% group_by(...),
+        .metadata = private$metadata
+      )
     },
     summarise = function(...) {
-      private$dataset %>% summarise(...)
+      private$create_instance(
+        .dataset = private$dataset %>% summarise(...),
+        .metadata = private$metadata
+      )
     },
-    collect = function() {
-      private$dataset %>% collect()
+
+    ####
+    ## Data operations
+    ####
+
+    compute = function(...) {
+      private$create_instance(
+        .dataset = private$dataset %>% compute(...),
+        .metadata = private$metadata
+      )
     },
-    `[[` = function(name) {
-      if (!name %in% names(private$dataset)) {
-        stop("Repertoire '", name, "' not found in the data.", call. = FALSE)
-      }
-      return(self$data[[name]])
+    collect = function(...) {
+      private$dataset %>% collect(...)
+    },
+    `[[` = function(.sample) {
+      check_character(.sample)
+
+      # Not sample but columns by which was grouped
+      # OR the sample or ID
+      private$dataset |> filter(Sample == .sample)
+    },
+    data = function() {
+      private$dataset
     }
   )
 )
 
+####
+## Row operations
+####
 
+#' @exportS3Method dplyr::arrange
+arrange.ImmunData <- function(.immdata, ...) {
+  .immdata$arrange(...)
+}
+
+#' @exportS3Method dplyr::filter
+filter.ImmunData <- function(.immdata, ...) {
+  .immdata$filter(...)
+}
+
+#' @exportS3Method dplyr::slice
+slice.ImmunData <- function(.immdata, ...) {
+  .immdata$slice(...)
+}
+
+#' @exportS3Method dplyr::slice_head
+slice_head.ImmunData <- function(.immdata, ...) {
+  .immdata$slice_head(...)
+}
+
+#' @exportS3Method dplyr::slice_tail
+slice_tail.ImmunData <- function(.immdata, ...) {
+  .immdata$slice_tail(...)
+}
+
+####
+## Column operations
+####
+
+#' @exportS3Method dplyr::mutate
+mutate.ImmunData <- function(.immdata, ...) {
+  .immdata$mutate(...)
+}
+
+#' @exportS3Method dplyr::select
 select.ImmunData <- function(.immdata, ...) {
   .immdata$select(...)
 }
 
-collect.ImmunData <- function(.immdata, ...) {
-  .immdata$collect(...)
+####
+## Group operations
+####
+
+#' @exportS3Method dplyr::count
+count.ImmunData <- function(.immdata, ...) {
+  .immdata$count(...)
 }
 
+#' @exportS3Method dplyr::group_by
+group_by.ImmunData <- function(.immdata, ...) {
+  .immdata$group_by(...)
+}
+
+#' @exportS3Method dplyr::summarise
 summarise.ImmunData <- function(.immdata, ...) {
   .immdata$summarise(...)
 }
 
+#' @exportS3Method dplyr::summarize
 summarize.ImmunData <- function(.immdata, ...) {
   .immdata$summarise(...)
 }
 
-group_by.ImmunData <- function(.immdata, ...) {
-  .immdata$group_by(...)
+####
+## Data operations
+####
+
+#' @exportS3Method dplyr::compute
+compute.ImmunData <- function(.immdata, ...) {
+  .immdata$compute(...)
 }
+
+#' @exportS3Method dplyr::collect
+collect.ImmunData <- function(.immdata, ...) {
+  .immdata$collect(...)
+}
+
 
 #' @importFrom tibble as_tibble
 #' @export
 DataFrameImmunData <- R6Class(
   "DataFrameImmunData",
   inherit = ImmunData,
-  private = list(),
+  private = list(
+    create_instance = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
+      DataFrameImmunData$new(.dataset = .dataset, .metadata = .metadata)
+    }
+  ),
   public = list(
     initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
       private$dataset <- as_tibble(.dataset)
@@ -251,7 +349,11 @@ DataFrameImmunData <- R6Class(
 DataTableImmunData <- R6Class(
   "DataTableImmunData",
   inherit = ImmunData,
-  private = list(),
+  private = list(
+    create_instance = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
+      DataTableImmunData$new(.dataset = .dataset, .metadata = .metadata)
+    }
+  ),
   public = list(
     initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
       private$dataset <- as_tidytable(.dataset)

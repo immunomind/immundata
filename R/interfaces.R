@@ -5,19 +5,19 @@ SequenceSimilaritySearchInterface <- R6Class(
 BasicAnalysisInterface <- R6Class(
   "BasicAnalysisInterface",
   public = list(
-    explore <- function() {
+    explore = function() {
 
     },
-    clonality <- function() {
+    clonality = function() {
 
     },
-    overlap <- function() {
+    overlap = function() {
 
     },
-    gene_usage <- function() {
+    gene_usage = function() {
 
     },
-    diversity <- function() {
+    diversity = function() {
 
     }
   )
@@ -26,13 +26,13 @@ BasicAnalysisInterface <- R6Class(
 PublicClonotypeInterface <- R6Class(
   "PublicRepertoireInterface",
   public = list(
-    public_repertoire <- function() {
+    public_repertoire = function() {
 
     },
-    track_clonotypes <- function() {
+    track_clonotypes = function() {
 
     },
-    search_database <- function() {
+    search_database = function() {
 
     }
   )

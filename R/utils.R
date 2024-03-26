@@ -18,6 +18,29 @@ assert_r6_gen <- function(
   makeAssertion(x, res, .var.name, add)
 }
 
+check_r6_gen <- function(x, classes = NULL, ordered = FALSE, cloneable = NULL,
+                         public = NULL, private = NULL, null.ok = FALSE) {
+  if (!requireNamespace("R6", quietly = TRUE)) {
+    stop("Install package 'R6' to perform checks of R6 classes")
+  }
+  if (is.null(x)) {
+    if (null.ok) {
+      return(TRUE)
+    }
+    return("Must be an R6 class, not 'NULL'")
+  }
+  if (!R6::is.R6Class(x)) {
+    return(paste0(
+      "Must be an R6 class", if (null.ok) " (or 'NULL')" else "",
+      sprintf(", not %s", guessType(x))
+    ))
+  }
+  checkClass(x, c(classes, "R6ClassGenerator"), ordered) %and% checkR6Props(
+    x,
+    cloneable, public, private
+  )
+}
+
 
 validate_clonotype_model <- function(.input) {
   # Define regex patterns for valid inputs
@@ -75,4 +98,40 @@ immuntest <- function(.backend = "df") {
   imd <- loader$load("some file name doesn't matter")
 
   imd
+}
+
+#' @export
+immunbench <- function(.backend = "df") {
+  loader <- ImmunDataLoader$new("./", .backend)
+
+  imd <- loader$load("some file name doesn't matter")
+
+  bench_data <- imd$clone(deep = TRUE)$data()
+
+  print(class(imd |> group_by(Sample, V.name)))
+  print(class(bench_data))
+
+  print("Imd -> dplyr")
+  print(system.time({
+    imd |>
+      group_by(Sample, V.name) |>
+      summarize(count = n())
+  }))
+  print(system.time({
+    bench_data |>
+      group_by(Sample, V.name) |>
+      summarize(count = n())
+  }))
+
+  print("Dplyr -> imd")
+  print(system.time({
+    bench_data |>
+      group_by(Sample, V.name) |>
+      summarize(count = n())
+  }))
+  print(system.time({
+    imd |>
+      group_by(Sample, V.name) |>
+      summarize(count = n())
+  }))
 }

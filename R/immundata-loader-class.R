@@ -13,35 +13,52 @@
 ImmunDataLoader <- R6Class(
   "ImmunDataLoader",
   private = list(
-    source_path = "",
-    backend = NULL,
-    scan_files = function(.format = NA) {
-      # Placeholder: Implement logic to get all files recursively based on the specified format.
-      # This can use list.files() with pattern argument if .format is not NA
-      # Return a vector of file paths
-    }
+    source = NULL,
+    backend = NULL
   ),
   public = list(
 
     #' @description Constructor for ImmunDataLoader
     #' @details Initializes a new ImmunDataLoader object with a specified source path and backend backend.
-    #' @param .path Character; the path to the directory containing data files.
-    #' @param .backend Character or Backend; the backend backend to use for data processing. Default is "df".
-    #' @param .format Character; the format of the data files to load. This parameter is optional and defaults to NA.
-    initialize = function(.path, .backend = "df", .recursive = c(TRUE, FALSE), .cache = c(TRUE, FALSE), .format = NA) {
-      assert_character(.path, max.len = 1)
-      assert_logical(.recursive[1])
-      assert_logical(.cache[1])
+    #' @param .source Character or object. If character, then either a path to a file(s) or a folder(s) with data files.
+    #' If object, then either a data frame or a list of data frames.
+    #' @param .backend Character or Backend; the backend to use for data processing. Default is "df".
+    #' @param .recursive ...
+    #' @param .cache ...
+    #' @param .format Character; the format of the data files to load. This parameter is optional and defaults to auto" -
+    #' automatic detection of formats.
+    initialize = function(.source, .backend = "df", .recursive = TRUE, .cache = FALSE, .format = "auto") {
+      ###
+      # Argument type checks
+      ###
+      assert(
+        check_character(.source),
+        check_data_frame(.source),
+        check_list(.source)
+      )
+      assert_choice(.recursive, c(TRUE, FALSE))
+      assert_choice(.cache, c(TRUE, FALSE))
       assert(
         check_choice(.backend, get_available_backends()),
         check_r6_gen(.backend)
       )
-      assert(
-        check_character(.format),
-        check_scalar_na(.format)
-      )
+      assert_character(.format, len = 1)
 
-      private$source_path <- .path
+      ###
+      # Body
+      ###
+      if (test_data_frame(.source)) {
+        # Option 1: The data source is a data frame-like structure
+        private$source <- .source
+      } else if (test_list(.source)) {
+        # Option 2: The data source is a list of data frame-like structures
+
+      } else if (test_character(.source)) {
+        # Option 3: The data source is either a filename, a vector of filenames, a folder name, or any mix between them
+        stop(MESSAGES$NotImpl)
+      } else {
+        stop("Unknown type of argument .source passed to ImmunDataLoader$new(...): ", .source)
+      }
 
       if (is.character(.backend)) {
         private$backend <- .immundataglobalenv$backend_registry$get(.backend)
@@ -62,7 +79,7 @@ ImmunDataLoader <- R6Class(
     list = function() {
       # Use the private$scan_files method to list available data files.
       # Return the list to the caller.
-      return(private$scan_files())
+      scan_files()
     },
 
     #' @description Load a Specific Data File
@@ -76,6 +93,10 @@ ImmunDataLoader <- R6Class(
       data(immdata)
       immdata$data <- lapply(names(immdata$data), function(df_name) immdata$data[[df_name]] |> mutate(Sample = df_name))
       immdata$data <- do.call(rbind, immdata$data)
+      immdata$data <- do.call(rbind, list(immdata$data, immdata$data, immdata$data, immdata$data))
+      # immdata$data <- do.call(rbind, list(immdata$data, immdata$data, immdata$data, immdata$data))
+      # immdata$data <- do.call(rbind, list(immdata$data, immdata$data, immdata$data, immdata$data))
+      # immdata$data <- do.call(rbind, list(immdata$data, immdata$data, immdata$data, immdata$data))
       imd <- private$backend$new(immdata$data, immdata$meta)
 
       imd
@@ -91,3 +112,16 @@ ImmunDataLoader <- R6Class(
     }
   )
 )
+
+
+scan_files <- function(.format = NA) {
+  # Placeholder: Implement logic to get all files recursively based on the specified format.
+  # This can use list.files() with pattern argument if .format is not NA
+  # Return a vector of file paths
+}
+
+
+
+# load_immundata <- function () {
+#
+# }

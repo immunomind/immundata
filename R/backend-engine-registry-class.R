@@ -14,9 +14,10 @@
 #' immdata <- ImmunDataLoader$load(MyBackend$new()) # same as above
 #' @keywords internal
 BackendRegistry <- R6Class("BackendRegistry",
-  private = list(),
+  private = list(
+    backends = list()
+  ),
   public = list(
-    backends = list(),
 
     #' @description Object Constructor
     #' @details Initializes the BackendRegistry object.
@@ -25,7 +26,7 @@ BackendRegistry <- R6Class("BackendRegistry",
     #' @description Get a list of engine names
     #' @return Character vector of engine names.
     names = function() {
-      names(self$backends)
+      names(private$backends)
     },
 
     #' @description Register a new backend engine.
@@ -41,7 +42,7 @@ BackendRegistry <- R6Class("BackendRegistry",
 
       for (engine_alias in .name) {
         # TODO: check for the engines which use the same alias
-        self$backends[[engine_alias]] <- .backend
+        private$backends[[engine_alias]] <- .backend
       }
     },
 
@@ -54,8 +55,8 @@ BackendRegistry <- R6Class("BackendRegistry",
     get = function(.name) {
       assert_character(.name, len = 1, min.chars = 1)
 
-      if (!is.null(self$backends[[.name]])) {
-        return(self$backends[[.name]])
+      if (!is.null(private$backends[[.name]])) {
+        return(private$backends[[.name]])
       } else {
         stop("Engine not found: ", .name)
       }
