@@ -5,11 +5,6 @@
 #'
 #' @name ImmunDataLoader
 #' @export
-#' @examples
-#' loader <- ImmunDataLoader$new(".path/to/data", .backend = "df")
-#' data_list <- loader$list()
-#' data <- loader$load("specific_data_file.csv")
-#' all_data <- loader$load_all()
 ImmunDataLoader <- R6Class(
   "ImmunDataLoader",
   private = list(
@@ -67,12 +62,6 @@ ImmunDataLoader <- R6Class(
       }
     },
 
-    #' @description Finalizer for ImmunDataLoader
-    #' @details Cleans up resources when the object is garbage collected.
-    finalize = function() {
-      # Placeholder: Clean up resources if needed, such as closing connections.
-    },
-
     #' @description List Data Files
     #' @details Lists all data files available in the source directory, optionally filtered by format.
     #' @return Character vector of the file names available for loading.
@@ -82,15 +71,18 @@ ImmunDataLoader <- R6Class(
       scan_files()
     },
 
+    #' @importFrom readr read_csv
     #' @description Load a Specific Data File
-    #' @details Loads a specific data file by name using the configured backend backend.
+    #' @details Loads a specific data file by name using the configured backend.
     #' @param .filename Character; the name of the file to load. Could be a vector if you want to load several files.
-    #' @return Data frame or other structure containing the loaded data, depending on the backend backend.
+    #' @return Data frame or other structure containing the loaded data, depending on thebackend backend.
     load = function(.filename) {
       assert_character(.filename, min.len = 1, add = "Filename must be a non-empty string.")
 
-      library(immunarch)
-      data(immdata)
+      immdata <- read_csv(.filename)
+
+      # library(immunarch)
+      # data(immdata)
       immdata$data <- lapply(names(immdata$data), function(df_name) immdata$data[[df_name]] |> mutate(Sample = df_name))
       immdata$data <- do.call(rbind, immdata$data)
       immdata$data <- do.call(rbind, list(immdata$data, immdata$data, immdata$data, immdata$data))

@@ -6,12 +6,6 @@
 #'
 #' @name BackendRegistry
 #' @export
-#' @examples
-#' registry <- BackendRegistry$new()
-#' registry$register("myEngine", MyBackend$new())
-#' immloader <- ImmunDataLoder("path/to/yout/dataset")
-#' immdata <- ImmunDataLoader$load("myEngine")
-#' immdata <- ImmunDataLoader$load(MyBackend$new()) # same as above
 #' @keywords internal
 BackendRegistry <- R6Class("BackendRegistry",
   private = list(
@@ -34,8 +28,6 @@ BackendRegistry <- R6Class("BackendRegistry",
     #' If provided a vector, use every elements as an alias.
     #' @param .backend An instance of the backend engine to register. Must be a child instance of an R6 class "Backend"
     #' @return Invisible. The function is called for its side effect of registering an engine.
-    #' @examples
-    #' registry$register("exampleEngine", ExampleEngine$new())
     register = function(.name, .backend) {
       assert_character(.name, min.chars = 1)
       assert_r6_gen(.backend, classes = "ImmunData")
@@ -50,8 +42,6 @@ BackendRegistry <- R6Class("BackendRegistry",
     #' @param .name The name of the backend engine to retrieve. Must be a non-empty string.
     #' @param ... Other parameters you pass to the constructor of Backend coded by ".name"
     #' @return An instance of the backend engine.
-    #' @examples
-    #' engine <- registry$getEngine("exampleEngine")
     get = function(.name) {
       assert_character(.name, len = 1, min.chars = 1)
 

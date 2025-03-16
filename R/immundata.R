@@ -1,89 +1,38 @@
-# https://dplyr.tidyverse.org/reference/index.html
-# https://dplyr.tidyverse.org/reference/dplyr_extending.html
-# https://github.com/tidyverse/dplyr/blob/b359331a448a693546d77245b0de4d405bab3886/NAMESPACE#L58
-# https://cran.r-project.org/web/packages/checkmate/index.html
-
-
-RepertoireModel <- R6Class(
-  "RepertoireModel",
-  public = list(
-    by = "",
-    names = "",
-    initialize = function(.by, .names) {
-      ###
-      # Argument type checks
-      ###
-      assert_character(.by, min.chars = 1, min.len = 1)
-      assert(
-        check_character(.names, min.chars = 1, min.len = 1),
-        check_function(.names)
-      )
-
-      ###
-      # Body
-      ###
-      self$by <- .by
-      self$names <- .names # TODO: when do we call the function to generate repertoire names?
-    },
-    print = function() {
-
-    }
-  )
-)
-
-ClonotypeModel <- R6Class(
-  "ClonotypeModel",
-  public = list(
-    initialize = function(.code = "", .chain = "", .sequence = "", .gene = "") {
-      assert_clonotype_info <- function(.chain, .sequence, .gene) {
-        assert(
-          check_character(.chain, pattern = ""),
-          check_character(.sequence, pattern = ""),
-          check_character(.gene, pattern = ""),
-          combine = "and"
-        )
-      }
-
-      ###
-      # Argument type checks
-      ###
-      assert(
-        check_character(.code),
-        check_clonotype_info(.chain, .sequence, .gene)
-      )
-
-      if (nchar(.code)) {
-        .code <- stringr::str_split(input, "\\+") |> unlist() # Yes, I do like pipes, they improve the readability.
-        # .chain
-        # .sequence
-        # .gene
-        assert_clonotype_info(.chain, .sequence, .gene)
-      }
-
-      ###
-      # Body
-      ###
-    }
-  )
-)
-
+#' ImmunData: A Unified Data Structure for Immune Receptor Data
+#'
+#' `ImmunData` is an abstract class for managing and processing
+#' immune receptor repertoire data, supporting flexible backends and
+#' efficient data transformations.
+#'
+#' @section Methods:
+#' - `$initialize(.backend, .metadata)`: Creates a new `ImmunData` object.
+#' - `$to_list()`: Converts the dataset into a list.
+#' - `$print()`: Prints the class information.
+#' - `$arrange(...)`: Arranges rows by given variables.
+#' - `$filter(...)`: Filters rows based on conditions.
+#' - `$slice(...)`: Selects specific rows by index.
+#' - `$slice_head(...)`: Selects the first rows of the dataset.
+#' - `$slice_tail(...)`: Selects the last rows of the dataset.
+#' - `$mutate(...)`: Modifies or adds columns.
+#' - `$select(...)`: Selects specific columns.
+#' - `$count(...)`: Counts occurrences of groupings.
+#' - `$group_by(...)`: Groups data by variables.
+#' - `$summarise(...)`: Aggregates data.
+#' - `$compute(...)`: Computes intermediate results.
+#' - `$collect(...)`: Collects data into memory.
+#' - `$[[(.sample)`: Extracts sample-specific data.
+#' - `$data()`: Retrieves the stored dataset.
+#'
 #' @importFrom R6 R6Class
 #' @export
 ImmunData <- R6Class(
   "ImmunData",
   private = list(
-    dataset = NULL,
+    backend = NULL,
     metadata = NULL,
     repertoire_model = NULL,
     clonotype_model = NULL,
     repertoire_names = NULL,
-    # from_data_frame
-    # from_list
-    # from_text_file
-    # from_folder
-    # from_database
-    # from_immundata_file
-    # from_immundata_database
 
     create_instance = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
       stop(MESSAGES$NotImpl)
@@ -91,86 +40,68 @@ ImmunData <- R6Class(
   ),
   public = list(
 
-    ####
-    ## Basic interface
-    ####
-    initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
-      private$dataset <- .dataset
+    #' @description Initializes an `ImmunData` object.
+    #' @param .backend The backend storage format for the dataset.
+    #' @param .metadata The metadata associated with the dataset.
+    initialize = function(.backend, .metadata) {
+      private$backend <- .backend
       private$metadata <- .metadata
-      private$repertoire_model <- .repertoire_model
-      private$clonotype_model <- .clonotype_model
-      # if (inherits(dataset, "list")) {
-      #   # If dataset is a list with "data" and "meta" from immunarch
-      #   if (all(c("data", "meta") %in% names(dataset))) {
-      #     metadata <- dataset$meta
-      #     dataset <- dataset$data
-      #   }
-      #   # TODO: if no metadata, and metadata is NULL
-      #
-      #   # If dataset is a list with immune repertoires, and metadata is passed separately
-      #   private$dataset <- lapply(names(dataset), function(df_name) {
-      #     metadata_row <- metadata %>%
-      #       filter(Sample == df_name)
-      #     metadata_row <- rename_all(
-      #       metadata_row,
-      #       function(x) paste("Metadata", x, sep = ".")
-      #     )
-      #
-      #     metadata_row <- metadata_row %>% slice(rep(1:n(), each = nrow(dataset[[df_name]])))
-      #
-      #     bind_cols(dataset[[df_name]], metadata_row)
-      #   })
-      #
-      #   private$dataset <- do.call(rbind, private$dataset)
-      #
-      #   private$metadata <- metadata
-      # } else {
-      #   # If dataset is a single immune repertoire file
-      #   private$dataset <- dataset
-      #   private$metadata <- metadata
-      # }
     },
-    finalize = function() {
 
-    },
+    #' @description Converts the dataset into a list.
+    #' @return A named list containing `data` and `meta` components.
     to_list = function() {
       dataset <- private$dataset %>% group_split()
       names(dataset) <- private$repertoire_names
       metadata <- NULL
       list(data = dataset, meta = metadata)
     },
+
+    #' @description Prints the class information.
     print = function() {
       class(self)
     },
 
-    ####
-    ## Row operations
-    ####
-
+    #' @description Arranges rows by given variables.
+    #' @param ... Columns to sort by.
+    #' @return A new `ImmunData` object with arranged rows.
     arrange = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% arrange(...),
         .metadata = private$metadata
       )
     },
+
+    #' @description Filters rows based on conditions.
+    #' @param ... Filter conditions.
+    #' @return A new `ImmunData` object with filtered rows.
     filter = function(...) {
-      private$create_instance(
-        .dataset = private$dataset %>% filter(...),
-        .metadata = private$metadata
-      )
+      ImmunData$new(private$backend.filter(...), metadata)
     },
+
+    #' @description Selects specific rows by index.
+    #' @param ... Row indices.
+    #' @return A new `ImmunData` object with selected rows.
     slice = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% slice(...),
         .metadata = private$metadata
       )
     },
+
+    #' @description Selects the first rows of the dataset.
+    #' @param ... Number of rows to return.
+    #' @return A new `ImmunData` object with the first rows.
     slice_head = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% slice_head(...),
         .metadata = private$metadata
       )
     },
+
+    #' @description Selects the last rows of the dataset.
+    #' @param ... Number of rows to return.
+    #' @return A new `ImmunData` object with the last rows.
     slice_tail = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% slice_tail(...),
@@ -178,16 +109,19 @@ ImmunData <- R6Class(
       )
     },
 
-    ####
-    ## Column operations
-    ####
-
+    #' @description Modifies or adds columns.
+    #' @param ... Column transformations.
+    #' @return A new `ImmunData` object with modified columns.
     mutate = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% mutate(...),
         .metadata = private$metadata
       )
     },
+
+    #' @description Selects specific columns.
+    #' @param ... Columns to retain.
+    #' @return A new `ImmunData` object with selected columns.
     select = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% select(...),
@@ -195,22 +129,29 @@ ImmunData <- R6Class(
       )
     },
 
-    ####
-    ## Group operations
-    ####
-
+    #' @description Counts occurrences of groupings.
+    #' @param ... Variables to count.
+    #' @return A new `ImmunData` object with count summary.
     count = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% count(...),
         .metadata = private$metadata
       )
     },
+
+    #' @description Groups data by variables.
+    #' @param ... Variables to group by.
+    #' @return A new `ImmunData` object with grouped data.
     group_by = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% group_by(...),
         .metadata = private$metadata
       )
     },
+
+    #' @description Aggregates data.
+    #' @param ... Aggregation expressions.
+    #' @return A new `ImmunData` object with summarized data.
     summarise = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% summarise(...),
@@ -218,31 +159,39 @@ ImmunData <- R6Class(
       )
     },
 
-    ####
-    ## Data operations
-    ####
-
+    #' @description Computes intermediate results.
+    #' @param ... Additional arguments passed to the compute function.
+    #' @return A new `ImmunData` object with computed results.
     compute = function(...) {
       private$create_instance(
         .dataset = private$dataset %>% compute(...),
         .metadata = private$metadata
       )
     },
+
+    #' @description Collects data into memory.
+    #' @param ... Additional arguments passed to the collect function.
+    #' @return The collected dataset.
     collect = function(...) {
       private$dataset %>% collect(...)
     },
+
+    #' @description Extracts sample-specific data.
+    #' @param .sample The sample identifier.
+    #' @return A filtered dataset containing only the selected sample.
     `[[` = function(.sample) {
       check_character(.sample)
-
-      # Not sample but columns by which was grouped
-      # OR the sample or ID
       private$dataset |> filter(Sample == .sample)
     },
+
+    #' @description Retrieves the stored dataset.
+    #' @return The dataset stored in the object.
     data = function() {
       private$dataset
     }
   )
 )
+
 
 ####
 ## Row operations
@@ -297,8 +246,8 @@ count.ImmunData <- function(.immdata, ...) {
 }
 
 #' @exportS3Method dplyr::group_by
-group_by.ImmunData <- function(.immdata, ...) {
-  .immdata$group_by(...)
+group_by.ImmunData <- function(.data, ...) {
+  .data$group_by(...)
 }
 
 #' @exportS3Method dplyr::summarise
@@ -326,6 +275,25 @@ collect.ImmunData <- function(.immdata, ...) {
 }
 
 
+#' DataFrameImmunData: ImmunData Representation Using Tibble
+#'
+#' This class extends `ImmunData` and represents immune receptor repertoire data
+#' using `tibble` as the internal data structure.
+#'
+#' @section Methods:
+#' \describe{
+#'   \item{\code{new(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL)}}{
+#'     Creates a new `DataFrameImmunData` object.
+#'   }
+#' }
+#'
+#' @param .dataset A data frame containing immune receptor data.
+#' @param .metadata A data frame containing metadata information.
+#' @param .repertoire_model Optional. A model for repertoire-level analysis.
+#' @param .clonotype_model Optional. A model for clonotype-level analysis.
+#'
+#' @return An object of class `DataFrameImmunData`.
+#'
 #' @importFrom tibble as_tibble
 #' @export
 DataFrameImmunData <- R6Class(
@@ -337,6 +305,12 @@ DataFrameImmunData <- R6Class(
     }
   ),
   public = list(
+
+    #' @description Initializes a `DataFrameImmunData` object.
+    #' @param .dataset A data frame containing immune receptor data.
+    #' @param .metadata A data frame containing metadata information.
+    #' @param .repertoire_model Optional. A model for repertoire-level analysis.
+    #' @param .clonotype_model Optional. A model for clonotype-level analysis.
     initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
       private$dataset <- as_tibble(.dataset)
       private$metadata <- as_tibble(.metadata)
@@ -345,6 +319,25 @@ DataFrameImmunData <- R6Class(
 )
 
 
+#' DataTableImmunData: ImmunData Representation Using tidytable
+#'
+#' This class extends `ImmunData` and represents immune receptor repertoire data
+#' using `tidytable` as the internal data structure.
+#'
+#' @section Methods:
+#' \describe{
+#'   \item{\code{new(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL)}}{
+#'     Creates a new `DataTableImmunData` object.
+#'   }
+#' }
+#'
+#' @param .dataset A data frame containing immune receptor data.
+#' @param .metadata A data frame containing metadata information.
+#' @param .repertoire_model Optional. A model for repertoire-level analysis.
+#' @param .clonotype_model Optional. A model for clonotype-level analysis.
+#'
+#' @return An object of class `DataTableImmunData`.
+#'
 #' @importFrom tidytable as_tidytable
 #' @export
 DataTableImmunData <- R6Class(
@@ -356,6 +349,12 @@ DataTableImmunData <- R6Class(
     }
   ),
   public = list(
+
+    #' @description Initializes a `DataTableImmunData` object.
+    #' @param .dataset A data frame containing immune receptor data.
+    #' @param .metadata A data frame containing metadata information.
+    #' @param .repertoire_model Optional. A model for repertoire-level analysis.
+    #' @param .clonotype_model Optional. A model for clonotype-level analysis.
     initialize = function(.dataset, .metadata, .repertoire_model = NULL, .clonotype_model = NULL) {
       private$dataset <- as_tidytable(.dataset)
       private$metadata <- as_tibble(.metadata)

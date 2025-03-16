@@ -1,3 +1,9 @@
+utils::globalVariables(c("Sample", "V.name"))
+
+#' @importFrom checkmate checkClass
+#' @importFrom checkmate assert
+#' @importFrom checkmate assertChoice
+#' @importFrom checkmate vname
 assert_r6_gen <- function(
     x,
     classes = NULL,
@@ -31,14 +37,10 @@ check_r6_gen <- function(x, classes = NULL, ordered = FALSE, cloneable = NULL,
   }
   if (!R6::is.R6Class(x)) {
     return(paste0(
-      "Must be an R6 class", if (null.ok) " (or 'NULL')" else "",
-      sprintf(", not %s", guessType(x))
+      "Must be an R6 class", if (null.ok) " (or 'NULL')" else ""
     ))
   }
-  checkClass(x, c(classes, "R6ClassGenerator"), ordered) %and% checkR6Props(
-    x,
-    cloneable, public, private
-  )
+  checkClass(x, c(classes, "R6ClassGenerator"), ordered)
 }
 
 
@@ -49,7 +51,7 @@ validate_clonotype_model <- function(.input) {
   valid_gene <- "^[vjdc]*$" # Allow missing V, J, D, C or any combination
 
   # Split the input string
-  components <- unlist(stringr::str_split(input, "\\+"))
+  components <- unlist(stringr::str_split(.input, "\\+"))
 
   # Extract parts
   chain_component <- components[1]
@@ -91,6 +93,14 @@ validate_clonotype_model <- function(.input) {
 }
 
 
+#' Run a Basic Test for ImmunDataLoader
+#'
+#' This function initializes an `ImmunDataLoader` and loads an example dataset.
+#'
+#' @param .backend Character string specifying the backend to use.
+#'   Supported backends include `"df"` (data frame) and others defined in `ImmunDataLoader`.
+#'
+#' @return An `ImmunData` object containing the loaded dataset.
 #' @export
 immuntest <- function(.backend = "df") {
   loader <- ImmunDataLoader$new("./", .backend)
@@ -100,6 +110,18 @@ immuntest <- function(.backend = "df") {
   imd
 }
 
+
+#' Benchmark ImmunData Against dplyr Operations
+#'
+#' This function benchmarks operations on an `ImmunData` object and a
+#' `dplyr`-based data frame, comparing performance in grouping and summarizing.
+#'
+#' @param .backend Character string specifying the backend to use.
+#'   Supported backends include `"df"` (data frame) and others defined in `ImmunDataLoader`.
+#'
+#' @return Prints benchmarking results to the console.
+#'
+#' @importFrom dplyr group_by summarize n
 #' @export
 immunbench <- function(.backend = "df") {
   loader <- ImmunDataLoader$new("./", .backend)
