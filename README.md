@@ -6,8 +6,16 @@
 
 ```r
 library(immundata)
-library(dplyr)
 library(duckplyr)
+
+md_path <- system.file("extdata", "metadata_samples.tsv", package = "immundata")
+samples <- c(
+  system.file("extdata", "sample_0_1k.tsv", package = "immundata"), 
+  system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
+  )
+
+md <- load_metadata(md_path)
+imdata <- load_repertoires(samples, c("cdr3_aa", "v_call"), md)
 ```
 
 ## Input / output
