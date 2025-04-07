@@ -7,7 +7,9 @@ IMD_GLOBALS <- list(
     barcode = "imd_barcode",
     receptor = "imd_receptor_id",
     repertoire = "imd_repertoire_id",
-    metadata_filename = "imd_filename"
+    metadata_filename = "imd_filename",
+    count = "imd_count",
+    filename = "filename"
   ),
   files = list(
     receptors = "receptors.parquet",

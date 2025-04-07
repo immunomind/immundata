@@ -30,7 +30,7 @@ Suppose you have several files. How to read them?
 
 ### Working with the repertoire metadata file
 
-`immundata` modularizes different parts to make sure ??? (modularity / one big function is bad) Henceforth, `immundata` splits the repertoire dataset loading into three steps:
+`immundata` modularizes different parts to make sure ??? (modularity / one big function is bad). Henceforth, `immundata` splits the repertoire dataset loading into three steps:
 
   1. Optionally, load the metadata via `load_metadata`
   
@@ -61,6 +61,10 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 - visualize AIRR with annotations data
 - visualize SC with annotation data
 
+#### Paired chain data - single-cell or others
+
+???
+
 #### Spatial data
 
 - load annotation data
@@ -69,11 +73,15 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 - visualize AIRR with annotations data
 - visualize SC with annotation data
 
-#### Hybrid data
+#### Immunogenicity -- annotations from external tools
 
 ...
 
 #### Multi-locus data
+
+...
+
+#### Hybrid data
 
 ...
 
@@ -181,3 +189,18 @@ Take a look at our benchmark page to learn more: `link`
 8. **Q: Why does `immundata` have its own column names for receptors and repertoires? Could you just use the AIRR format - repertoire_id etc.?**
 
    A: The power of `immundata` lies in the fast re-aggregation of the data, that allows to work with whatever you define as a repertoire on the fly via `ImmunData$build_repertoires(schema = ...)`
+
+9. **Q: What do I do with following error: "Error in `compute_parquet()` at [...]: ! {"exception_type":"IO","exception_message":"Failed to write [...]: Failed to read file [...]: schema mismatch in glob: column [...] was read from the original file [...], but could not be found in file [...] If you are trying to read files with different schemas, try setting union_by_name=True"}?***
+
+   A: It means that your repertoire files have different schemas, i.e., different column names. You have two options.
+   
+   **Option 1:** Check the data and fix the schema. Explore the reason why the data have different schemas. Remove wrong files. Change column names. And try again.
+   
+   **Option 2:** If you know what you are doing, pass argument `enforce_schema = FALSE` to `load_repertoires`. The resultant table will have NAs in the place of missing values. But don't use it without considering the first option. Broken schema usually means that there are some issues in the how the data were processed.
+
+
+
+
+
+
+

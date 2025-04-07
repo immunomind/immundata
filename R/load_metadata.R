@@ -44,8 +44,7 @@ load_metadata <- function(metadata, filename_col = "File", delim = "\t", ...) {
 
     normalizePath(path)
   })
-
-  print(metadata_table)
+  names(metadata_table[[filename_col]]) <- NULL
 
   # Check how many files from the file column exist:
   file_list <- metadata_table[[filename_col]]
@@ -61,6 +60,10 @@ load_metadata <- function(metadata, filename_col = "File", delim = "\t", ...) {
   }
 
   cli_alert_success("Metadata parsed successfully")
+
+  # Renaming columns could lead to downstream schema issues
+  immundata_filename_col <- IMD_GLOBALS$schema$filename
+  metadata_table[[immundata_filename_col]] <- metadata_table[[filename_col]]
 
   metadata_table
 }
