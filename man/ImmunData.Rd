@@ -20,9 +20,9 @@ efficient receptors transformations.
 
 \item{\code{.annotations}}{description}
 
-\item{\code{receptor_schema}}{description}
+\item{\code{schema_receptor}}{description}
 
-\item{\code{repertoire_schema}}{description}
+\item{\code{schema_repertoire}}{description}
 }
 \if{html}{\out{</div>}}
 }

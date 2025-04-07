@@ -1,16 +1,22 @@
 #' @export
-load_immundata <- function(foldername, schema, verbose = TRUE) {
+load_immundata <- function(path, verbose = TRUE) {
   if (verbose) {
-    cli_alert_info("Loading ImmunData files from [{.path {foldername}}]")
+    cli_alert_info("Loading ImmunData files from [{.path {path}}]")
   }
 
-  assert_directory_exists(foldername)
+  assert_directory_exists(path)
 
-  assert_file_exists(file.path(foldername, imd_files()$receptors))
-  assert_file_exists(file.path(foldername, imd_files()$annotations))
+  assert_file_exists(file.path(path, imd_files()$receptors))
+  assert_file_exists(file.path(path, imd_files()$annotations))
 
-  receptor_data <- read_parquet_duckdb(file.path(foldername, imd_files()$receptors))
-  annotation_data <- read_parquet_duckdb(file.path(foldername, imd_files()$annotations))
+  receptor_data <- read_parquet_duckdb(file.path(path, imd_files()$receptors), prudence = "stingy")
+  annotation_data <- read_parquet_duckdb(file.path(path, imd_files()$annotations), prudence = "stingy")
+
+  schema <- receptor_data |> colnames()
+
+  if (verbose) {
+    cli_alert_success("Loaded ImmunData with the schema: [{schema}]")
+  }
 
   ImmunData$new(
     receptors = receptor_data,

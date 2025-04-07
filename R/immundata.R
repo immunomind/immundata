@@ -6,8 +6,8 @@
 #'
 #' @field .receptors description
 #' @field .annotations description
-#' @field receptor_schema description
-#' @field repertoire_schema description
+#' @field schema_receptor description
+#' @field schema_repertoire description
 #'
 #' @importFrom R6 R6Class
 #' @export
@@ -16,8 +16,8 @@ ImmunData <- R6Class(
   public = list(
     .receptors = NULL,
     .annotations = NULL,
-    receptor_schema = NULL,
-    repertoire_schema = NULL,
+    schema_receptor = NULL,
+    schema_repertoire = NULL,
 
     #' @description Initializes an `ImmunData` object.
     #'
@@ -29,7 +29,7 @@ ImmunData <- R6Class(
                           schema) {
       self$.receptors <- receptors
       self$.annotations <- annotations
-      self$receptor_schema <- schema
+      self$schema_receptor <- schema
 
       # TODO: where was the schema built - inside or outside ImmunData? This is related to caching.
       # TODO: when do we assume the correct input?
@@ -87,7 +87,7 @@ ImmunData <- R6Class(
       ImmunData$new(
         receptors = filtered_data,
         annotations = filtered_annot,
-        schema = self$receptor_schema
+        schema = self$schema_receptor
       )
     },
 
@@ -115,7 +115,7 @@ ImmunData <- R6Class(
       ImmunData$new(
         receptors = filtered_data,
         annotations = filtered_annot,
-        schema = self$receptor_schema
+        schema = self$schema_receptor
       )
     },
 
@@ -145,7 +145,7 @@ ImmunData <- R6Class(
       ImmunData$new(
         receptors = filtered_data,
         annotations = filtered_annot,
-        schema = self$receptor_schema
+        schema = self$schema_receptor
       )
     },
 
@@ -191,7 +191,7 @@ compute.ImmunData <- function(immdata, ...) {
   ImmunData$new(
     receptors = immdata$receptors |> compute(),
     annotations = immdata$annotations |> compute(),
-    schema = immdata$receptor_schema
+    schema = immdata$schema_receptor
   )
 }
 
@@ -202,6 +202,6 @@ collect.ImmunData <- function(immdata, ...) {
   ImmunData$new(
     receptors = immdata$receptors |> collect(),
     annotations = immdata$annotations |> collect(),
-    schema = immdata$receptor_schema
+    schema = immdata$schema_receptor
   )
 }
