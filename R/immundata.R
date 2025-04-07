@@ -1,29 +1,47 @@
-#' ImmunData: A Unified receptors Structure for Immune Receptor receptors
+#' @title ImmunData: A Unified Structure for Immune Receptor Repertoire Data
 #'
-#' `ImmunData` is an abstract class for managing and processing
-#' immune receptor repertoire receptors, supporting flexible backends and
-#' efficient receptors transformations.
-#'
-#' @field .receptors description
-#' @field .annotations description
-#' @field schema_receptor description
-#' @field schema_repertoire description
+#' @description
+#' `ImmunData` is an abstract R6 class for managing and transforming immune receptor repertoire data.
+#' It supports flexible backends (e.g., Arrow, DuckDB, dbplyr) and lazy evaluation,
+#' and provides tools for filtering, aggregation, and receptor-to-repertoire mapping.
 #'
 #' @importFrom R6 R6Class
 #' @export
 ImmunData <- R6Class(
   "ImmunData",
   public = list(
+
+    #' @field .receptors A receptor-level table containing immune receptor features
+    #'   (e.g., CDR3, V/J gene, clonotype ID, counts). This table is typically aggregated
+    #'   and is used for quantitative analysis of immune repertoire signatures.
+    #'   It can be a local tibble, Arrow Table, DuckDB table, or any other
+    #'   `dplyr`-compatible backend (including lazy data sources).
     .receptors = NULL,
+
+    #' @field .annotations A barcode-level table that links each barcode (i.e., cell ID)
+    #'   to a receptor in `.receptors`. It can also store cell-level metadata such as
+    #'   sample ID, donor, or tissue source. This table is **not aggregated** and
+    #'   typically contains one row per barcode.
     .annotations = NULL,
+
+    #' @field schema_receptor A named list describing how to interpret receptor-level data.
+    #'   This includes the fields used for aggregation (e.g., `CDR3`, `V_gene`, `J_gene`),
+    #'   and optionally unique identifiers for each receptor row. Used to ensure consistency
+    #'   across processing steps.
     schema_receptor = NULL,
+
+    #' @field schema_repertoire A named list defining how barcodes or annotations should be
+    #'   grouped into repertoires. This may include sample-level metadata (e.g., `sample_id`,
+    #'   `donor_id`) used to define unique repertoires.
     schema_repertoire = NULL,
 
-    #' @description Initializes an `ImmunData` object.
+    #' @description Creates a new `ImmunData` object.
+    #' This constructor expects receptor-level and barcode-level data,
+    #' along with a receptor schema defining aggregation and identity fields.
     #'
-    #' @param receptors description
-    #' @param annotations description
-    #' @param schema description
+    #' @param receptors A receptor-level dataset (e.g., grouped by CDR3/V/J).
+    #' @param annotations A cell/barcode-level dataset mapping barcodes to receptor rows.
+    #' @param schema A named list specifying the receptor schema (e.g., aggregate fields, ID columns).
     initialize = function(receptors,
                           annotations,
                           schema) {
@@ -37,18 +55,20 @@ ImmunData <- R6Class(
       # - repertoire building does not remove any information
     },
 
-    #' @description Define how this dataset groups receptors to repertoires.
+    #' @description Defines repertoires by concatenating selected annotation columns.
     #'
-    #' @param columns description
-    #' @param sep description
+    #' @param schema A character vector of column names in `.annotations` used to define repertoire grouping.
+    #' @param sep A string separator used to concatenate multiple columns into a single repertoire ID.
     build_repertoires = function(schema = "repertoire_id", sep = "-") {
       checkmate::check_character(schema)
       checkmate::check_character(sep)
 
       missing_cols <- setdiff(schema, colnames(self$annotations))
       if (length(missing_cols) > 0) {
-        stop("Missing columns in `annotations`: ",
-             paste(missing_cols, collapse = ", "))
+        stop(
+          "Missing columns in `annotations`: ",
+          paste(missing_cols, collapse = ", ")
+        )
       }
 
       rep_col <- IMD_SCHEMA$repertoire
@@ -63,15 +83,17 @@ ImmunData <- R6Class(
       invisible(self)
     },
 
-    #' @description Prints the class information.
+    #' @description Prints class information for the `ImmunData` object.
     print = function() {
       class(self)
     },
 
-    #' @description Filters rows based on conditions.
-    #' @param ... Filter conditions.
-    #' @return A new `ImmunData` object with filtered rows.
-    filter_data = function(...) {
+    #' @description Filters the receptor-level data using tidyverse filter syntax,
+    #' and then updates the annotation table to include only linked barcodes.
+    #'
+    #' @param ... Filtering conditions applied to the receptor-level table.
+    #' @return A new `ImmunData` object with filtered receptor and annotation tables.
+    filter_receptors = function(...) {
       receptor_sym <- rlang::sym(IMD_SCHEMA$receptor)
       barcode_sym <- rlang::sym(IMD_SCHEMA$barcode)
 
@@ -95,8 +117,12 @@ ImmunData <- R6Class(
     # TODO: filter by regex
     # TODO: filter by length
 
-    #' @description Filters rows based on conditions.
-    filter_annot = function(...) {
+    #' @description Filters the annotation-level table using tidyverse filter syntax,
+    #' and updates the receptor table to include only matching receptor entries.
+    #'
+    #' @param ... Filtering conditions applied to the annotations table.
+    #' @return A new `ImmunData` object with filtered annotation and receptor tables.
+    filter_annotations = function(...) {
       receptor_sym <- rlang::sym(IMD_SCHEMA$receptor)
 
       # Capture filter expression for annotations
@@ -119,9 +145,11 @@ ImmunData <- R6Class(
       )
     },
 
-    #' @description Filters rows based on conditions.
+    #' @description Filters the dataset by a set of barcodes (unique cell IDs).
+    #' The resulting object contains only rows linked to those barcodes.
     #'
-    #' @param barcodes description
+    #' @param barcodes A character vector of barcodes to retain.
+    #' @return A new `ImmunData` object filtered by barcode.
     filter_barcodes = function(barcodes = c()) {
       checkmate::check_character(barcodes, .min.len = 1)
 
@@ -151,40 +179,34 @@ ImmunData <- R6Class(
 
     # TODO: filter_repertoires
 
-    #' @description Counts occurrences of groupings.
-    #' @param ... Variables to count.
-    #' @return A new `ImmunData` object with count summary.
-    count = function(...) {
-      private$create_instance(receptors = private$dataset %>% count(...),
-                              .metadata = private$metadata)
-    },
-
-    #' @description Extracts sample-specific receptors.
-    #' @param .sample The sample identifier.
-    #' @return A filtered dataset containing only the selected sample.
+    #' @description Extracts a sample-specific view of the dataset.
+    #'
+    #' @param .sample A sample identifier used to filter the receptor data.
+    #' @return A subset of the receptor dataset corresponding to the selected sample.
     `[[` = function(.sample) {
       check_character(.sample)
       private$dataset |> filter(Sample == .sample)
     }
   ),
-
   active = list(
 
-    #' @description A short description...
-    #'
+    #' @field receptors Accessor for the receptor-level table (`.receptors`).
     receptors = function() {
       self$.receptors
     },
 
-    #' @description A short description...
-    #'
+    #' @field annotations Accessor for the annotation-level table (`.annotations`).
     annotations = function() {
       self$.annotations
     }
   )
 )
 
-#' @exportS3Method dplyr::compute
+#' @title Materializes all lazy tables in the `ImmunData` object using `dplyr::compute()`.
+#' @param immdata An `ImmunData` object.
+#' @param ... Other arguments passed to [dplyr::compute]
+#' @return A new `ImmunData` object with computed receptor and annotation tables.
+#' @importFrom dplyr compute
 compute.ImmunData <- function(immdata, ...) {
   checkmate::check_r6(immdata, ImmunData)
 
@@ -195,7 +217,11 @@ compute.ImmunData <- function(immdata, ...) {
   )
 }
 
-#' @exportS3Method dplyr::collect
+#' @title Collects all lazy tables in the `ImmunData` object into memory using `dplyr::collect()`.
+#' @param immdata An `ImmunData` object.
+#' @param ... Other arguments passed to [dplyr::collect]
+#' @return A new `ImmunData` object with in-memory receptor and annotation tables.
+#' @importFrom dplyr collect
 collect.ImmunData <- function(immdata, ...) {
   checkmate::check_r6(immdata, ImmunData)
 

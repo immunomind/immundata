@@ -4,3 +4,6 @@
 ^LICENSE\.md$
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
+^inst/extdata/testing
+^TODO.md$
+^.*\.DS_Store$

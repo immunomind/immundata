@@ -1,11 +1,41 @@
+#' @title Load and Validate Metadata Table for Immune Repertoire Files
+#'
+#' @description#'
+#' This function loads a metadata table from either a file path or a data frame,
+#' validates the presence of a column with repertoire file paths, and converts all
+#' file paths to absolute paths. It is used to support flexible pipelines for
+#' loading bulk or single-cell immune repertoire data across samples.
+#'
+#' If the input is a file path, the function attempts to read it with `readr::read_delim`.
+#' If the input is a data frame, it checks whether file paths are absolute;
+#' relative paths are only allowed when metadata is loaded from a file.
+#'
+#' It warns the user if many of the files listed in the metadata table are missing,
+#' and stops execution if none of the files exist.
+#'
+#' The column with file paths is normalized and renamed to match the internal filename schema.
+#'
+#' @param metadata A metadata table. Can be either:
+#'   - a data frame with metadata,
+#'   - or a path to a text/TSV/CSV file that can be read with `readr::read_delim`.
+#'
+#' @param filename_col A string specifying the name of the column in the metadata table
+#'   that contains paths to repertoire files. Defaults to `"File"`.
+#'
+#' @param delim Delimiter used to read the metadata file (if a path is provided). Defaults to `"\t"`.
+#'
+#' @param ... Additional arguments passed to `readr::read_delim()` when reading metadata from a file.
+#'
+#' @return A validated and updated metadata data frame with absolute file paths,
+#'   and an additional column renamed according to `IMD_GLOBALS$schema$filename`.
+#'
 #' @importFrom readr read_delim
 #' @importFrom checkmate test_data_frame test_file_exists
-#' @importFrom cli cli_alert_warning
-#'
-#' @param metadata Either a path to the file with a metadata table, or a data frame with metadata.
-#' @param ... Other parameters passed to `readr::read_delim`
+#' @importFrom cli cli_alert_warning cli_alert_info cli_alert_success cli_abort
+#' @importFrom utils tail
 #'
 #' @export
+
 load_metadata <- function(metadata, filename_col = "File", delim = "\t", ...) {
 
   if (!test_data_frame(metadata) && !test_file_exists(metadata)) {

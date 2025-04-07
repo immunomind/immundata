@@ -3,6 +3,56 @@
 #' @importFrom duckplyr read_parquet_duckdb read_csv_duckdb compute_parquet duckdb_tibble
 #' @importFrom checkmate assert_character assert_logical assert_file_exists assert_directory_exists assert_data_frame
 #' @importFrom rlang sym
+#'
+#' @title Load and Aggregate Immune Receptor Repertoire Data
+#'
+#' @description
+#' This function ingests a repertoire dataset (Parquet, CSV, or TSV), aggregates receptors
+#' based on a user-defined schema, and splits the result into receptor-level and annotation-level
+#' tables. The resulting data is saved to a designated output folder as two Parquet files
+#' (receptors and annotations) and then reloaded to create an `ImmunData` object.
+#'
+#' @param path
+#'   Path to an input file. This file may be Parquet, CSV, or TSV. The file extension is
+#'   automatically detected and handled.
+#' @param schema
+#'   Character vector defining which columns in the input data should be used to
+#'   identify unique receptor signatures. For example, `c("V_gene", "J_gene", "CDR3_nt")`.
+#' @param metadata
+#'   An optional data frame containing additional metadata to merge into the annotation table.
+#'   Default is `NULL`.
+#' @param barcode_col
+#'   An optional character string specifying the column in the input data that represents
+#'   cell barcodes or other unique identifiers. Default is `NULL`.
+#' @param count_col
+#'   An optional character string specifying the column in the input data that stores
+#'   bulk receptor counts. Default is `NULL`.
+#' @param repertoire_schema
+#'   An optional character vector defining how annotations should be grouped into repertoires
+#'   (for example, `c("sample", "donor")`). Currently unused in this function, but reserved
+#'   for future expansions. Default is `NULL`.
+#' @param output_folder
+#'   Character string specifying the directory to save the resulting Parquet files. If `NULL`,
+#'   a folder named `immundata-<basename_of_path>` is created in the same directory as `path`.
+#' @param enforce_schema
+#'   Logical. If `TRUE`, column names and types must strictly match between files. If `FALSE`,
+#'   columns are unioned
+#' @param verbose
+#' .  Logical. Not used -- for now.
+#'
+#' @details
+#' 1. **Reading** – The function automatically detects whether `path` points
+#'    to a Parquet, CSV, or TSV file, using `read_parquet_duckdb` or `read_csv_duckdb`.
+#' 2. **Aggregation** – Receptor uniqueness is determined by the columns named in
+#'    `schema`, while barcodes or counts are handled depending on which parameters
+#'    (`barcode_col`, `count_col`) are provided.
+#' 3. **Saving** – The final receptor-level and annotation-level tables are written
+#'    to Parquet files in `output_folder`.
+#' 4. **Reloading** – The function calls [load_immundata()] on the newly
+#'    created folder to return a fully instantiated `ImmunData`.
+#'
+#' @seealso [load_immundata()], [ImmunData]
+#'
 #' @export
 load_repertoires <- function(path,
                              schema,

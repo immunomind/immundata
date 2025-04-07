@@ -25,7 +25,7 @@ imdata <- load_repertoires(samples, c("cdr3_aa", "v_call"), md)
 parquet etc.
 
 
-### Read one or multiple files into `immundata`
+### Read one or multiple AIRR files into `immundata`
 
 Suppose you have several files. How to read them?
 
@@ -57,11 +57,11 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 - data lineage is crucial for full reproducibility
 
 
-### Modalities - bulk, single-cell, spatial, hybrid
+### Modalities of the data source
 
-#### Bulk data (RepSeq, AIRRSeq)
+#### Bulk -- RepSeq, AIRRSeq
 
-#### Single-cell data (scRNAseq, scVDJseq, scTCRseq, scBCRseq)
+#### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
 
 - load annotation data
 - do something
@@ -69,11 +69,11 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 - visualize AIRR with annotations data
 - visualize SC with annotation data
 
-#### Paired chain data - single-cell or others
+#### Paired-chain -- scVDJseq or other technologies
 
 ???
 
-#### Spatial data
+#### Spatial -- spatial transcriptomics and cell coordinates
 
 - load annotation data
 - do something
@@ -85,11 +85,22 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 
 ...
 
-#### Multi-locus data
+
+#### Hybrid datasets
+
+##### Multi-locus data
 
 ...
 
-#### Hybrid data
+##### Multiple contigs for TCR
+
+...
+
+##### BCR-heavy chains with multiple light chains
+
+...
+
+##### Bulk and single-cell data integration
 
 ...
 

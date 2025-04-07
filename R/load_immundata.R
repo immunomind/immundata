@@ -1,3 +1,24 @@
+#' @title Load a Saved ImmunData Object from Disk
+#'
+#' @description
+#' Loads an `ImmunData` object from a directory created by Immundata I/O functions
+#' (e.g., `load_repertoires()` with file splitting or saving). It reads receptor-level
+#' and annotation-level data from standardized Parquet files and reconstructs a
+#' new `ImmunData` object with inferred schema.
+#'
+#' This function expects two files inside the provided directory:
+#' - `receptors.parquet`: contains the receptor-level table
+#' - `annotations.parquet`: contains the annotation-level table
+#'
+#' These filenames are defined in `imd_files()` and follow the Immundata storage convention.
+#'
+#' @param path Path to the folder containing the saved ImmunData files.
+#' @param verbose Logical. If `TRUE` (default), prints progress messages to the console.
+#'
+#' @return A new `ImmunData` object containing receptor and annotation data.
+#'
+#' @seealso [imd_files()], [ImmunData], [read_parquet_duckdb()]
+#'
 #' @export
 load_immundata <- function(path, verbose = TRUE) {
   if (verbose) {
