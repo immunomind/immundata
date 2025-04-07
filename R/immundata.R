@@ -1,69 +1,63 @@
-IMD_SCHEMA <- list(
-  barcode = "imd_barcode", receptor = "imd_receptor_id", repertoire = "imd_repertoire_id"
-)
-
-
-
-#' ImmunData: A Unified Data Structure for Immune Receptor Data
+#' ImmunData: A Unified receptors Structure for Immune Receptor receptors
 #'
 #' `ImmunData` is an abstract class for managing and processing
-#' immune receptor repertoire data, supporting flexible backends and
-#' efficient data transformations.
+#' immune receptor repertoire receptors, supporting flexible backends and
+#' efficient receptors transformations.
 #'
-#' @section Methods:
-#' - `$initialize(.backend, .metadata)`: Creates a new `ImmunData` object.
-#' - `$to_list()`: Converts the dataset into a list.
-#' - `$print()`: Prints the class information.
-#' - `$arrange(...)`: Arranges rows by given variables.
-#' - `$filter(...)`: Filters rows based on conditions.
-#' - `$slice(...)`: Selects specific rows by index.
-#' - `$slice_head(...)`: Selects the first rows of the dataset.
-#' - `$slice_tail(...)`: Selects the last rows of the dataset.
-#' - `$mutate(...)`: Modifies or adds columns.
-#' - `$select(...)`: Selects specific columns.
-#' - `$count(...)`: Counts occurrences of groupings.
-#' - `$group_by(...)`: Groups data by variables.
-#' - `$summarise(...)`: Aggregates data.
-#' - `$compute(...)`: Computes intermediate results.
-#' - `$collect(...)`: Collects data into memory.
-#' - `$[[(.sample)`: Extracts sample-specific data.
-#' - `$data()`: Retrieves the stored dataset.
+#' @field .receptors description
+#' @field .annotations description
+#' @field receptor_schema description
+#' @field repertoire_schema description
 #'
 #' @importFrom R6 R6Class
 #' @export
 ImmunData <- R6Class(
   "ImmunData",
   public = list(
-    data = NULL,
-    annot = NULL,
+    .receptors = NULL,
+    .annotations = NULL,
     receptor_schema = NULL,
     repertoire_schema = NULL,
 
     #' @description Initializes an `ImmunData` object.
-    #' @param .backend The backend storage format for the dataset.
-    #' @param .metadata The metadata associated with the dataset.
-    initialize = function(.dataset, .annotations, .schema) {
-      public$data <- .dataset
-      public$annot <- .annotations
-      public$receptor_schema <- .schema
+    #'
+    #' @param receptors description
+    #' @param annotations description
+    #' @param schema description
+    initialize = function(receptors,
+                          annotations,
+                          schema) {
+      self$.receptors <- receptors
+      self$.annotations <- annotations
+      self$receptor_schema <- schema
+
+      # TODO: where was the schema built - inside or outside ImmunData? This is related to caching.
+      # TODO: when do we assume the correct input?
+      # NOTE: receptor building loses some information (puts it into the annotations).
+      # - repertoire building does not remove any information
     },
 
     #' @description Define how this dataset groups receptors to repertoires.
-    set_repertoires = function(.columns = "repertoire_id", .sep = "-") {
-      checkmate::check_character(.columns)
-      checkmate::check_character(.sep)
+    #'
+    #' @param columns description
+    #' @param sep description
+    build_repertoires = function(schema = "repertoire_id", sep = "-") {
+      checkmate::check_character(schema)
+      checkmate::check_character(sep)
 
-      missing_cols <- setdiff(.columns, colnames(self$annot))
+      missing_cols <- setdiff(schema, colnames(self$annotations))
       if (length(missing_cols) > 0) {
-        stop("Missing columns in `annot`: ", paste(missing_cols, collapse = ", "))
+        stop("Missing columns in `annotations`: ",
+             paste(missing_cols, collapse = ", "))
       }
 
       rep_col <- IMD_SCHEMA$repertoire
 
-      self$annot <- self$annot %>%
-        dplyr::mutate(!!rep_col := dplyr::across(dplyr::all_of(.columns)) |>
-                        dplyr::transmute(.repertoire_id = do.call(paste, c(., sep = .sep))) |>
-                        dplyr::pull(.repertoire_id)
+      self$.annotations <- self$annotations %>%
+        dplyr::mutate(
+          !!rep_col := dplyr::across(dplyr::all_of(schema)) |>
+            dplyr::transmute(.repertoire_id = do.call(paste, c(., sep = sep))) |>
+            dplyr::pull(.repertoire_id)
         )
 
       invisible(self)
@@ -83,17 +77,17 @@ ImmunData <- R6Class(
 
       filters <- rlang::enquos(...)
 
-      filtered_data <- self$data %>% dplyr::filter(!!!filters)
+      filtered_data <- self$receptors %>% dplyr::filter(!!!filters)
 
       receptor_ids <- filtered_data %>% dplyr::pull(!!receptor_sym)
 
-      filtered_annot <- self$annot %>%
+      filtered_annot <- self$annotations %>%
         dplyr::filter(!!receptor_sym %in% receptor_ids)
 
       ImmunData$new(
-        .dataset = filtered_data,
-        .annotations = filtered_annot,
-        .schema = self$receptor_schema
+        receptors = filtered_data,
+        annotations = filtered_annot,
+        schema = self$receptor_schema
       )
     },
 
@@ -105,51 +99,53 @@ ImmunData <- R6Class(
     filter_annot = function(...) {
       receptor_sym <- rlang::sym(IMD_SCHEMA$receptor)
 
-      # Capture filter expression for annot
+      # Capture filter expression for annotations
       filters <- rlang::enquos(...)
 
       # Step 1: Filter annotations
-      filtered_annot <- self$annot %>% dplyr::filter(!!!filters)
+      filtered_annot <- self$annotations %>% dplyr::filter(!!!filters)
 
-      # Step 2: Get receptor IDs from filtered annot
+      # Step 2: Get receptor IDs from filtered annotations
       receptor_ids <- filtered_annot %>% dplyr::pull(!!receptor_sym)
 
-      # Step 3: Filter receptor data by those receptor IDs
-      filtered_data <- self$data %>%
+      # Step 3: Filter receptor receptors by those receptor IDs
+      filtered_data <- self$receptors %>%
         dplyr::filter(!!receptor_sym %in% receptor_ids)
 
       ImmunData$new(
-        .dataset = filtered_data,
-        .annotations = filtered_annot,
-        .schema = self$receptor_schema
+        receptors = filtered_data,
+        annotations = filtered_annot,
+        schema = self$receptor_schema
       )
     },
 
     #' @description Filters rows based on conditions.
-    filter_barcodes = function(.barcodes = c()) {
-      checkmate::check_character(.barcodes, .min.len = 1)
+    #'
+    #' @param barcodes description
+    filter_barcodes = function(barcodes = c()) {
+      checkmate::check_character(barcodes, .min.len = 1)
 
       barcode_col <- IMD_SCHEMA$barcode
       receptor_col <- IMD_SCHEMA$receptor
 
-      if (length(.barcodes) == 0) {
+      if (length(barcodes) == 0) {
         warning("No barcodes provided to filter_barcodes(); returning original object.")
         return(self)
       }
 
-      filtered_annot <- self$annot %>%
-        dplyr::filter(!!barcode_sym %in% .barcodes)
+      filtered_annot <- self$annotations %>%
+        dplyr::filter(!!barcode_sym %in% barcodes)
 
       receptor_ids <- filtered_annot %>%
         dplyr::pull(!!receptor_sym)
 
-      filtered_data <- self$data %>%
+      filtered_data <- self$receptors %>%
         dplyr::filter(!!receptor_sym %in% receptor_ids)
 
       ImmunData$new(
-        .dataset = filtered_data,
-        .annotations = filtered_annot,
-        .schema = self$receptor_schema
+        receptors = filtered_data,
+        annotations = filtered_annot,
+        schema = self$receptor_schema
       )
     },
 
@@ -159,28 +155,53 @@ ImmunData <- R6Class(
     #' @param ... Variables to count.
     #' @return A new `ImmunData` object with count summary.
     count = function(...) {
-      private$create_instance(
-        .dataset = private$dataset %>% count(...),
-        .metadata = private$metadata
-      )
+      private$create_instance(receptors = private$dataset %>% count(...),
+                              .metadata = private$metadata)
     },
 
-    #' @description Extracts sample-specific data.
+    #' @description Extracts sample-specific receptors.
     #' @param .sample The sample identifier.
     #' @return A filtered dataset containing only the selected sample.
     `[[` = function(.sample) {
       check_character(.sample)
       private$dataset |> filter(Sample == .sample)
+    }
+  ),
+
+  active = list(
+
+    #' @description A short description...
+    #'
+    receptors = function() {
+      self$.receptors
     },
+
+    #' @description A short description...
+    #'
+    annotations = function() {
+      self$.annotations
+    }
   )
 )
 
 #' @exportS3Method dplyr::compute
-compute.ImmunData <- function(.immdata, ...) {
-  .immdata$compute(...)
+compute.ImmunData <- function(immdata, ...) {
+  checkmate::check_r6(immdata, ImmunData)
+
+  ImmunData$new(
+    receptors = immdata$receptors |> compute(),
+    annotations = immdata$annotations |> compute(),
+    schema = immdata$receptor_schema
+  )
 }
 
 #' @exportS3Method dplyr::collect
-collect.ImmunData <- function(.immdata, ...) {
-  .immdata$collect(...)
+collect.ImmunData <- function(immdata, ...) {
+  checkmate::check_r6(immdata, ImmunData)
+
+  ImmunData$new(
+    receptors = immdata$receptors |> collect(),
+    annotations = immdata$annotations |> collect(),
+    schema = immdata$receptor_schema
+  )
 }

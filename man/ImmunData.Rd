@@ -2,60 +2,41 @@
 % Please edit documentation in R/immundata.R
 \name{ImmunData}
 \alias{ImmunData}
-\title{ImmunData: A Unified Data Structure for Immune Receptor Data}
+\title{ImmunData: A Unified receptors Structure for Immune Receptor receptors}
 \description{
-ImmunData: A Unified Data Structure for Immune Receptor Data
+ImmunData: A Unified receptors Structure for Immune Receptor receptors
 
-ImmunData: A Unified Data Structure for Immune Receptor Data
+ImmunData: A Unified receptors Structure for Immune Receptor receptors
 }
 \details{
 \code{ImmunData} is an abstract class for managing and processing
-immune receptor repertoire data, supporting flexible backends and
-efficient data transformations.
+immune receptor repertoire receptors, supporting flexible backends and
+efficient receptors transformations.
 }
-\section{Methods}{
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{.receptors}}{description}
 
-\itemize{
-\item \verb{$initialize(.backend, .metadata)}: Creates a new \code{ImmunData} object.
-\item \verb{$to_list()}: Converts the dataset into a list.
-\item \verb{$print()}: Prints the class information.
-\item \verb{$arrange(...)}: Arranges rows by given variables.
-\item \verb{$filter(...)}: Filters rows based on conditions.
-\item \verb{$slice(...)}: Selects specific rows by index.
-\item \verb{$slice_head(...)}: Selects the first rows of the dataset.
-\item \verb{$slice_tail(...)}: Selects the last rows of the dataset.
-\item \verb{$mutate(...)}: Modifies or adds columns.
-\item \verb{$select(...)}: Selects specific columns.
-\item \verb{$count(...)}: Counts occurrences of groupings.
-\item \verb{$group_by(...)}: Groups data by variables.
-\item \verb{$summarise(...)}: Aggregates data.
-\item \verb{$compute(...)}: Computes intermediate results.
-\item \verb{$collect(...)}: Collects data into memory.
-\item \verb{$[[(.sample)}: Extracts sample-specific data.
-\item \verb{$data()}: Retrieves the stored dataset.
-}
-}
+\item{\code{.annotations}}{description}
 
+\item{\code{receptor_schema}}{description}
+
+\item{\code{repertoire_schema}}{description}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ImmunData-new}{\code{ImmunData$new()}}
-\item \href{#method-ImmunData-to_list}{\code{ImmunData$to_list()}}
+\item \href{#method-ImmunData-build_repertoires}{\code{ImmunData$build_repertoires()}}
 \item \href{#method-ImmunData-print}{\code{ImmunData$print()}}
-\item \href{#method-ImmunData-arrange}{\code{ImmunData$arrange()}}
-\item \href{#method-ImmunData-filter}{\code{ImmunData$filter()}}
-\item \href{#method-ImmunData-slice}{\code{ImmunData$slice()}}
-\item \href{#method-ImmunData-slice_head}{\code{ImmunData$slice_head()}}
-\item \href{#method-ImmunData-slice_tail}{\code{ImmunData$slice_tail()}}
-\item \href{#method-ImmunData-mutate}{\code{ImmunData$mutate()}}
-\item \href{#method-ImmunData-select}{\code{ImmunData$select()}}
+\item \href{#method-ImmunData-filter_data}{\code{ImmunData$filter_data()}}
+\item \href{#method-ImmunData-filter_annot}{\code{ImmunData$filter_annot()}}
+\item \href{#method-ImmunData-filter_barcodes}{\code{ImmunData$filter_barcodes()}}
 \item \href{#method-ImmunData-count}{\code{ImmunData$count()}}
-\item \href{#method-ImmunData-group_by}{\code{ImmunData$group_by()}}
-\item \href{#method-ImmunData-summarise}{\code{ImmunData$summarise()}}
-\item \href{#method-ImmunData-compute}{\code{ImmunData$compute()}}
-\item \href{#method-ImmunData-collect}{\code{ImmunData$collect()}}
 \item \href{#method-ImmunData-[[}{\code{ImmunData$[[()}}
-\item \href{#method-ImmunData-data}{\code{ImmunData$data()}}
 \item \href{#method-ImmunData-clone}{\code{ImmunData$clone()}}
 }
 }
@@ -65,30 +46,38 @@ efficient data transformations.
 \subsection{Method \code{new()}}{
 Initializes an \code{ImmunData} object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$new(.backend, .metadata)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ImmunData$new(receptors, annotations, schema)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{.backend}}{The backend storage format for the dataset.}
+\item{\code{receptors}}{description}
 
-\item{\code{.metadata}}{The metadata associated with the dataset.}
+\item{\code{annotations}}{description}
+
+\item{\code{schema}}{description}
 }
 \if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-to_list"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-to_list}{}}}
-\subsection{Method \code{to_list()}}{
-Converts the dataset into a list.
+\if{html}{\out{<a id="method-ImmunData-build_repertoires"></a>}}
+\if{latex}{\out{\hypertarget{method-ImmunData-build_repertoires}{}}}
+\subsection{Method \code{build_repertoires()}}{
+Define how this dataset groups receptors to repertoires.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$to_list()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ImmunData$build_repertoires(schema = "repertoire_id", sep = "-")}\if{html}{\out{</div>}}
 }
 
-\subsection{Returns}{
-A named list containing \code{data} and \code{meta} components.
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{sep}}{description}
+
+\item{\code{columns}}{description}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -102,32 +91,12 @@ Prints the class information.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-arrange"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-arrange}{}}}
-\subsection{Method \code{arrange()}}{
-Arranges rows by given variables.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$arrange(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Columns to sort by.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with arranged rows.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-filter"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-filter}{}}}
-\subsection{Method \code{filter()}}{
+\if{html}{\out{<a id="method-ImmunData-filter_data"></a>}}
+\if{latex}{\out{\hypertarget{method-ImmunData-filter_data}{}}}
+\subsection{Method \code{filter_data()}}{
 Filters rows based on conditions.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$filter(...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ImmunData$filter_data(...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -142,103 +111,30 @@ A new \code{ImmunData} object with filtered rows.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-slice"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-slice}{}}}
-\subsection{Method \code{slice()}}{
-Selects specific rows by index.
+\if{html}{\out{<a id="method-ImmunData-filter_annot"></a>}}
+\if{latex}{\out{\hypertarget{method-ImmunData-filter_annot}{}}}
+\subsection{Method \code{filter_annot()}}{
+Filters rows based on conditions.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$slice(...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ImmunData$filter_annot(...)}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Row indices.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with selected rows.
-}
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-slice_head"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-slice_head}{}}}
-\subsection{Method \code{slice_head()}}{
-Selects the first rows of the dataset.
+\if{html}{\out{<a id="method-ImmunData-filter_barcodes"></a>}}
+\if{latex}{\out{\hypertarget{method-ImmunData-filter_barcodes}{}}}
+\subsection{Method \code{filter_barcodes()}}{
+Filters rows based on conditions.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$slice_head(...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ImmunData$filter_barcodes(barcodes = c())}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{Number of rows to return.}
+\item{\code{barcodes}}{description}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with the first rows.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-slice_tail"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-slice_tail}{}}}
-\subsection{Method \code{slice_tail()}}{
-Selects the last rows of the dataset.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$slice_tail(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Number of rows to return.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with the last rows.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-mutate"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-mutate}{}}}
-\subsection{Method \code{mutate()}}{
-Modifies or adds columns.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$mutate(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Column transformations.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with modified columns.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-select"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-select}{}}}
-\subsection{Method \code{select()}}{
-Selects specific columns.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$select(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Columns to retain.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with selected columns.
 }
 }
 \if{html}{\out{<hr>}}
@@ -262,90 +158,10 @@ A new \code{ImmunData} object with count summary.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-group_by"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-group_by}{}}}
-\subsection{Method \code{group_by()}}{
-Groups data by variables.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$group_by(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Variables to group by.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with grouped data.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-summarise"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-summarise}{}}}
-\subsection{Method \code{summarise()}}{
-Aggregates data.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$summarise(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Aggregation expressions.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with summarized data.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-compute"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-compute}{}}}
-\subsection{Method \code{compute()}}{
-Computes intermediate results.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$compute(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments passed to the compute function.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with computed results.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-collect"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-collect}{}}}
-\subsection{Method \code{collect()}}{
-Collects data into memory.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$collect(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments passed to the collect function.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The collected dataset.
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ImmunData-[["></a>}}
 \if{latex}{\out{\hypertarget{method-ImmunData-[[}{}}}
 \subsection{Method \code{[[()}}{
-Extracts sample-specific data.
+Extracts sample-specific receptors.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ImmunData$[[(.sample)}\if{html}{\out{</div>}}
 }
@@ -359,19 +175,6 @@ Extracts sample-specific data.
 }
 \subsection{Returns}{
 A filtered dataset containing only the selected sample.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-data"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-data}{}}}
-\subsection{Method \code{data()}}{
-Retrieves the stored dataset.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$data()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-The dataset stored in the object.
 }
 }
 \if{html}{\out{<hr>}}
