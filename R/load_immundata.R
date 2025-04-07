@@ -17,7 +17,7 @@
 #'
 #' @return A new `ImmunData` object containing receptor and annotation data.
 #'
-#' @seealso [imd_files()], [ImmunData], [read_parquet_duckdb()]
+#' @seealso [imd_files()], [ImmunData], [duckplyr::read_parquet_duckdb()]
 #'
 #' @export
 load_immundata <- function(path, verbose = TRUE) {

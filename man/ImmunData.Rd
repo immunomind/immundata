@@ -51,7 +51,6 @@ grouped into repertoires. This may include sample-level metadata (e.g., \code{sa
 \item \href{#method-ImmunData-filter_receptors}{\code{ImmunData$filter_receptors()}}
 \item \href{#method-ImmunData-filter_annotations}{\code{ImmunData$filter_annotations()}}
 \item \href{#method-ImmunData-filter_barcodes}{\code{ImmunData$filter_barcodes()}}
-\item \href{#method-ImmunData-[[}{\code{ImmunData$[[()}}
 \item \href{#method-ImmunData-clone}{\code{ImmunData$clone()}}
 }
 }
@@ -168,26 +167,6 @@ The resulting object contains only rows linked to those barcodes.
 }
 \subsection{Returns}{
 A new \code{ImmunData} object filtered by barcode.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-[["></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-[[}{}}}
-\subsection{Method \code{[[()}}{
-Extracts a sample-specific view of the dataset.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$[[(.sample)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{.sample}}{A sample identifier used to filter the receptor data.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A subset of the receptor dataset corresponding to the selected sample.
 }
 }
 \if{html}{\out{<hr>}}

@@ -29,5 +29,5 @@ This function expects two files inside the provided directory:
 These filenames are defined in \code{imd_files()} and follow the Immundata storage convention.
 }
 \seealso{
-\code{\link[=imd_files]{imd_files()}}, \link{ImmunData}, \code{\link[=read_parquet_duckdb]{read_parquet_duckdb()}}
+\code{\link[=imd_files]{imd_files()}}, \link{ImmunData}, \code{\link[duckplyr:read_parquet_duckdb]{duckplyr::read_parquet_duckdb()}}
 }

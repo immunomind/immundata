@@ -175,18 +175,9 @@ ImmunData <- R6Class(
         annotations = filtered_annot,
         schema = self$schema_receptor
       )
-    },
+    }
 
     # TODO: filter_repertoires
-
-    #' @description Extracts a sample-specific view of the dataset.
-    #'
-    #' @param .sample A sample identifier used to filter the receptor data.
-    #' @return A subset of the receptor dataset corresponding to the selected sample.
-    `[[` = function(.sample) {
-      check_character(.sample)
-      private$dataset |> filter(Sample == .sample)
-    }
   ),
   active = list(
 
@@ -201,33 +192,3 @@ ImmunData <- R6Class(
     }
   )
 )
-
-#' @title Materializes all lazy tables in the `ImmunData` object using `dplyr::compute()`.
-#' @param immdata An `ImmunData` object.
-#' @param ... Other arguments passed to [dplyr::compute]
-#' @return A new `ImmunData` object with computed receptor and annotation tables.
-#' @importFrom dplyr compute
-compute.ImmunData <- function(immdata, ...) {
-  checkmate::check_r6(immdata, ImmunData)
-
-  ImmunData$new(
-    receptors = immdata$receptors |> compute(),
-    annotations = immdata$annotations |> compute(),
-    schema = immdata$schema_receptor
-  )
-}
-
-#' @title Collects all lazy tables in the `ImmunData` object into memory using `dplyr::collect()`.
-#' @param immdata An `ImmunData` object.
-#' @param ... Other arguments passed to [dplyr::collect]
-#' @return A new `ImmunData` object with in-memory receptor and annotation tables.
-#' @importFrom dplyr collect
-collect.ImmunData <- function(immdata, ...) {
-  checkmate::check_r6(immdata, ImmunData)
-
-  ImmunData$new(
-    receptors = immdata$receptors |> collect(),
-    annotations = immdata$annotations |> collect(),
-    schema = immdata$schema_receptor
-  )
-}
