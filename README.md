@@ -14,8 +14,8 @@ samples <- c(
   system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
   )
 
-md <- load_metadata(md_path)
-imdata <- load_repertoires(samples, c("cdr3_aa", "v_call"), md)
+md <- read_metadata(md_path)
+imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md)
 ```
 
 ## Input / output
@@ -161,6 +161,8 @@ If you are looking for prioritized support and setting up your data pipelines, c
 1. **Q: Why all the function names or ImmunData fields are so long? I want to write `imdata$rec` instead of `imdata$receptors`.**
    
    A: Two major reasons - improving the code readability and motivation to leverage the autocomplete tools.
+   
+   Please consider using `tab` for leveraging autocomplete. It accelerates things x10-20.
 
 2. **Q: How does `immundata` works under the hood, in simpler terms?**
    

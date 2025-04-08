@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Loads an `ImmunData` object from a directory created by Immundata I/O functions
-#' (e.g., `load_repertoires()` with file splitting or saving). It reads receptor-level
+#' (e.g., `read_repertoires()` with file splitting or saving). It reads receptor-level
 #' and annotation-level data from standardized Parquet files and reconstructs a
 #' new `ImmunData` object with inferred schema.
 #'
@@ -17,12 +17,12 @@
 #'
 #' @return A new `ImmunData` object containing receptor and annotation data.
 #'
-#' @seealso [imd_files()], [ImmunData], [duckplyr::read_parquet_duckdb()]
+#' @seealso [read_repertoires], [imd_files()], [ImmunData], [duckplyr::read_parquet_duckdb()]
 #'
 #' @export
-load_immundata <- function(path, verbose = TRUE) {
+read_immundata <- function(path, verbose = TRUE) {
   if (verbose) {
-    cli_alert_info("Loading ImmunData files from [{.path {path}}]")
+    cli_alert_info("Reading ImmunData files from [{.path {path}}]")
   }
 
   assert_directory_exists(path)

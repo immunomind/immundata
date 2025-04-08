@@ -1,10 +1,10 @@
-#' @importFrom dplyr select group_by all_of arrange summarise mutate row_number full_join
+#' @importFrom dplyr select group_by all_of any_of arrange summarise mutate row_number full_join
 #' @importFrom cli cli_alert_info cli_alert_success cli_alert_danger cli_ul cli_end cli_ol cli_abort
 #' @importFrom duckplyr read_parquet_duckdb read_csv_duckdb compute_parquet duckdb_tibble
 #' @importFrom checkmate assert_character assert_logical assert_file_exists assert_directory_exists assert_data_frame
 #' @importFrom rlang sym
 #'
-#' @title Load and Aggregate Immune Receptor Repertoire Data
+#' @title Read Immune Receptor Repertoire Data and Create ImmunData
 #'
 #' @description
 #' This function ingests a repertoire dataset (Parquet, CSV, or TSV), aggregates receptors
@@ -48,20 +48,21 @@
 #'    (`barcode_col`, `count_col`) are provided.
 #' 3. **Saving** – The final receptor-level and annotation-level tables are written
 #'    to Parquet files in `output_folder`.
-#' 4. **Reloading** – The function calls [load_immundata()] on the newly
+#' 4. **Reloading** – The function calls [read_immundata()] on the newly
 #'    created folder to return a fully instantiated `ImmunData`.
 #'
-#' @seealso [load_immundata()], [ImmunData]
+#' @seealso [read_immundata()], [ImmunData]
 #'
 #' @export
-load_repertoires <- function(path,
+read_repertoires <- function(path,
                              schema,
                              metadata = NULL,
                              barcode_col = NULL,
                              count_col = NULL,
-                             repertoire_schema = NULL,
-                             output_folder = NULL,
                              enforce_schema = TRUE,
+                             exclude_columns = imd_drop_cols()$airr,
+                             output_folder = NULL,
+                             repertoire_schema = NULL,
                              verbose = TRUE) {
   start_time <- Sys.time()
 
@@ -82,6 +83,10 @@ load_repertoires <- function(path,
   )
   assert_character(
     repertoire_schema,
+    null.ok = TRUE
+  )
+  assert_character(
+    exclude_columns,
     null.ok = TRUE
   )
   assert_logical(verbose)
@@ -126,6 +131,11 @@ load_repertoires <- function(path,
   immundata_barcode_col <- IMD_GLOBALS$schema$barcode
   immundata_receptor_id_col <- IMD_GLOBALS$schema$receptor
   immundata_count_col <- IMD_GLOBALS$schema$count
+
+  if (!is.null(exclude_columns)) {
+    raw_dataset <- raw_dataset |>
+      select(-any_of(exclude_columns))
+  }
 
   # 1) Case #1: simple receptor table - no barcodes, no count column
   if (is.null(barcode_col) && is.null(count_col)) {
@@ -224,5 +234,5 @@ load_repertoires <- function(path,
   cli_alert_success("ImmunData files saved to [{output_folder}]")
 
   # Read them back to create the resultant ImmunData
-  load_immundata(output_folder, verbose)
+  read_immundata(output_folder, verbose)
 }

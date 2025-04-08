@@ -34,6 +34,14 @@ IMD_GLOBALS <- list(
   files = list(
     receptors = "receptors.parquet",
     annotations = "annotations.parquet"
+  ),
+  drop_cols = list(
+    airr = c(
+      "v_score", "d_score", "j_score", "stop_codon", "vj_in_frame",
+      "v_sequence_alignment", "d_sequence_alignment", "j_sequence_alignment",
+      "rev_comp", "sequence_alignment", "germline_alignment",
+      "v_cigar", "d_cigar", "j_cigar"
+    )
   )
 )
 
@@ -60,4 +68,8 @@ imd_schema <- function() {
 #' @export
 imd_files <- function() {
   IMD_GLOBALS$files
+}
+
+imd_drop_cols <- function() {
+  IMD_GLOBALS$drop_cols
 }

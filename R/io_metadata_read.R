@@ -1,6 +1,6 @@
 #' @title Load and Validate Metadata Table for Immune Repertoire Files
 #'
-#' @description#'
+#' @description
 #' This function loads a metadata table from either a file path or a data frame,
 #' validates the presence of a column with repertoire file paths, and converts all
 #' file paths to absolute paths. It is used to support flexible pipelines for
@@ -36,7 +36,7 @@
 #'
 #' @export
 
-load_metadata <- function(metadata, filename_col = "File", delim = "\t", ...) {
+read_metadata <- function(metadata, filename_col = "File", delim = "\t", ...) {
 
   if (!test_data_frame(metadata) && !test_file_exists(metadata)) {
     cli_abort("Error in metadata: the input metadata should be either a data frame or an existing file.")

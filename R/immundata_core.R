@@ -1,3 +1,5 @@
+#' @importFrom R6 R6Class
+#'
 #' @title ImmunData: A Unified Structure for Immune Receptor Repertoire Data
 #'
 #' @description
@@ -5,7 +7,8 @@
 #' It supports flexible backends (e.g., Arrow, DuckDB, dbplyr) and lazy evaluation,
 #' and provides tools for filtering, aggregation, and receptor-to-repertoire mapping.
 #'
-#' @importFrom R6 R6Class
+#' @seealso [read_repertoires()], [read_immundata()]
+#'
 #' @export
 ImmunData <- R6Class(
   "ImmunData",
