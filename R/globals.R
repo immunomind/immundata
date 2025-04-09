@@ -42,6 +42,14 @@ IMD_GLOBALS <- list(
       "rev_comp", "sequence_alignment", "germline_alignment",
       "v_cigar", "d_cigar", "j_cigar"
     )
+  ),
+  agg_schema = list(
+    repertoires = list(
+      airr = list(
+        "filename" = c("filename"),
+        "sample" = c("sample")
+      )
+    )
   )
 )
 
@@ -70,6 +78,12 @@ imd_files <- function() {
   IMD_GLOBALS$files
 }
 
+#' @export
 imd_drop_cols <- function() {
   IMD_GLOBALS$drop_cols
+}
+
+#' @export
+imd_repertoire_schema <- function() {
+  IMD_GLOBALS$agg_schema$repertoires
 }

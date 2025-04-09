@@ -13,7 +13,7 @@ read_repertoires(
   enforce_schema = TRUE,
   exclude_columns = imd_drop_cols()$airr,
   output_folder = NULL,
-  repertoire_schema = NULL,
+  repertoire_schema = imd_repertoire_schema()$airr$filename,
   verbose = TRUE
 )
 }
@@ -35,6 +35,8 @@ bulk receptor counts. Default is \code{NULL}.}
 
 \item{enforce_schema}{Logical. If \code{TRUE}, column names and types must strictly match between files. If \code{FALSE},
 columns are unioned}
+
+\item{exclude_columns}{Character. Vector of columns to exclude from the data. Default is AIRR standard columns \verb{*_cigar} and \verb{*_alignment}.}
 
 \item{output_folder}{Character string specifying the directory to save the resulting Parquet files. If \code{NULL},
 a folder named \verb{immundata-<basename_of_path>} is created in the same directory as \code{path}.}

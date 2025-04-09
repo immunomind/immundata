@@ -12,13 +12,14 @@ License: Apache License (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Depends: R (>= 4.1.0)
+Depends: 
+    R (>= 4.1.0),
+    duckplyr (>= 1.0.1)
 Imports: 
     cli,
     R6,
     checkmate,
     dplyr,
-    duckplyr,
     glue,
     lifecycle,
     readr,

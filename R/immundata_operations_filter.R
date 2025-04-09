@@ -1,4 +1,12 @@
-#' @importFrom dplyr semi_join
+#' @importFrom dplyr semi_join filter n
+#'
+#' @title Filter ImmunData by Receptor Features
+#'
+#' @description
+#' A short description...
+#'
+#' @param idata [ImmunData] object.
+#' @param ... Parameters passed to [dplyr::filter].
 #'
 #' @export
 filter_receptors <- function(idata, ...) {
@@ -13,6 +21,13 @@ filter_receptors <- function(idata, ...) {
   ImmunData$new(receptors = new_receptors, annotations = new_annotations, schema = idata$schema_receptor)
 }
 
+#' @title Filter ImmunData by Annotations
+#'
+#' @description
+#' A short description...
+#'
+#' @param idata [ImmunData] object.
+#' @param ... Parameters passed to [dplyr::filter].
 #'
 #' @export
 filter_annotations <- function(idata, ...) {
@@ -33,6 +48,14 @@ filter_annotations <- function(idata, ...) {
 #' @importFrom checkmate assert
 #' @importFrom duckplyr duckdb_tibble
 #' @importFrom dplyr distinct
+#'
+#' @title Filter ImmunData by Passed Barcodes
+#'
+#' @description
+#' A short description...
+#'
+#' @param idata [ImmunData] object.
+#' @param barcodes Vector of barcodes to filter by.
 #'
 #' @export
 filter_barcodes <- function(idata, barcodes) {

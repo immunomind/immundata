@@ -14,17 +14,6 @@ and provides tools for filtering, aggregation, and receptor-to-repertoire mappin
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{.receptors}}{A receptor-level table containing immune receptor features
-(e.g., CDR3, V/J gene, clonotype ID, counts). This table is typically aggregated
-and is used for quantitative analysis of immune repertoire signatures.
-It can be a local tibble, Arrow Table, DuckDB table, or any other
-\code{dplyr}-compatible backend (including lazy data sources).}
-
-\item{\code{.annotations}}{A barcode-level table that links each barcode (i.e., cell ID)
-to a receptor in \code{.receptors}. It can also store cell-level metadata such as
-sample ID, donor, or tissue source. This table is \strong{not aggregated} and
-typically contains one row per barcode.}
-
 \item{\code{schema_receptor}}{A named list describing how to interpret receptor-level data.
 This includes the fields used for aggregation (e.g., \code{CDR3}, \code{V_gene}, \code{J_gene}),
 and optionally unique identifiers for each receptor row. Used to ensure consistency
@@ -42,6 +31,10 @@ grouped into repertoires. This may include sample-level metadata (e.g., \code{sa
 \item{\code{receptors}}{Accessor for the receptor-level table (\code{.receptors}).}
 
 \item{\code{annotations}}{Accessor for the annotation-level table (\code{.annotations}).}
+
+\item{\code{barcodes}}{Get a vector of barcodes from the annotation table.}
+
+\item{\code{repertoires}}{Get a vector of repertoire names after data aggregation with \code{\link[=agg_repertoires]{agg_repertoires()}}}
 }
 \if{html}{\out{</div>}}
 }
@@ -49,11 +42,6 @@ grouped into repertoires. This may include sample-level metadata (e.g., \code{sa
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ImmunData-new}{\code{ImmunData$new()}}
-\item \href{#method-ImmunData-build_repertoires}{\code{ImmunData$build_repertoires()}}
-\item \href{#method-ImmunData-print}{\code{ImmunData$print()}}
-\item \href{#method-ImmunData-filter_receptors}{\code{ImmunData$filter_receptors()}}
-\item \href{#method-ImmunData-filter_annotations}{\code{ImmunData$filter_annotations()}}
-\item \href{#method-ImmunData-filter_barcodes}{\code{ImmunData$filter_barcodes()}}
 \item \href{#method-ImmunData-clone}{\code{ImmunData$clone()}}
 }
 }
@@ -65,7 +53,7 @@ Creates a new \code{ImmunData} object.
 This constructor expects receptor-level and barcode-level data,
 along with a receptor schema defining aggregation and identity fields.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$new(receptors, annotations, schema)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ImmunData$new(receptors, annotations, schema, repertoires = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -76,100 +64,10 @@ along with a receptor schema defining aggregation and identity fields.
 \item{\code{annotations}}{A cell/barcode-level dataset mapping barcodes to receptor rows.}
 
 \item{\code{schema}}{A named list specifying the receptor schema (e.g., aggregate fields, ID columns).}
+
+\item{\code{repertoires}}{A repertoire table, created inside the body of \link{agg_repertoires}.}
 }
 \if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-build_repertoires"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-build_repertoires}{}}}
-\subsection{Method \code{build_repertoires()}}{
-Defines repertoires by concatenating selected annotation columns.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$build_repertoires(schema = "repertoire_id", sep = "-")}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{schema}}{A character vector of column names in \code{.annotations} used to define repertoire grouping.}
-
-\item{\code{sep}}{A string separator used to concatenate multiple columns into a single repertoire ID.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-print"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-print}{}}}
-\subsection{Method \code{print()}}{
-Prints class information for the \code{ImmunData} object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$print()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-filter_receptors"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-filter_receptors}{}}}
-\subsection{Method \code{filter_receptors()}}{
-Filters the receptor-level data using tidyverse filter syntax,
-and then updates the annotation table to include only linked barcodes.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$filter_receptors(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Filtering conditions applied to the receptor-level table.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with filtered receptor and annotation tables.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-filter_annotations"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-filter_annotations}{}}}
-\subsection{Method \code{filter_annotations()}}{
-Filters the annotation-level table using tidyverse filter syntax,
-and updates the receptor table to include only matching receptor entries.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$filter_annotations(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Filtering conditions applied to the annotations table.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object with filtered annotation and receptor tables.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-filter_barcodes"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-filter_barcodes}{}}}
-\subsection{Method \code{filter_barcodes()}}{
-Filters the dataset by a set of barcodes (unique cell IDs).
-The resulting object contains only rows linked to those barcodes.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$filter_barcodes(barcodes = c())}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{barcodes}}{A character vector of barcodes to retain.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{ImmunData} object filtered by barcode.
 }
 }
 \if{html}{\out{<hr>}}

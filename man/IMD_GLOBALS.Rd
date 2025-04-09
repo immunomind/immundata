@@ -5,7 +5,7 @@
 \alias{IMD_GLOBALS}
 \title{Internal Immundata Global Configuration}
 \format{
-An object of class \code{list} of length 4.
+An object of class \code{list} of length 5.
 }
 \usage{
 IMD_GLOBALS

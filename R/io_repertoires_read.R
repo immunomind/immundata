@@ -37,6 +37,8 @@
 #' @param enforce_schema
 #'   Logical. If `TRUE`, column names and types must strictly match between files. If `FALSE`,
 #'   columns are unioned
+#' @param exclude_columns
+#'   Character. Vector of columns to exclude from the data. Default is AIRR standard columns `*_cigar` and `*_alignment`.
 #' @param verbose
 #' .  Logical. Not used -- for now.
 #'
@@ -62,7 +64,7 @@ read_repertoires <- function(path,
                              enforce_schema = TRUE,
                              exclude_columns = imd_drop_cols()$airr,
                              output_folder = NULL,
-                             repertoire_schema = NULL,
+                             repertoire_schema = imd_repertoire_schema()$airr$filename,
                              verbose = TRUE) {
   start_time <- Sys.time()
 

@@ -4,3 +4,6 @@
 .Ruserdata
 .DS_Store
 inst/extdata/testing/*
+TODO.md
+CRAN-SUBMISSION
+cran-comments.md

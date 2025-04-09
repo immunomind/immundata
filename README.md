@@ -2,6 +2,36 @@
 
 ## Installation
 
+### Latest CRAN release
+
+```r
+install.packages("immundata")
+```
+
+### Latest GitHub release
+
+If you want the very latest release, or if the above command doesn't work for some reason, try installing `immundata` from the code repository:
+
+```r
+install.packages(c("devtools", "pkgload")) # skip this if you already installed these packages
+devtools::install_github("immunomind/immundata-rlang")
+devtools::reload(pkgload::inst("immundata"))
+```
+
+### Latest pre-release
+
+Since releasing on CRAN is limited to one release per one or two months, 
+you can install the latest pre-release version with all the bleeding edge and optimised features 
+directly from the code repository. In order to install the latest pre-release version, you need to 
+execute the following commands:
+
+```r
+install.packages(c("devtools", "pkgload")) # skip this if you already installed these packages
+devtools::install_github("immunomind/immundata-rlang", ref = "dev")
+devtools::reload(pkgload::inst("immundata"))
+```
+
+
 ## Quick start
 
 ```r
@@ -17,6 +47,7 @@ samples <- c(
 md <- read_metadata(md_path)
 imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md)
 ```
+
 
 ## Input / output
 
@@ -49,7 +80,7 @@ Suppose you have several files. How to read them?
 After converting the files to the `immundata` format, you can load them directly with `load_immundata`.
 
 
-### Re-aggregating repertoires using receptor and repertoire schemas
+### Re-aggregating data using receptor and repertoire schemas
 
 This is the key concept that distinguished `immundata` from DataFrame-based libraries.
 
@@ -61,6 +92,8 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 
 #### Bulk -- RepSeq, AIRRSeq
 
+TODO
+
 #### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
 
 - load annotation data
@@ -71,7 +104,7 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 
 #### Paired-chain -- scVDJseq or other technologies
 
-???
+TODO
 
 #### Spatial -- spatial transcriptomics and cell coordinates
 
@@ -83,26 +116,26 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 
 #### Immunogenicity -- annotations from external tools
 
-...
+TODO
 
 
 #### Hybrid datasets
 
 ##### Multi-locus data
 
-...
+TODO
 
 ##### Multiple contigs for TCR
 
-...
+TODO
 
 ##### BCR-heavy chains with multiple light chains
 
-...
+TODO
 
 ##### Bulk and single-cell data integration
 
-...
+TODO
 
 
 ### Preprocessing strategies
@@ -117,34 +150,61 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 
 ### Filtering
 
+#### Filter by receptors
+
+one, several, regex, edit distance
+
+
+#### Filter by annotation
+
+one, several values, several columns
+
+
+#### Filter by barcodes
+
+list of barcodes
+
+
+#### Filter by repertoire
+
+TODO
+
 
 ### Analyse the data
 
 #### Immunarch
+
+TODO
 
 
 ## Advanced topics
 
 ### Integrate into your package
 
-Take a look at `immunarch`.
+TODO
 
 ### Change RAM limits to accelerate the backend computations
 
-...
+TODO
 
-### Caching strategies
+### Save your intermediate data for faster computations and reproducibility
 
-...
+TODO
 
 
 ## About
 
 ### Citation
 
+TODO
+
 ### License
 
+TODO
+
 ### Author and contributors
+
+TODO
 
 ### Commercial usage
 
@@ -187,7 +247,8 @@ Take a look at our benchmark page to learn more: `link`
    A: The short answer is:
      - faster computations,
      - code, that is easy to maintain and support by other humans,
-     - and better data skills.
+     - and better data skills,
+     - in most cases you don't really need a complexity, so we can optimize the 95% of all AIRR data operations
    
    For the long answer, let me give you more details on each of the bullepoint.
 
