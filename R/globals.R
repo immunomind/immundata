@@ -20,15 +20,13 @@
 #'
 #' @keywords internal
 IMD_GLOBALS <- list(
-  messages = list(
-    "NotImpl" = "Error: the method is not implemented."
-  ),
   schema = list(
     barcode = "imd_barcode",
     receptor = "imd_receptor_id",
     repertoire = "imd_repertoire_id",
     metadata_filename = "imd_filename",
     count = "imd_count",
+    proportion = "imd_proportion",
     filename = "filename"
   ),
   files = list(
@@ -62,7 +60,8 @@ IMD_GLOBALS <- list(
 #'
 #' @return A named list of schema field names.
 #' @export
-imd_schema <- function() {
+imd_schema <- function(val = NULL) {
+  # TODO: pass value to the function
   IMD_GLOBALS$schema
 }
 

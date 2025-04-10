@@ -53,7 +53,7 @@
 #' 4. **Reloading** – The function calls [read_immundata()] on the newly
 #'    created folder to return a fully instantiated `ImmunData`.
 #'
-#' @seealso [read_immundata()], [ImmunData]
+#' @seealso [read_metadata()], [read_immundata()], [ImmunData]
 #'
 #' @export
 read_repertoires <- function(path,
@@ -209,6 +209,10 @@ read_repertoires <- function(path,
   }
   dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
 
+  #
+  # TODO: make ImmunData object + write_immundata + read it again (?)
+  #
+
   receptor_path <- file.path(output_folder, imd_files()$receptors)
   annotations_path <- file.path(output_folder, imd_files()$annotations)
 
@@ -235,6 +239,8 @@ read_repertoires <- function(path,
 
   cli_alert_success("ImmunData files saved to [{output_folder}]")
 
-  # Read them back to create the resultant ImmunData
-  read_immundata(output_folder, verbose)
+  #
+  # TODO: pass the repertoire schema
+  #
+  read_immundata(path = output_folder, verbose = verbose)
 }
