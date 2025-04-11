@@ -27,6 +27,8 @@ IMD_GLOBALS <- list(
     metadata_filename = "imd_filename",
     count = "imd_count",
     proportion = "imd_proportion",
+    n_receptors = "n_receptors",
+    n_cells = "n_cells",
     filename = "filename"
   ),
   files = list(

@@ -21,7 +21,16 @@ agg_repertoires <- function(idata, schema = "repertoire_id", sep = "-") {
   }
 
   # TODO: passed by reference? What would happen if we change the `idata` after (!) creating the new ImmunData?
-  repertoires_table <- idata$annotations |> summarise(.by = {{ schema }}, n = n())
+  # TODO: pass the schema column names here
+  imd_count_col <- imd_schema()$count
+  repertoires_table <- idata$annotations |> summarise(
+    .by = {{ schema }},
+    n_receptors = n(),
+    n_cells = sum({{ imd_count_col }})
+  )
+
+  # TODO: recompute proportions
+  # new_proportions <- idata$annotations |> summarise(.by = receptor_id + schema_repertoire, {{ imd_proportion_col }} := )
 
   ImmunData$new(
     receptors = idata$receptors,

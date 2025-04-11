@@ -18,6 +18,8 @@ filter_receptors <- function(idata, ...) {
   filtered_receptor_ids <- new_receptors |> select({{ receptor_id_col }})
   new_annotations <- idata$annotations |> semi_join(filtered_receptor_ids, by = receptor_id_col)
 
+  # TODO: do I need to recompute counts / proportions each time?
+
   ImmunData$new(receptors = new_receptors, annotations = new_annotations, schema = idata$schema_receptor)
 }
 
@@ -39,6 +41,8 @@ filter_annotations <- function(idata, ...) {
   receptor_ids <- new_annotations |>
     select({{ receptor_id_col }}) |>
     distinct(!!rlang::sym(receptor_id_col))
+
+  # TODO: do I need to recompute counts / proportions each time?
 
   new_receptors <- idata$receptors |> semi_join(receptor_ids, by = receptor_id_col)
 
@@ -75,6 +79,8 @@ filter_barcodes <- function(idata, barcodes) {
   colnames(barcodes_table) <- barcode_col_id
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)
+
+  # TODO: do I need to recompute counts / proportions each time?
 
   receptor_id_col <- imd_schema()$receptor
   receptor_ids <- new_annotations |>
