@@ -157,19 +157,41 @@ TODO
 
 #### Filter by receptors
 
+`filter_receptors`
+
 one, several, regex, edit distance
 
 #### Filter by annotation
+
+`filter_annotations`
 
 one, several values, several columns
 
 #### Filter by barcodes
 
+`filter_barcodes`
+
 list of barcodes
 
 #### Filter by repertoire
 
+`filter_repertoires`
+
 TODO
+
+### Annotations
+
+#### Annotate by receptor feature
+
+`annotate_receptors`
+
+#### Annotate by receptor ID
+
+`annotate_receptors`
+
+#### Annotate by barcode a.k.a. cell ID
+
+`annotate_barcodes`
 
 ### Analyse the data
 
@@ -319,4 +341,3 @@ and support options.
     without considering the first option. Broken schema usually means
     that there are some issues in the how the data were processed
     upstream.
-

@@ -1,5 +1,5 @@
 Package: immundata
-Title: A Unified Data Layer for Single-Cell, Spatial and Bulk Immunomics
+Title: A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics
 Version: 0.0.2
 Authors@R: 
     person("Vadim I.", "Nazarov", , "support@immunomind.com", role = c("aut", "cre"),
