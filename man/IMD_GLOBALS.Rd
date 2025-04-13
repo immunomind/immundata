@@ -21,7 +21,7 @@ field names, default file names, and internal error messages.
 \item \code{messages}: Named list of default messages and error texts (e.g., \code{"NotImpl"}).
 \item \code{schema}: Standardized column names for internal schema usage. These include:
 \itemize{
-\item \code{barcode}: Column name for cell barcode IDs.
+\item \code{cell}: Column name for cell barcode IDs.
 \item \code{receptor}: Column name for receptor unique identifiers.
 \item \code{repertoire}: Column name for repertoire group IDs.
 \item \code{metadata_filename}: Column name for metadata files (internal).

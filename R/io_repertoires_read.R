@@ -1,7 +1,7 @@
 #' @importFrom dplyr select group_by all_of any_of arrange summarise mutate row_number full_join
 #' @importFrom cli cli_alert_info cli_alert_success cli_alert_danger cli_ul cli_end cli_ol cli_abort
 #' @importFrom duckplyr read_parquet_duckdb read_csv_duckdb compute_parquet duckdb_tibble
-#' @importFrom checkmate assert_character assert_logical assert_file_exists assert_directory_exists assert_data_frame
+#' @importFrom checkmate assert_character assert_logical assert_file_exists assert_directory_exists assert_data_frame test_function test_character
 #' @importFrom rlang sym
 #'
 #' @title Read Immune Receptor Repertoire Data and Create ImmunData
@@ -21,9 +21,9 @@
 #' @param metadata
 #'   An optional data frame containing additional metadata to merge into the annotation table.
 #'   Default is `NULL`.
-#' @param barcode_col
+#' @param cell_id_col
 #'   An optional character string specifying the column in the input data that represents
-#'   cell barcodes or other unique identifiers. Default is `NULL`.
+#'   cell ids or barcodes or other unique identifiers. Default is `NULL`.
 #' @param count_col
 #'   An optional character string specifying the column in the input data that stores
 #'   bulk receptor counts. Default is `NULL`.
@@ -47,7 +47,7 @@
 #'    to a Parquet, CSV, or TSV file, using `read_parquet_duckdb` or `read_csv_duckdb`.
 #' 2. **Aggregation** – Receptor uniqueness is determined by the columns named in
 #'    `schema`, while barcodes or counts are handled depending on which parameters
-#'    (`barcode_col`, `count_col`) are provided.
+#'    (`cell_id_col`, `count_col`) are provided.
 #' 3. **Saving** – The final receptor-level and annotation-level tables are written
 #'    to Parquet files in `output_folder`.
 #' 4. **Reloading** – The function calls [read_immundata()] on the newly
@@ -59,12 +59,13 @@
 read_repertoires <- function(path,
                              schema,
                              metadata = NULL,
-                             barcode_col = NULL,
+                             cell_id_col = NULL,
                              count_col = NULL,
                              enforce_schema = TRUE,
-                             exclude_columns = imd_drop_cols()$airr,
+                             exclude_columns = imd_drop_cols("airr"),
                              output_folder = NULL,
-                             repertoire_schema = imd_repertoire_schema()$airr$filename,
+                             rename_columns = imd_rename_cols("10x"),
+                             repertoire_schema = imd_repertoire_schema("airr"),
                              verbose = TRUE) {
   start_time <- Sys.time()
 
@@ -74,7 +75,7 @@ read_repertoires <- function(path,
     assert_data_frame(metadata)
   }
   assert_character(
-    barcode_col,
+    cell_id_col,
     min.len = 1,
     max.len = 1,
     null.ok = TRUE
@@ -83,9 +84,19 @@ read_repertoires <- function(path,
     max.len = 1,
     null.ok = TRUE
   )
-  assert_character(
-    repertoire_schema,
+  assert_character(output_folder,
+    max.len = 1,
     null.ok = TRUE
+  )
+  assert(
+    test_character(repertoire_schema,
+      null.ok = TRUE
+    ),
+    test_function(repertoire_schema)
+  )
+  assert(
+    test_character(rename_columns, null.ok = TRUE),
+    test_function(rename_columns)
   )
   assert_character(
     exclude_columns,
@@ -113,12 +124,14 @@ read_repertoires <- function(path,
       )
     ),
     csv = read_csv_duckdb(path,
+      prudence = "stingy",
       options = list(
         filename = TRUE,
         union_by_name = !enforce_schema
       )
     ),
     tsv = read_csv_duckdb(path,
+      prudence = "stingy",
       options = list(
         delim = "\t",
         filename = TRUE,
@@ -127,22 +140,47 @@ read_repertoires <- function(path,
     )
   )
 
+  # Rename columns
+  cli_alert_info("Renaming the columns")
+  if (!is.null(rename_columns)) {
+    old_colnames <- colnames(raw_dataset)
+    if (test_function(rename_columns)) {
+      raw_dataset <- raw_dataset |> rename(rename_columns())
+    } else {
+      raw_dataset <- raw_dataset |> rename(all_of(rename_columns))
+    }
+    new_colnames <- colnames(raw_dataset)
+    renamed_cols <- setdiff(new_colnames, old_colnames)
+    if (length(renamed_cols)) {
+      cli_alert_success("Introduced new renamed columns: {setdiff(new_colnames, old_colnames)}")
+    }
+  }
+
   # Preprocess the data and aggregate receptors together
   cli_alert_info("Preprocessing and aggregating the data")
-
-  immundata_barcode_col <- IMD_GLOBALS$schema$barcode
-  immundata_receptor_id_col <- IMD_GLOBALS$schema$receptor
-  immundata_count_col <- IMD_GLOBALS$schema$count
 
   if (!is.null(exclude_columns)) {
     raw_dataset <- raw_dataset |>
       select(-any_of(exclude_columns))
   }
 
+  # Check if we can aggregate receptors by the columns
+  receptor_cols_existence <- setdiff(schema, colnames(raw_dataset))
+  if (length(receptor_cols_existence) != 0) {
+    cli_abort("Not all columns in the receptor schema present in the data: [{receptor_cols_existence}]. Please double check and run again.")
+  }
+
+
+  immundata_cell_id_col <- IMD_GLOBALS$schema$cell
+  immundata_receptor_id_col <- IMD_GLOBALS$schema$receptor
+  immundata_count_col <- IMD_GLOBALS$schema$count
+
+  #
   # 1) Case #1: simple receptor table - no barcodes, no count column
-  if (is.null(barcode_col) && is.null(count_col)) {
+  #
+  if (is.null(cell_id_col) && is.null(count_col)) {
     raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := row_number())
+      mutate({{ immundata_cell_id_col }} := row_number())
 
     receptor_data <- raw_dataset |>
       summarise(.by = all_of(schema)) |>
@@ -155,10 +193,12 @@ read_repertoires <- function(path,
       mutate({{ immundata_count_col }} := 1)
   }
 
+  #
   # 2) Case 2: bulk data - no barcodes, but with the count column
-  else if (is.null(barcode_col) && !is.null(count_col)) {
+  #
+  else if (is.null(cell_id_col) && !is.null(count_col)) {
     raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := row_number())
+      mutate({{ immundata_cell_id_col }} := row_number())
 
     receptor_data <- raw_dataset |>
       summarise(.by = all_of(schema)) |>
@@ -171,10 +211,12 @@ read_repertoires <- function(path,
       mutate({{ immundata_count_col }} := !!rlang::sym(count_col))
   }
 
+  #
   # 3) Case 3: single-cell data - barcodes, no counts
-  else if (!is.null(barcode_col) && is.null(count_col)) {
+  #
+  else if (!is.null(cell_id_col) && is.null(count_col)) {
     raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := !!rlang::sym(barcode_col))
+      mutate({{ immundata_cell_id_col }} := !!rlang::sym(cell_id_col))
 
     receptor_data <- raw_dataset |>
       summarise(.by = all_of(schema)) |>
@@ -186,7 +228,10 @@ read_repertoires <- function(path,
       full_join(raw_dataset, by = schema) |>
       mutate({{ immundata_count_col }} := 1)
   } else {
-    cli_abort("Undefined case: passed column names for both barcodes and receptor counts.")
+    #
+    #  4) Something weird is happening...
+    #
+    cli_abort("Undefined case: passed column names for both cell identifiers and receptor counts.")
   }
 
   # Combine annotations and the metadata file

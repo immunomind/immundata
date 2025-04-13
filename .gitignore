@@ -7,3 +7,4 @@ inst/extdata/testing/*
 TODO.md
 CRAN-SUBMISSION
 cran-comments.md
+inst/doc

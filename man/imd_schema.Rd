@@ -4,13 +4,13 @@
 \alias{imd_schema}
 \title{Get Immundata Internal Schema Field Names}
 \usage{
-imd_schema()
+imd_schema(val = NULL)
 }
 \value{
 A named list of schema field names.
 }
 \description{
 Returns the standardized field names used across Immundata objects and processing functions,
-as defined in \code{IMD_GLOBALS$schema}. These include column names for barcodes, receptors,
+as defined in \code{IMD_GLOBALS$schema}. These include column names for cell ids or barcodes, receptors,
 repertoires, and related metadata.
 }

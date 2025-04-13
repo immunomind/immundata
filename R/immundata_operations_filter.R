@@ -53,29 +53,29 @@ filter_annotations <- function(idata, ...) {
 #' @importFrom duckplyr duckdb_tibble
 #' @importFrom dplyr distinct
 #'
-#' @title Filter ImmunData by Passed Barcodes
+#' @title Filter ImmunData by Passed Cell IDs or Barcodes
 #'
 #' @description
 #' A short description...
 #'
 #' @param idata [ImmunData] object.
-#' @param barcodes Vector of barcodes to filter by.
+#' @param cell_ids Vector of cell identifiers or barcodes to filter by.
 #'
 #' @export
-filter_barcodes <- function(idata, barcodes) {
-  # TODO: Figure out what are the options to pass the barcodes.
+filter_cells <- function(idata, cell_ids) {
+  # TODO: Figure out what are the options to pass the cell_ids
   # - character vector
   # - something from Seurat / AnnData?
 
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert(
-    checkmate::check_character(barcodes, min.len = 1),
-    checkmate::check_integer(barcodes, min.len = 1),
-    checkmate::check_double(barcodes, min.len = 1)
+    checkmate::check_character(cell_ids, min.len = 1),
+    checkmate::check_integer(cell_ids, min.len = 1),
+    checkmate::check_double(cell_ids, min.len = 1)
   )
 
-  barcode_col_id <- imd_schema()$barcode
-  barcodes_table <- duckdb_tibble(A = unique(barcodes))
+  barcode_col_id <- imd_schema()$cell_id
+  barcodes_table <- duckdb_tibble(A = unique(cell_ids))
   colnames(barcodes_table) <- barcode_col_id
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)

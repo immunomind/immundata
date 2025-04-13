@@ -8,7 +8,7 @@
 #' @section Components:
 #' - `messages`: Named list of default messages and error texts (e.g., `"NotImpl"`).
 #' - `schema`: Standardized column names for internal schema usage. These include:
-#'     - `barcode`: Column name for cell barcode IDs.
+#'     - `cell`: Column name for cell barcode IDs.
 #'     - `receptor`: Column name for receptor unique identifiers.
 #'     - `repertoire`: Column name for repertoire group IDs.
 #'     - `metadata_filename`: Column name for metadata files (internal).
@@ -21,7 +21,7 @@
 #' @keywords internal
 IMD_GLOBALS <- list(
   schema = list(
-    barcode = "imd_barcode",
+    cell = "imd_cell_id",
     receptor = "imd_receptor_id",
     repertoire = "imd_repertoire_id",
     metadata_filename = "imd_filename",
@@ -35,6 +35,26 @@ IMD_GLOBALS <- list(
     receptors = "receptors.parquet",
     annotations = "annotations.parquet"
   ),
+  rename_cols = list(
+    default = function() {
+      c(
+        v_call = any_of(c("v_gene")),
+        d_call = any_of(c("d_gene")),
+        j_call = any_of(c("j_gene")),
+        d_call = any_of(c("d_gene")),
+        locus = any_of(c("chain"))
+      )
+    },
+    `10x` = function() {
+      c(
+        v_call = any_of(c("v_gene")),
+        d_call = any_of(c("d_gene")),
+        j_call = any_of(c("j_gene")),
+        d_call = any_of(c("d_gene")),
+        locus = any_of(c("chain"))
+      )
+    }
+  ),
   drop_cols = list(
     airr = c(
       "v_score", "d_score", "j_score", "stop_codon", "vj_in_frame",
@@ -44,11 +64,27 @@ IMD_GLOBALS <- list(
     )
   ),
   agg_schema = list(
-    repertoires = list(
+    receptors = list(
       airr = list(
-        "filename" = c("filename"),
-        "sample" = c("sample")
+        locus = list(
+          col_name = "locus",
+          locus_pairs = list(
+            c("TRA", "TRB"),
+            c("TRG", "TRD"),
+            c("IGH", "IGK"),
+            c("IGH", "IGL")
+          )
+        )
       )
+    ),
+    repertoires = list(
+      airr = function() {
+        any_of(
+          filename = "filename",
+          sample = "sample",
+          repertoire_id = "repertoire_id"
+        )
+      }
     )
   )
 )
@@ -57,7 +93,7 @@ IMD_GLOBALS <- list(
 #'
 #' @description
 #' Returns the standardized field names used across Immundata objects and processing functions,
-#' as defined in `IMD_GLOBALS$schema`. These include column names for barcodes, receptors,
+#' as defined in `IMD_GLOBALS$schema`. These include column names for cell ids or barcodes, receptors,
 #' repertoires, and related metadata.
 #'
 #' @return A named list of schema field names.
@@ -71,7 +107,7 @@ imd_schema <- function(val = NULL) {
 #'
 #' @description
 #' Returns the standardized default filenames for storing receptor-level and annotation-level
-#' data as used in `load_repertoires()` and related Immundata I/O functions.
+#' data as used in `read_repertoires()` and related Immundata I/O functions.
 #'
 #' @return A named list of file names (e.g., `receptors.parquet`, `annotations.parquet`).
 #' @export
@@ -80,11 +116,25 @@ imd_files <- function() {
 }
 
 #' @export
-imd_drop_cols <- function() {
-  IMD_GLOBALS$drop_cols
+imd_rename_cols <- function(format = "default") {
+  check_character(format)
+  check_choice(format, names(IMD_GLOBALS$rename_cols))
+
+  IMD_GLOBALS$rename_cols[[format]]
 }
 
 #' @export
-imd_repertoire_schema <- function() {
-  IMD_GLOBALS$agg_schema$repertoires
+imd_drop_cols <- function(format = "airr") {
+  check_character(format)
+  check_choice(format, names(IMD_GLOBALS$drop_cols))
+
+  IMD_GLOBALS$drop_cols[[format]]
+}
+
+#' @export
+imd_repertoire_schema <- function(format = "airr") {
+  check_character(format)
+  check_choice(format, c("airr"))
+
+  IMD_GLOBALS$agg_schema$repertoires[[format]]
 }

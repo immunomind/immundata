@@ -11,5 +11,5 @@ A named list of file names (e.g., \code{receptors.parquet}, \code{annotations.pa
 }
 \description{
 Returns the standardized default filenames for storing receptor-level and annotation-level
-data as used in \code{load_repertoires()} and related Immundata I/O functions.
+data as used in \code{read_repertoires()} and related Immundata I/O functions.
 }

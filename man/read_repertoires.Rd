@@ -8,12 +8,13 @@ read_repertoires(
   path,
   schema,
   metadata = NULL,
-  barcode_col = NULL,
+  cell_id_col = NULL,
   count_col = NULL,
   enforce_schema = TRUE,
-  exclude_columns = imd_drop_cols()$airr,
+  exclude_columns = imd_drop_cols("airr"),
   output_folder = NULL,
-  repertoire_schema = imd_repertoire_schema()$airr$filename,
+  rename_columns = imd_rename_cols("10x"),
+  repertoire_schema = imd_repertoire_schema("airr"),
   verbose = TRUE
 )
 }
@@ -27,8 +28,8 @@ identify unique receptor signatures. For example, \code{c("V_gene", "J_gene", "C
 \item{metadata}{An optional data frame containing additional metadata to merge into the annotation table.
 Default is \code{NULL}.}
 
-\item{barcode_col}{An optional character string specifying the column in the input data that represents
-cell barcodes or other unique identifiers. Default is \code{NULL}.}
+\item{cell_id_col}{An optional character string specifying the column in the input data that represents
+cell ids or barcodes or other unique identifiers. Default is \code{NULL}.}
 
 \item{count_col}{An optional character string specifying the column in the input data that stores
 bulk receptor counts. Default is \code{NULL}.}
@@ -59,7 +60,7 @@ tables. The resulting data is saved to a designated output folder as two Parquet
 to a Parquet, CSV, or TSV file, using \code{read_parquet_duckdb} or \code{read_csv_duckdb}.
 \item \strong{Aggregation} – Receptor uniqueness is determined by the columns named in
 \code{schema}, while barcodes or counts are handled depending on which parameters
-(\code{barcode_col}, \code{count_col}) are provided.
+(\code{cell_id_col}, \code{count_col}) are provided.
 \item \strong{Saving} – The final receptor-level and annotation-level tables are written
 to Parquet files in \code{output_folder}.
 \item \strong{Reloading} – The function calls \code{\link[=read_immundata]{read_immundata()}} on the newly
@@ -67,5 +68,5 @@ created folder to return a fully instantiated \code{ImmunData}.
 }
 }
 \seealso{
-\code{\link[=read_immundata]{read_immundata()}}, \link{ImmunData}
+\code{\link[=read_metadata]{read_metadata()}}, \code{\link[=read_immundata]{read_immundata()}}, \link{ImmunData}
 }
