@@ -1,59 +1,60 @@
 # `immundata` in R 
 
--   [\`immundata\` in R](#immundata-in-r)
-    -   [Installation](#installation)
-        -   [Prerequisites](#prerequisites)
-        -   [Latest CRAN release](#latest-cran-release)
-        -   [Latest GitHub release](#latest-github-release)
-        -   [Latest development version](#latest-development-version)
-    -   [Quick start](#quick-start)
-    -   [Input / Output](#input--output)
-        -   [Read one or multiple AIRR files into \`immundata\`](#read-one-or-multiple-airr-files-into-immundata)
-            -   [1. Pass a single file name](#1-pass-a-single-file-name)
-            -   [2. Pass a vector of file names](#2-pass-a-vector-of-file-names)
-            -   [3. Pass a glob pattern](#3-pass-a-glob-pattern)
-            -   [4. Use a metadata file](#4-use-a-metadata-file)
-        -   [Alternative to reading from files: convert data lists from \`immunarch\`](#alternative-to-reading-from-files-convert-data-lists-from-immunarch)
-        -   [Working with the repertoire metadata file](#working-with-the-repertoire-metadata-file)
-            -   [Why split it up?](#why-split-it-up)
-            -   [Example workflow](#example-workflow)
-        -   [Re-aggregating data using receptor and repertoire schemas](#re-aggregating-data-using-receptor-and-repertoire-schemas)
-        -   [Modalities of the data source](#modalities-of-the-data-source)
-            -   [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
-            -   [Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq](#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq)
-            -   [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
-            -   [Spatial -- spatial transcriptomics and cell coordinates](#spatial---spatial-transcriptomics-and-cell-coordinates)
-            -   [Annotate immune receptors using external AIRR databases](#annotate-immune-receptors-using-external-airr-databases)
-            -   [Immunogenicity -- run external tools such as TCRdist to annotate ImmunData](#immunogenicity----run-external-tools-such-as-tcrdist-to-annotate-immundata)
-            -   [Hybrid datasets](#hybrid-datasets)
-                -   [Multi-locus data](#multi-locus-data)
-                -   [Multiple contigs for TCR](#multiple-contigs-for-tcr)
-                -   [BCR-heavy chains with multiple light chains](#bcr-heavy-chains-with-multiple-light-chains)
-                -   [Bulk and single-cell data integration](#bulk-and-single-cell-data-integration)
-        -   [Preprocessing strategies](#preprocessing-strategies)
-    -   [Data manipulation](#data-manipulation)
-        -   [Filtering](#filtering)
-            -   [Filter by receptor features or their identifiers](#filter-by-receptor-features-or-their-identifiers)
-            -   [Filter by annotation](#filter-by-annotation)
-            -   [Filter by cells identifiers or barcodes](#filter-by-cells-identifiers-or-barcodes)
-            -   [Filter by repertoire](#filter-by-repertoire)
-        -   [Annotations](#annotations)
-            -   [Annotate by receptor feature](#annotate-by-receptor-feature)
-            -   [Annotate by receptor ID](#annotate-by-receptor-id)
-            -   [Annotate by barcode a.k.a. cell ID](#annotate-by-barcode-aka-cell-id)
-        -   [Analyse the data](#analyse-the-data)
-            -   [Basic analysis in \`immundata\`](#basic-analysis-in-immundata)
-            -   [Exporatory and statistical analysis in \`immunarch\`](#exporatory-and-statistical-analysis-in-immunarch)
-    -   [Advanced topics](#advanced-topics)
-        -   [Integrate into your package](#integrate-into-your-package)
-        -   [Change RAM limits to accelerate the backend computations](#change-ram-limits-to-accelerate-the-backend-computations)
-        -   [Save your intermediate data for faster computations and reproducibility](#save-your-intermediate-data-for-faster-computations-and-reproducibility)
-    -   [About](#about)
-        -   [Citation](#citation)
-        -   [License](#license)
-        -   [Author and contributors](#author-and-contributors)
-        -   [Commercial usage](#commercial-usage)
-    -   [FAQ](#faq)
+- [`immundata` in R](#immundata-in-r)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Latest CRAN release](#latest-cran-release)
+    - [Latest GitHub release](#latest-github-release)
+    - [Latest development version](#latest-development-version)
+  - [Quick start](#quick-start)
+  - [Input / Output](#input--output)
+    - [Read one or multiple AIRR files into `immundata`](#read-one-or-multiple-airr-files-into-immundata)
+      - [1. Pass a single file name](#1-pass-a-single-file-name)
+      - [2. Pass a vector of file names](#2-pass-a-vector-of-file-names)
+      - [3. Pass a glob pattern](#3-pass-a-glob-pattern)
+      - [4. Use a metadata file](#4-use-a-metadata-file)
+    - [Alternative to reading from files: convert data lists from `immunarch`](#alternative-to-reading-from-files-convert-data-lists-from-immunarch)
+    - [Working with the repertoire metadata file](#working-with-the-repertoire-metadata-file)
+      - [Why split it up?](#why-split-it-up)
+      - [Example workflow](#example-workflow)
+    - [Re-aggregating data using receptor and repertoire schemas](#re-aggregating-data-using-receptor-and-repertoire-schemas)
+    - [Modalities of the data source](#modalities-of-the-data-source)
+      - [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
+      - [Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq](#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq)
+      - [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
+      - [Spatial -- spatial transcriptomics and cell coordinates](#spatial---spatial-transcriptomics-and-cell-coordinates)
+      - [Annotate immune receptors using external AIRR databases](#annotate-immune-receptors-using-external-airr-databases)
+      - [Immunogenicity -- run external tools such as TCRdist to annotate ImmunData](#immunogenicity----run-external-tools-such-as-tcrdist-to-annotate-immundata)
+      - [Hybrid datasets](#hybrid-datasets)
+        - [Multi-locus data](#multi-locus-data)
+        - [Multiple contigs for TCR](#multiple-contigs-for-tcr)
+        - [BCR-heavy chains with multiple light chains](#bcr-heavy-chains-with-multiple-light-chains)
+        - [Bulk and single-cell data integration](#bulk-and-single-cell-data-integration)
+    - [Preprocessing strategies](#preprocessing-strategies)
+  - [Data manipulation](#data-manipulation)
+    - [Filtering](#filtering)
+      - [Filter by receptor features or their identifiers](#filter-by-receptor-features-or-their-identifiers)
+      - [Filter by annotation](#filter-by-annotation)
+      - [Filter by cells identifiers or barcodes](#filter-by-cells-identifiers-or-barcodes)
+      - [Filter by repertoire](#filter-by-repertoire)
+    - [Annotations](#annotations)
+      - [Annotate by receptor feature](#annotate-by-receptor-feature)
+      - [Annotate by receptor ID](#annotate-by-receptor-id)
+      - [Annotate by barcode a.k.a. cell ID](#annotate-by-barcode-aka-cell-id)
+    - [Analyse the data](#analyse-the-data)
+      - [Basic analysis in `immundata`](#basic-analysis-in-immundata)
+      - [Exporatory and statistical analysis in `immunarch`](#exporatory-and-statistical-analysis-in-immunarch)
+  - [Advanced topics](#advanced-topics)
+    - [Integrate into your package](#integrate-into-your-package)
+    - [Change RAM limits to accelerate the backend computations](#change-ram-limits-to-accelerate-the-backend-computations)
+    - [Save your intermediate data for faster computations and reproducibility](#save-your-intermediate-data-for-faster-computations-and-reproducibility)
+  - [About](#about)
+    - [Citation](#citation)
+    - [License](#license)
+    - [Author and contributors](#author-and-contributors)
+    - [Commercial usage](#commercial-usage)
+  - [FAQ](#faq)
+
 
 ## Installation
 
@@ -235,64 +236,66 @@ This is the key concept that distinguished `immundata` from DataFrame-based libr
 -   people analyse a specific receptors
 -   data lineage is crucial for full reproducibility
 
-### Modalities of the data source 
-
-#### Bulk -- RepSeq, AIRRSeq
-
-TODO
-
-#### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
-
--   load annotation data
--   do something
--   write the annotation data back
--   visualize AIRR with annotations data
--   visualize SC with annotation data
-
-#### Paired-chain -- scVDJseq or other technologies
-
-TODO
-
-#### Spatial -- spatial transcriptomics and cell coordinates
-
--   load annotation data
--   do something
--   write the annotation data back
--   visualize AIRR with annotations data
--   visualize SC with annotation data
-
-#### Annotate immune receptors using external AIRR databases 
-
-TODO
-
-#### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData 
-
-TODO
-
-#### Hybrid datasets 
-
-##### Multi-locus data 
-
-TODO
-
-##### Multiple contigs for TCR 
-
-TODO
-
-##### BCR-heavy chains with multiple light chains 
-
-TODO
-
-##### Bulk and single-cell data integration 
-
-TODO
-
 ### Preprocessing strategies 
 
 -   filtering non productive
 -   double contigs
 -   double BCR chains
 -   locus
+
+
+## Use Cases
+
+### Bulk -- RepSeq, AIRRSeq
+
+TODO
+
+### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
+
+-   load annotation data
+-   do something
+-   write the annotation data back
+-   visualize AIRR with annotations data
+-   visualize SC with annotation data
+
+### Paired-chain -- scVDJseq or other technologies
+
+TODO
+
+### Spatial -- spatial transcriptomics and cell coordinates
+
+-   load annotation data
+-   do something
+-   write the annotation data back
+-   visualize AIRR with annotations data
+-   visualize SC with annotation data
+
+### Annotate immune receptors using external AIRR databases 
+
+TODO
+
+### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData 
+
+TODO
+
+### Hybrid datasets 
+
+#### Multi-locus data 
+
+TODO
+
+#### Multiple contigs for TCR 
+
+TODO
+
+#### BCR-heavy chains with multiple light chains 
+
+TODO
+
+#### Bulk and single-cell data integration 
+
+TODO
+
 
 ## Data manipulation 
 
