@@ -7,40 +7,47 @@ output:
     toc: true
 ---
 
-# immundata-rlang
+# `immundata` in R
 
 ## Installation
+
+### Prerequisites
+
+Before installing any release or pre-release version of `immundata`,
+please install `pak` that will simplify the installation of any package,
+not just `immundata`:
+
+``` r
+install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
+```
+
+More info if needed is available on [R pak
+website](https://pak.r-lib.org/#arrow_down-installation).
 
 ### Latest CRAN release
 
 ``` r
-install.packages("immundata")
+pak::pkg_install("immundata")
 ```
 
 ### Latest GitHub release
 
-If you want the very latest release, or if the above command doesn't
-work for some reason, try installing `immundata` from the code
-repository:
+Because releasing on CRAN is limited to one release per one or two
+months or if the above command doesn't work, try installing the very
+latest release of `immundata` from the code repository:
 
 ``` r
-install.packages(c("devtools", "pkgload")) # skip this if you already installed these packages
-devtools::install_github("immunomind/immundata-rlang")
-devtools::reload(pkgload::inst("immundata"))
+pak::pkg_install("immunomind/immundata-rlang")
 ```
 
-## Latest pre-release
+### Latest development version
 
-Since releasing on CRAN is limited to one release per one or two months,
-you can install the latest pre-release version with all the bleeding
-edge and optimised features directly from the code repository. In order
-to install the latest pre-release version, you need to execute the
-following commands:
+If you are willing to try unstable yet bleeding edge features, or if
+there are some hot fix for your open GitHub ticket, please install the
+development version via:
 
 ``` r
-install.packages(c("devtools", "pkgload")) # skip this if you already installed these packages
-devtools::install_github("immunomind/immundata-rlang", ref = "dev")
-devtools::reload(pkgload::inst("immundata"))
+pak::pkg_install("immunomind/immundata-rlang@dev")
 ```
 
 ## Quick start
@@ -58,38 +65,163 @@ md <- read_metadata(md_path)
 imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md, output_folder = "./immundata-quick-start")
 ```
 
-## Input / output
-
-### Supported formats
-
-parquet etc.
+## Input / Output
 
 ### Read one or multiple AIRR files into `immundata`
 
-Suppose you have several files. How to read them?
+**`immundata`** provides a flexible system for loading immune receptor
+repertoire files from different sources -- CSV, TSV and Parquet files,
+possibly gzipped, with some optionality. The main function for this is
+`read_repertoires()`. Below are four ways to pass your file paths.
 
-#### 1. Pass a singular file name
+#### 1. Pass a single file name
+
+If you just have **one** AIRR file:
+
+``` r
+library(immundata)
+
+# In this example, we assume 'my_airr_file.tsv' has columns like 'V_gene', 'J_gene', 'CDR3_nt'
+# that you want to aggregate into a receptor signature.
+my_immdata <- read_repertoires(
+  path   = "my_airr_file.tsv",
+  schema = c("V_gene", "J_gene", "CDR3_nt")
+)
+
+# The output is an ImmunData object, which you can inspect:
+my_immdata$receptors()
+my_immdata$annotations()
+```
+
+-   The `schema` argument tells `immundata` which columns define the
+    unique receptor signature.
+-   By default, `read_repertoires()` writes Parquet files into a
+    directory named `immundata-my_airr_file` and then calls
+    `read_immundata()` on it. Consider passing `output_folder` if you
+    want to specify the output path.
 
 #### 2. Pass a vector of file names
 
-#### 3. Pass a glob of files
+For **multiple** files in a vector:
+
+``` r
+many_files <- c("sample1.airr.tsv", "sample2.airr.tsv", "sample3.airr.tsv")
+
+my_immdata <- read_repertoires(
+  path   = many_files,
+  schema = c("V_gene", "J_gene", "CDR3_nt")
+)
+```
+
+`immundata` automatically merges them (depending on your chosen schema)
+and writes the aggregated data into a single directory of Parquet files.
+
+#### 3. Pass a glob pattern
+
+If your files follow a consistent naming pattern, you can leverage shell
+globs:
+
+``` r
+# For example, all AIRR files in the 'samples/' folder
+my_immdata <- read_repertoires(
+  path   = "samples/*.airr.tsv",
+  schema = c("V_gene", "J_gene", "CDR3_nt")
+)
+```
+
+Behind the scenes, `read_repertoires()` expands the glob with
+`Sys.glob(...)`, merges the data, and produces a single `ImmunData`.
+Think about it as a huge table instead of smaller multiple repertoire
+tables.
+
+#### 4. Use a metadata file
+
+Sometimes you need more control over the data source (e.g. consistent
+sample naming, extra columns). In that case:
+
+1.  **Load metadata** with `read_metadata()`.\
+2.  **Pass** the resulting data frame to
+    `read_repertoires(path = "<metadata>", ..., metadata = md)`. Mind
+    the `"<metadata>"` string we pass to the function. It indicates that
+    we should take file paths from the input metadata table.
+
+For example:
+
+``` r
+# Suppose metadata.tsv has a column 'File' with paths to your AIRR files
+md <- read_metadata("metadata.tsv", filename_col = "File")
+my_immdata <- read_repertoires(
+  path     = "<metadata>"
+  metadata = md,
+  schema   = c("V_gene", "J_gene", "CDR3_nt")
+)
+```
+
+This approach **unifies** sample-level metadata (e.g. donor ID,
+timepoint) with your repertoire data inside a single `ImmunData`.
+
+### Alternative to reading from files: convert data lists from `immunarch`
+
+`from_immunarch`
 
 ### Working with the repertoire metadata file
 
-`immundata` modularizes different parts to make sure ??? (modularity /
-one big function is bad). Henceforth, `immundata` splits the repertoire
-dataset loading into three steps:
+By design, **`immundata`** splits the data-loading pipeline into
+**three** steps, rather than one giant function. This promotes
+modularity, easier debugging, and flexible usage:
 
-1.  Optionally, load the metadata via `load_metadata`
+1.  **(Optional) Load the metadata** via `read_metadata()`.
+    -   This ensures your metadata has the correct file paths, absolute
+        or relative.\
+2.  **Load the repertoire files** from disk via `read_repertoires()`.
+    -   This function unifies your data (be it 1 file or 100 files) and
+        **outputs** two Parquet files:
+        -   **`receptors.parquet`** (receptor-level aggregation)\
+        -   **`annotations.parquet`** (cell-level data, sample metadata,
+            etc.)\
+    -   It then calls `read_immundata()` to return a fully instantiated
+        `ImmunData` object that uses the newly created files on the disk
+        as a source. The helps two-fold: you don't lose your data, and
+        it allows `immundata` to run an optimized code when necessary.\
+3.  **(Optionally) Load the same `ImmunData` files later** with
+    [`read_immundata()`](#).
+    -   If you need to reopen the data in a future R session, you don’t
+        have to redo the entire pipeline.\
+    -   Just call `read_immundata(path_to_immundata_folder)` where the
+        folder contains `receptors.parquet` and `annotations.parquet`.
 
-2.  Load the repertoire files from the disk via `read_repertoires` and
-    convert them into `immundata` files.
+#### Why split it up?
 
-3.  Load the ImmunData files from the converted files via
-    `load_immundata` as the final step of `read_repertoires`.
+-   **Modularity**: If something breaks, you can debug whether it’s in
+    metadata parsing or the actual repertoire table creation.\
+-   **Reusability**: If you have a standard set of metadata files for
+    different experiments, you can re-run or share them without
+    re-writing everything.
+-   **Performance**: Once your data is in `immundata` format, you can
+    load it in future sessions in **constant time** without merging or
+    parsing again.
 
-After converting the files to the `immundata` format, you can load them
-directly with `load_immundata`.
+#### Example workflow
+
+``` r
+# 1) Read the metadata to ensure correct file paths
+md <- read_metadata("my_experiment_metadata.tsv", filename_col = "File")
+
+# 2) Read the actual repertoire data, merging the metadata
+#    and specifying which columns define the receptor
+my_immdata <- read_repertoires(
+  path     = md[[IMD_GLOBALS$schema$filename]],
+  metadata = md,
+  schema   = c("V_gene", "J_gene", "CDR3_nt"),
+  output_folder = "immundata-run1"
+)
+
+# 3) If you reopen R, just call read_immundata() next time
+other_session_data <- read_immundata("immundata-run1")
+```
+
+With this approach, you **never** need to re-parse your raw AIRR files
+once you’ve generated the Parquet-based `immundata` format.
 
 ### Re-aggregating data using receptor and repertoire schemas
 
@@ -125,7 +257,11 @@ TODO
 -   visualize AIRR with annotations data
 -   visualize SC with annotation data
 
-#### Immunogenicity -- annotations from external tools
+#### Annotate immune receptors using external AIRR databases
+
+TODO
+
+#### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData
 
 TODO
 
@@ -366,9 +502,27 @@ and support options.
     that there are some issues in the how the data were processed
     upstream.
 
-10. `immundata` is too verbose, I'm tired of all the messages. How to
-    turn them off?\
-    \
+10. **Q: `immundata` is too verbose, I'm tired of all the messages. How
+    to turn them off?**\
     A: Run the following code
     \``options(rlib_message_verbosity = "quiet")`\` to turn off
     messages.
+
+11. **Q: I don't want to use `pak`, how can I use the good old
+    `install.packages`?**
+
+    A: Nothing will stop you, eh? You are welcome:
+
+    ``` r
+    # Release
+    install.packages("immundata")
+
+    # Pre-release
+    install.packages(c("devtools", "pkgload"))
+    devtools::install_github("immunomind/immundata-rlang")
+    devtools::reload(pkgload::inst("immundata"))
+
+    # Dev version
+    devtools::install_github("immunomind/immundata-rlang", ref = "dev")
+    devtools::reload(pkgload::inst("immundata"))
+    ```
