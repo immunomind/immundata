@@ -1,0 +1,30 @@
+---
+title: "Single-cell analysis with ImmunData"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Single-cell analysis with ImmunData}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(immundata)
+```
+
+```{r}
+# rep <- readr::read_csv("../inst/extdata/testing/single_cell/lung6/GSM4143665_SAM24363330-lt6.filtered_contig_annotations.csv.gz")
+rep <- readr::read_csv("../inst/extdata/testing/single_cell/lung6/GSM4143667_SAM24363331-lb6.filtered_contig_annotations.csv.gz")
+
+barcode_stats = rep |> group_by(barcode) |> summarise(n_barcodes = n()) |> arrange(-n_barcodes)
+
+rep <- rep |> full_join(barcode_stats, by = "barcode") |> arrange(-n_barcodes, barcode, -reads)
+
+rep
+```

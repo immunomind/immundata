@@ -4,7 +4,7 @@
 \name{immundata-package}
 \alias{immundata}
 \alias{immundata-package}
-\title{immundata: A Unified Data Layer for Single-Cell, Spatial and Bulk Immunomics}
+\title{immundata: A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics}
 \description{
 Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data, integrating diverse data formats such as AIRR and raw sequencing files. Includes utilities for receptor aggregation, metadata normalization, and clonotype filtering.
 }

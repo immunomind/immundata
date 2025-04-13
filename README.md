@@ -52,7 +52,7 @@ samples <- c(
   )
 
 md <- read_metadata(md_path)
-imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md)
+imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md, output_folder = "./immundata-quick-start")
 ```
 
 ## Input / output
@@ -274,8 +274,29 @@ and support options.
 
 4.  **Q: Why does `immundata` support only the AIRR standard?!**
 
-    A: Because standards, but `immundata` allows some level of
-    optionality - you can provide column names for barcodes, etc.
+    A: The practical answer is that `immundata` allows some level of
+    optionality - you can provide column names for barcodes, etc.\
+    \
+    The short answer is that we have our own standards already.\
+    \
+    The long answer is that the amount of investments required not only
+    for the devlopment, but also for continued support of parsers for
+    different formats is astounishing. I delopved parsers for 10 formats
+    for tcR / immunarch packages, and I would much prefer for upstream
+    tool developers to not change their format each minor versions,
+    breaking pretty much all downstream pipelines and causing all sorts
+    of pain to end users and tools developers - mind you, without
+    bearing a responsibility to at least notify, but ideally fix the
+    broken formats they introduced. The time of Wild West is over - the
+    AIRR community did an outstanding job creating it's standard. Please
+    urge the creators of your favorite tools or your fellow developers
+    to use this format or a superset of it, like immundata does.\
+    \
+    Immundata is not and will not support other formats explicitly. This
+    is both a practical stance and communication of crucial values, put
+    into immundata as a part of a broader ecosystem of AIRR tools. The
+    domains is already too complex, and we need to work together to make
+    this complexity manageable.
 
 5.  **Q: Why is it so complex? Why do we need to use `dplyr` instead of
     plain R?**
