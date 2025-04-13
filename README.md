@@ -1,4 +1,4 @@
-# `immundata` in R {#immundata-in-r}
+# `immundata` in R 
 
 -   [\`immundata\` in R](#immundata-in-r)
     -   [Installation](#installation)
@@ -55,9 +55,9 @@
         -   [Commercial usage](#commercial-usage)
     -   [FAQ](#faq)
 
-## Installation {#installation}
+## Installation
 
-### Prerequisites {#prerequisites}
+### Prerequisites
 
 Before installing any release or pre-release version of `immundata`, please install `pak` that will simplify the installation of any package, not just `immundata`:
 
@@ -67,13 +67,13 @@ install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s
 
 More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow_down-installation).
 
-### Latest CRAN release {#latest-cran-release}
+### Latest CRAN release
 
 ``` r
 pak::pkg_install("immundata")
 ```
 
-### Latest GitHub release {#latest-github-release}
+### Latest GitHub release
 
 Because releasing on CRAN is limited to one release per one or two months or if the above command doesn't work, try installing the very latest release of `immundata` from the code repository:
 
@@ -81,7 +81,7 @@ Because releasing on CRAN is limited to one release per one or two months or if 
 pak::pkg_install("immunomind/immundata-rlang")
 ```
 
-### Latest development version {#latest-development-version}
+### Latest development version
 
 If you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version via:
 
@@ -89,7 +89,7 @@ If you are willing to try unstable yet bleeding edge features, or if there are s
 pak::pkg_install("immunomind/immundata-rlang@dev")
 ```
 
-## Quick start {#quick-start}
+## Quick start
 
 ``` r
 library(immundata)
@@ -106,7 +106,7 @@ imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md, output_folder = 
 
 ## Input / Output
 
-### Read one or multiple AIRR files into `immundata` {#read-one-or-multiple-airr-files-into-immundata}
+### Read one or multiple AIRR files into `immundata`
 
 **`immundata`** provides a flexible system for loading immune receptor repertoire files from different sources -- CSV, TSV and Parquet files, possibly gzipped, with some optionality. The main function for this is `read_repertoires()`. Below are four ways to pass your file paths.
 
@@ -182,11 +182,11 @@ my_immdata <- read_repertoires(
 
 This approach **unifies** sample-level metadata (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
 
-### Alternative to reading from files: convert data lists from `immunarch` {#alternative-to-reading-from-files-convert-data-lists-from-immunarch}
+### Alternative to reading from files: convert data lists from `immunarch` 
 
 `from_immunarch`
 
-### Working with the repertoire metadata file {#working-with-the-repertoire-metadata-file}
+### Working with the repertoire metadata file 
 
 By design, **`immundata`** splits the data-loading pipeline into **three** steps, rather than one giant function. This promotes modularity, easier debugging, and flexible usage:
 
@@ -201,13 +201,13 @@ By design, **`immundata`** splits the data-loading pipeline into **three** steps
     -   If you need to reopen the data in a future R session, you don’t have to redo the entire pipeline.\
     -   Just call `read_immundata(path_to_immundata_folder)` where the folder contains `receptors.parquet` and `annotations.parquet`.
 
-#### Why split it up? {#why-split-it-up}
+#### Why split it up?
 
 -   **Modularity**: If something breaks, you can debug whether it’s in metadata parsing or the actual repertoire table creation.\
 -   **Reusability**: If you have a standard set of metadata files for different experiments, you can re-run or share them without re-writing everything.
 -   **Performance**: Once your data is in `immundata` format, you can load it in future sessions in **constant time** without merging or parsing again.
 
-#### Example workflow {#example-workflow}
+#### Example workflow 
 
 ``` r
 # 1) Read the metadata to ensure correct file paths
@@ -228,14 +228,14 @@ other_session_data <- read_immundata("immundata-run1")
 
 With this approach, you **never** need to re-parse your raw AIRR files once you’ve generated the Parquet-based `immundata` format.
 
-### Re-aggregating data using receptor and repertoire schemas {#re-aggregating-data-using-receptor-and-repertoire-schemas}
+### Re-aggregating data using receptor and repertoire schemas
 
 This is the key concept that distinguished `immundata` from DataFrame-based libraries.
 
 -   people analyse a specific receptors
 -   data lineage is crucial for full reproducibility
 
-### Modalities of the data source {#modalities-of-the-data-source}
+### Modalities of the data source 
 
 #### Bulk -- RepSeq, AIRRSeq
 
@@ -261,74 +261,74 @@ TODO
 -   visualize AIRR with annotations data
 -   visualize SC with annotation data
 
-#### Annotate immune receptors using external AIRR databases {#annotate-immune-receptors-using-external-airr-databases}
+#### Annotate immune receptors using external AIRR databases 
 
 TODO
 
-#### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData {#immunogenicity----run-external-tools-such-as-tcrdist-to-annotate-immundata}
+#### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData 
 
 TODO
 
-#### Hybrid datasets {#hybrid-datasets}
+#### Hybrid datasets 
 
-##### Multi-locus data {#multi-locus-data}
-
-TODO
-
-##### Multiple contigs for TCR {#multiple-contigs-for-tcr}
+##### Multi-locus data 
 
 TODO
 
-##### BCR-heavy chains with multiple light chains {#bcr-heavy-chains-with-multiple-light-chains}
+##### Multiple contigs for TCR 
 
 TODO
 
-##### Bulk and single-cell data integration {#bulk-and-single-cell-data-integration}
+##### BCR-heavy chains with multiple light chains 
 
 TODO
 
-### Preprocessing strategies {#preprocessing-strategies}
+##### Bulk and single-cell data integration 
+
+TODO
+
+### Preprocessing strategies 
 
 -   filtering non productive
 -   double contigs
 -   double BCR chains
 -   locus
 
-## Data manipulation {#data-manipulation}
+## Data manipulation 
 
-### Filtering {#filtering}
+### Filtering 
 
-#### Filter by receptor features or their identifiers {#filter-by-receptor-features-or-their-identifiers}
+#### Filter by receptor features or their identifiers 
 
 `filter_receptors`
 
 one, several, regex, edit distance
 
-#### Filter by annotation {#filter-by-annotation}
+#### Filter by annotation 
 
 `filter_annotations`
 
 one, several values, several columns
 
-#### Filter by cells identifiers or barcodes {#filter-by-cells-identifiers-or-barcodes}
+#### Filter by cells identifiers or barcodes 
 
 `filter_cells`
 
 list of barcodes
 
-#### Filter by repertoire {#filter-by-repertoire}
+#### Filter by repertoire 
 
 `filter_repertoires`
 
 TODO
 
-### Annotations {#annotations}
+### Annotations 
 
-#### Annotate by receptor feature {#annotate-by-receptor-feature}
+#### Annotate by receptor feature 
 
 `annotate_receptors`
 
-#### Annotate by receptor ID {#annotate-by-receptor-id}
+#### Annotate by receptor ID 
 
 `annotate_receptors`
 
@@ -336,51 +336,51 @@ TODO
 
 `annotate_cells`
 
-### Analyse the data {#analyse-the-data}
+### Analyse the data 
 
-#### Basic analysis in `immundata` {#basic-analysis-in-immundata}
+#### Basic analysis in `immundata` 
 
 Find receptors from several repertoires or groups which have \>2 abundance
 
-#### Exporatory and statistical analysis in `immunarch` {#exporatory-and-statistical-analysis-in-immunarch}
+#### Exporatory and statistical analysis in `immunarch` 
 
 TODO
 
-## Advanced topics {#advanced-topics}
+## Advanced topics 
 
-### Integrate into your package {#integrate-into-your-package}
-
-TODO
-
-### Change RAM limits to accelerate the backend computations {#change-ram-limits-to-accelerate-the-backend-computations}
+### Integrate into your package 
 
 TODO
 
-### Save your intermediate data for faster computations and reproducibility {#save-your-intermediate-data-for-faster-computations-and-reproducibility}
+### Change RAM limits to accelerate the backend computations 
 
 TODO
 
-## About {#about}
-
-### Citation {#citation}
+### Save your intermediate data for faster computations and reproducibility 
 
 TODO
 
-### License {#license}
+## About 
+
+### Citation 
 
 TODO
 
-### Author and contributors {#author-and-contributors}
+### License 
 
 TODO
 
-### Commercial usage {#commercial-usage}
+### Author and contributors 
+
+TODO
+
+### Commercial usage 
 
 `immundata` is free to use for commercial usage. However, corporate users will not get a prioritized support for `immundata`-related issues, immune repertoire analysis questions or data engineering questions, related to building scalable immune repertoire and other -omics pipelines. The priority of open-source tool `immundata` is open-source science.
 
 If you are looking for prioritized support and setting up your data pipelines, consider contacting Vadim Nazarov for commercial consulting and support options.
 
-## FAQ {#faq}
+## FAQ 
 
 1.  **Q: Why all the function names or ImmunData fields are so long? I want to write `imdata$rec` instead of `imdata$receptors`.**
 
@@ -441,7 +441,7 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
     A: The power of `immundata` lies in the fast re-aggregation of the data, that allows to work with whatever you define as a repertoire on the fly via `ImmunData$build_repertoires(schema = ...)`
 
-9.  **Q: What do I do with following error: "Error in `compute_parquet()` at [...]: ! {"exception_type":"IO","exception_message":"Failed to write [...]: Failed to read file [...]: schema mismatch in glob: column [...] was read from the original file [...], but could not be found in file [...] If you are trying to read files with different schemas, try setting union_by_name=True"}?**\*
+9.  **Q: What do I do with following error: "Error in `compute_parquet()` at [...]: ! ?**\*
 
     A: It means that your repertoire files have different schemas, i.e., different column names. You have two options.
 
