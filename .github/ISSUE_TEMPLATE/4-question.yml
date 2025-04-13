@@ -1,4 +1,4 @@
-name: Question
+name: "❓ Question"
 description: Ask us anything about immundata - how to use it, how to do something, how it works
 label: question
 - type: textarea

@@ -1,4 +1,4 @@
-name: Bug report
+name: "🪲 Bug report"
 description: Something works incorrectly or throws an error? Let us know.
 label: bug
 - type: markdown
