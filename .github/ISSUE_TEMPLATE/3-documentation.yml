@@ -1,8 +1,7 @@
-name: Tutorial or documentaiton request
+name: "📚 Tutorial or documentation request"
 description: Propose a tutorial for a specific use case or new documentation
-label: documentation
-#labels:
-#- Triage 🩺
+labels:
+- documentation
 body:
 - type: dropdown
   id: kind

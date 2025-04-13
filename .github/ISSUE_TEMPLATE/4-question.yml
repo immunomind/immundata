@@ -1,6 +1,8 @@
 name: "❓ Question"
 description: Ask us anything about immundata - how to use it, how to do something, how it works
-label: question
+labels:
+- question
+body:
 - type: textarea
   id: description
   attributes:
