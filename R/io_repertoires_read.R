@@ -286,5 +286,5 @@ read_repertoires <- function(path,
   #
   # TODO: pass the repertoire schema
   #
-  read_immundata(path = output_folder)
+  read_immundata(path = output_folder, repertoire_schema = repertoire_schema)
 }

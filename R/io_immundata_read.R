@@ -19,7 +19,7 @@
 #' @seealso [read_repertoires()], [imd_files()], [ImmunData], [duckplyr::read_parquet_duckdb()]
 #'
 #' @export
-read_immundata <- function(path) {
+read_immundata <- function(path, repertoire_schema = NULL) {
   cli_alert_info("Reading ImmunData files from [{.path {path}}]")
 
   assert_directory_exists(path)
@@ -27,16 +27,25 @@ read_immundata <- function(path) {
   assert_file_exists(file.path(path, imd_files()$receptors))
   assert_file_exists(file.path(path, imd_files()$annotations))
 
+  assert(
+    test_character(repertoire_schema,
+                   null.ok = TRUE
+    ),
+    test_function(repertoire_schema)
+  )
+
   receptor_data <- read_parquet_duckdb(file.path(path, imd_files()$receptors), prudence = "stingy")
   annotation_data <- read_parquet_duckdb(file.path(path, imd_files()$annotations), prudence = "stingy")
 
   schema <- receptor_data |> colnames()
+  schema <- setdiff(schema, imd_schema()$receptor)
 
-  cli_alert_success("Loaded ImmunData with the schema: [{schema}]")
+  cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
 
   ImmunData$new(
     receptors = receptor_data,
     annotations = annotation_data,
-    schema = schema
+    schema = schema,
+    repertoires = repertoire_schema
   )
 }

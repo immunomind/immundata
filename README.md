@@ -2,6 +2,9 @@
 editor_options: 
   markdown: 
     wrap: 72
+output: 
+  html_document: 
+    toc: true
 ---
 
 # immundata-rlang
@@ -79,11 +82,11 @@ dataset loading into three steps:
 
 1.  Optionally, load the metadata via `load_metadata`
 
-2.  Load the repertoire files from the disk via `load_repertoires` and
+2.  Load the repertoire files from the disk via `read_repertoires` and
     convert them into `immundata` files.
 
 3.  Load the ImmunData files from the converted files via
-    `load_immundata` as the final step of `load_repertoires`.
+    `load_immundata` as the final step of `read_repertoires`.
 
 After converting the files to the `immundata` format, you can load them
 directly with `load_immundata`.
@@ -155,7 +158,7 @@ TODO
 
 ### Filtering
 
-#### Filter by receptors
+#### Filter by receptor features or their identifiers
 
 `filter_receptors`
 
@@ -167,9 +170,9 @@ one, several, regex, edit distance
 
 one, several values, several columns
 
-#### Filter by barcodes
+#### Filter by cells identifiers or barcodes
 
-`filter_barcodes`
+`filter_cells`
 
 list of barcodes
 
@@ -191,7 +194,7 @@ TODO
 
 #### Annotate by barcode a.k.a. cell ID
 
-`annotate_barcodes`
+`annotate_cells`
 
 ### Analyse the data
 
@@ -357,7 +360,7 @@ and support options.
     column names. And try again.
 
     **Option 2:** If you know what you are doing, pass argument
-    `enforce_schema = FALSE` to `load_repertoires`. The resultant table
+    `enforce_schema = FALSE` to `read_repertoires`. The resultant table
     will have NAs in the place of missing values. But don't use it
     without considering the first option. Broken schema usually means
     that there are some issues in the how the data were processed

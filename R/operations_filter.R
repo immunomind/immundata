@@ -10,6 +10,7 @@
 #'
 #' @export
 filter_receptors <- function(idata, ...) {
+  # TODO: `receptors` parameter to filter by receptor ids
   checkmate::assert_r6(idata, "ImmunData")
 
   new_receptors <- idata$receptors |> filter(...)
