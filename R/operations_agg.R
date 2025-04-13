@@ -26,7 +26,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id", sep = "-") {
   repertoires_table <- idata$annotations |> summarise(
     .by = {{ schema }},
     n_receptors = n(),
-    n_cells = sum({{ imd_count_col }})
+    n_cells = sum(!!rlang::sym(imd_count_col))
   )
 
   # TODO: recompute proportions
