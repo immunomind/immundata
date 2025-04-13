@@ -1,0 +1,24 @@
+name: Enhancement request
+description: Anything you’d like to see in immundata?
+type: enhancement
+#labels:
+#- Triage 🩺
+body:
+- type: dropdown
+  id: kind
+  attributes:
+    label: What kind of feature would you like to request?
+    options:
+    - 'New data processing / filtering / wrangling methods you are missing'
+    - 'Additional function parameters / changed functionality / changed defaults'
+    - 'New tutorial for a specific use case'
+    - 'Improved documentation or error message'
+    - 'Other - please describe it in the ticket body'
+  validations:
+    required: true
+- type: textarea
+  id: description
+  attributes:
+    label: Please describe your idea or what you want to achieve
+  validations:
+    required: true
