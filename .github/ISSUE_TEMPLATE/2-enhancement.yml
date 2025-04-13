@@ -1,8 +1,7 @@
 name: "💡 Enhancement request"
 description: Propose a new feature or an improvement
-label: enhancement
-#labels:
-#- Triage 🩺
+labels:
+- enhancement
 body:
 - type: dropdown
   id: kind
