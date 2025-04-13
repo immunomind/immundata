@@ -1,0 +1,22 @@
+name: Tutorial or documentaiton request
+description: Propose a tutorial for a specific use case or new documentation
+label: documentation
+#labels:
+#- Triage 🩺
+body:
+- type: dropdown
+  id: kind
+  attributes:
+    label: What kind of documentation would you like to request?
+    options:
+    - 'New tutorial for a specific use case'
+    - 'Improved documentation or error message'
+    - 'Other - please describe it in the ticket body'
+  validations:
+    required: true
+- type: textarea
+  id: description
+  attributes:
+    label: Please describe your idea or what you want to achieve
+  validations:
+    required: true

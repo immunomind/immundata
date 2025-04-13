@@ -1,6 +1,6 @@
 name: Enhancement request
-description: Anything you’d like to see in immundata?
-type: enhancement
+description: Propose a new feature or an improvement
+label: enhancement
 #labels:
 #- Triage 🩺
 body:
@@ -10,9 +10,8 @@ body:
     label: What kind of feature would you like to request?
     options:
     - 'New data processing / filtering / wrangling methods you are missing'
-    - 'Additional function parameters / changed functionality / changed defaults'
-    - 'New tutorial for a specific use case'
-    - 'Improved documentation or error message'
+    - 'Request enhancement to input/output, e.g., reading data, writing the on the disk'
+    - 'Improve existing functions, e.g., additional function parameters / changed functionality / changed defaults'
     - 'Other - please describe it in the ticket body'
   validations:
     required: true
