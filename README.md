@@ -362,3 +362,10 @@ and support options.
     without considering the first option. Broken schema usually means
     that there are some issues in the how the data were processed
     upstream.
+
+10. `immundata` is too verbose, I'm tired of all the messages. How to
+    turn them off?\
+    \
+    A: Run the following code
+    \``options(rlib_message_verbosity = "quiet")`\` to turn off
+    messages.

@@ -4,12 +4,12 @@
 \alias{filter_cells}
 \title{Filter ImmunData by Passed Cell IDs or Barcodes}
 \usage{
-filter_cells(idata, cell_ids)
+filter_cells(idata, cells)
 }
 \arguments{
 \item{idata}{\link{ImmunData} object.}
 
-\item{cell_ids}{Vector of cell identifiers or barcodes to filter by.}
+\item{cells}{Vector of cell identifiers or barcodes to filter by.}
 }
 \description{
 A short description...

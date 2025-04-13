@@ -20,11 +20,11 @@ library(immundata)
 
 ```{r}
 # rep <- readr::read_csv("../inst/extdata/testing/single_cell/lung6/GSM4143665_SAM24363330-lt6.filtered_contig_annotations.csv.gz")
-rep <- readr::read_csv("../inst/extdata/testing/single_cell/lung6/GSM4143667_SAM24363331-lb6.filtered_contig_annotations.csv.gz")
+# rep <- readr::read_csv("../inst/extdata/testing/single_cell/lung6/GSM4143667_SAM24363331-lb6.filtered_contig_annotations.csv.gz")
 
-barcode_stats = rep |> group_by(barcode) |> summarise(n_barcodes = n()) |> arrange(-n_barcodes)
+# barcode_stats = rep |> group_by(barcode) |> summarise(n_barcodes = n()) |> arrange(-n_barcodes)
 
-rep <- rep |> full_join(barcode_stats, by = "barcode") |> arrange(-n_barcodes, barcode, -reads)
+# rep <- rep |> full_join(barcode_stats, by = "barcode") |> arrange(-n_barcodes, barcode, -reads)
 
-rep
+# rep
 ```

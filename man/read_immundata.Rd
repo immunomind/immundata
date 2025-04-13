@@ -4,12 +4,10 @@
 \alias{read_immundata}
 \title{Load a Saved ImmunData Object from Disk}
 \usage{
-read_immundata(path, verbose = TRUE)
+read_immundata(path)
 }
 \arguments{
 \item{path}{Path to the folder containing the saved ImmunData files.}
-
-\item{verbose}{Logical. If \code{TRUE} (default), prints progress messages to the console.}
 }
 \value{
 A new \code{ImmunData} object containing receptor and annotation data.

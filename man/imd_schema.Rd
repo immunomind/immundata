@@ -4,7 +4,7 @@
 \alias{imd_schema}
 \title{Get Immundata Internal Schema Field Names}
 \usage{
-imd_schema(val = NULL)
+imd_schema()
 }
 \value{
 A named list of schema field names.

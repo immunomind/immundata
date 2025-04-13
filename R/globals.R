@@ -98,7 +98,7 @@ IMD_GLOBALS <- list(
 #'
 #' @return A named list of schema field names.
 #' @export
-imd_schema <- function(val = NULL) {
+imd_schema <- function() {
   # TODO: pass value to the function
   IMD_GLOBALS$schema
 }
@@ -115,6 +115,8 @@ imd_files <- function() {
   IMD_GLOBALS$files
 }
 
+#' Return a list of columns to rename
+#' @param format File format
 #' @export
 imd_rename_cols <- function(format = "default") {
   check_character(format)
@@ -123,6 +125,8 @@ imd_rename_cols <- function(format = "default") {
   IMD_GLOBALS$rename_cols[[format]]
 }
 
+#' Return a list of columns to drop from the dataset
+#' @param format File format
 #' @export
 imd_drop_cols <- function(format = "airr") {
   check_character(format)
@@ -131,6 +135,8 @@ imd_drop_cols <- function(format = "airr") {
   IMD_GLOBALS$drop_cols[[format]]
 }
 
+#' Return a typical repertoire columns, which define a repertoire for a specific format
+#' @param format File format
 #' @export
 imd_repertoire_schema <- function(format = "airr") {
   check_character(format)

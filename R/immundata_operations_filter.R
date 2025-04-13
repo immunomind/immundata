@@ -59,28 +59,28 @@ filter_annotations <- function(idata, ...) {
 #' A short description...
 #'
 #' @param idata [ImmunData] object.
-#' @param cell_ids Vector of cell identifiers or barcodes to filter by.
+#' @param cells Vector of cell identifiers or barcodes to filter by.
 #'
 #' @export
-filter_cells <- function(idata, cell_ids) {
-  # TODO: Figure out what are the options to pass the cell_ids
+filter_cells <- function(idata, cells) {
+  # TODO: Figure out what are the options to pass the cells
   # - character vector
   # - something from Seurat / AnnData?
 
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert(
-    checkmate::check_character(cell_ids, min.len = 1),
-    checkmate::check_integer(cell_ids, min.len = 1),
-    checkmate::check_double(cell_ids, min.len = 1)
+    checkmate::check_character(cells, min.len = 1),
+    checkmate::check_integer(cells, min.len = 1),
+    checkmate::check_double(cells, min.len = 1)
   )
 
-  barcode_col_id <- imd_schema()$cell_id
-  barcodes_table <- duckdb_tibble(A = unique(cell_ids))
+  barcode_col_id <- imd_schema()$cell
+  barcodes_table <- duckdb_tibble(A = unique(cells))
   colnames(barcodes_table) <- barcode_col_id
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)
 
-  # TODO: do I need to recompute counts / proportions each time?
+  # TODO: do I need to recompute proportions each time?
 
   receptor_id_col <- imd_schema()$receptor
   receptor_ids <- new_annotations |>

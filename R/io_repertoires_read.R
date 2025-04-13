@@ -1,4 +1,4 @@
-#' @importFrom dplyr select group_by all_of any_of arrange summarise mutate row_number full_join
+#' @importFrom dplyr select group_by all_of any_of arrange summarise mutate row_number full_join rename
 #' @importFrom cli cli_alert_info cli_alert_success cli_alert_danger cli_ul cli_end cli_ol cli_abort
 #' @importFrom duckplyr read_parquet_duckdb read_csv_duckdb compute_parquet duckdb_tibble
 #' @importFrom checkmate assert_character assert_logical assert_file_exists assert_directory_exists assert_data_frame test_function test_character
@@ -27,10 +27,6 @@
 #' @param count_col
 #'   An optional character string specifying the column in the input data that stores
 #'   bulk receptor counts. Default is `NULL`.
-#' @param repertoire_schema
-#'   An optional character vector defining how annotations should be grouped into repertoires
-#'   (for example, `c("sample", "donor")`). Currently unused in this function, but reserved
-#'   for future expansions. Default is `NULL`.
 #' @param output_folder
 #'   Character string specifying the directory to save the resulting Parquet files. If `NULL`,
 #'   a folder named `immundata-<basename_of_path>` is created in the same directory as `path`.
@@ -39,8 +35,13 @@
 #'   columns are unioned
 #' @param exclude_columns
 #'   Character. Vector of columns to exclude from the data. Default is AIRR standard columns `*_cigar` and `*_alignment`.
-#' @param verbose
-#' .  Logical. Not used -- for now.
+#' @param repertoire_schema
+#'   An optional character vector defining how annotations should be grouped into repertoires
+#'   (for example, `c("sample", "donor")`). Currently unused in this function, but reserved
+#'   for future expansions. Default is `NULL`.
+#' @param rename_columns
+#'   An optional character vector or a function that returns name of the columns to rename in the `dplyr`format:
+#'   `c(new_name = "old_name")`.
 #'
 #' @details
 #' 1. **Reading** – The function automatically detects whether `path` points
@@ -65,8 +66,7 @@ read_repertoires <- function(path,
                              exclude_columns = imd_drop_cols("airr"),
                              output_folder = NULL,
                              rename_columns = imd_rename_cols("10x"),
-                             repertoire_schema = imd_repertoire_schema("airr"),
-                             verbose = TRUE) {
+                             repertoire_schema = imd_repertoire_schema("airr")) {
   start_time <- Sys.time()
 
   assert_character(path)
@@ -102,7 +102,6 @@ read_repertoires <- function(path,
     exclude_columns,
     null.ok = TRUE
   )
-  assert_logical(verbose)
   assert_logical(enforce_schema)
 
   path <- normalizePath(Sys.glob(path), mustWork = FALSE)
@@ -287,5 +286,5 @@ read_repertoires <- function(path,
   #
   # TODO: pass the repertoire schema
   #
-  read_immundata(path = output_folder, verbose = verbose)
+  read_immundata(path = output_folder)
 }

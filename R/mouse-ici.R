@@ -1,3 +1,9 @@
+# LocusStrategy
+# -locus_col
+# -chain_schemas
+# -save_other
+#
+
 # imdata = repLoad("../immundata-py/data/mouse-ici/")
 #
 # names(imdata$data) <- sapply(names(imdata$data), function (x) substr(stringr::str_remove_all(x, "_miXCR_clones_summary_with_PID_read_cutoff_1"), 12, 200))

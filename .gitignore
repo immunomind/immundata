@@ -4,6 +4,7 @@
 .Ruserdata
 .DS_Store
 inst/extdata/testing/*
+inst/extdata/immundata-*
 TODO.md
 CRAN-SUBMISSION
 cran-comments.md

@@ -17,16 +17,14 @@ test_that("read_repertoires() works with sample data and merges metadata", {
   # (If you have a 'read_metadata()' or 'load_metadata()' function.)
   metadata_df <- read_metadata(md_path)
 
-  # Create a temporary folder to avoid polluting your local directory
-  outdir <- tempdir() # or file.path(tempdir(), "test-output")
+  outdir <- tempdir()
 
   # Run the function
   imdata <- read_repertoires(
     path = sample_files,
     schema = c("cdr3_aa", "v_call"),
     metadata = metadata_df,
-    output_folder = outdir,
-    verbose = FALSE
+    output_folder = outdir
   )
 
   # Basic check: Did we get an object back?
@@ -59,7 +57,6 @@ test_that("read_repertoires() case 1: no barcode_col and no count_col", {
   imdata <- read_repertoires(
     path = small_file,
     schema = c("cdr3_aa", "v_call"),
-    verbose = FALSE,
     output_folder = outdir
   )
 
@@ -81,7 +78,7 @@ test_that("read_repertoires() errors when both barcode_col and count_col are set
       path = sample_file,
       schema = c("cdr3_aa", "v_call"),
       cell_id_col = "barcode",
-      count_col = "count_col"  # Not actually in the file, but we want the code path tested
+      count_col = "count_col" # Not actually in the file, but we want the code path tested
     ),
     "Undefined case"
   )
@@ -93,9 +90,8 @@ test_that("read_repertoires() excludes specified columns", {
 
   imdata <- read_repertoires(
     path = sample_file,
-    schema = c("cdr3_aa", "v_call"),  # columns that do exist
+    schema = c("cdr3_aa", "v_call"), # columns that do exist
     exclude_columns = exclude_cols,
-    verbose = FALSE,
     output_folder = file.path(tempdir(), "test-exclude")
   )
 
@@ -116,13 +112,12 @@ test_that("read_repertoires() correctly renames columns (v_call -> v_gene)", {
 
   # We assume the file actually contains 'v_call'
   # We'll rename 'v_call' to 'v_gene'
-  rename_map <- c("v_gene" = "v_call")  # new_col = old_col
+  rename_map <- c("v_gene" = "v_call") # new_col = old_col
 
   imdata <- read_repertoires(
     path = sample_file,
-    schema = c("cdr3_aa", "v_gene"),  # We still rely on the old col name for grouping
+    schema = c("cdr3_aa", "v_gene"), # We still rely on the old col name for grouping
     rename_columns = rename_map,
-    verbose = FALSE,
     output_folder = file.path(tempdir(), "test-rename")
   )
 
@@ -144,14 +139,13 @@ test_that("read_repertoires() excludes columns AND renames simultaneously", {
 
   # Suppose the data has columns "j_call" and we want to rename it to "j_gene"
   rename_map <- c("j_gene" = "j_call")
-  exclude_cols <- c("cdr2", "fwr2")  # must exist in sample_1k_2k.tsv for the test to pass
+  exclude_cols <- c("cdr2", "fwr2") # must exist in sample_1k_2k.tsv for the test to pass
 
   imdata <- read_repertoires(
     path = sample_file,
     schema = c("cdr3_aa", "v_call", "j_gene"),
     rename_columns = rename_map,
     exclude_columns = exclude_cols,
-    verbose = FALSE,
     output_folder = file.path(tempdir(), "test-exclude-rename")
   )
 
@@ -186,8 +180,7 @@ test_that("read_repertoires() fails if missing columns in the receptor schema", 
   expect_error(
     read_repertoires(
       path = sample_file,
-      schema = bad_schema,
-      verbose = FALSE
+      schema = bad_schema
     ),
     "Not all columns in the receptor schema present in the data"
   )

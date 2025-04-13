@@ -13,17 +13,14 @@
 #' These filenames are defined in `imd_files()` and follow the Immundata storage convention.
 #'
 #' @param path Path to the folder containing the saved ImmunData files.
-#' @param verbose Logical. If `TRUE` (default), prints progress messages to the console.
 #'
 #' @return A new `ImmunData` object containing receptor and annotation data.
 #'
 #' @seealso [read_repertoires()], [imd_files()], [ImmunData], [duckplyr::read_parquet_duckdb()]
 #'
 #' @export
-read_immundata <- function(path, verbose = TRUE) {
-  if (verbose) {
-    cli_alert_info("Reading ImmunData files from [{.path {path}}]")
-  }
+read_immundata <- function(path) {
+  cli_alert_info("Reading ImmunData files from [{.path {path}}]")
 
   assert_directory_exists(path)
 
@@ -35,9 +32,7 @@ read_immundata <- function(path, verbose = TRUE) {
 
   schema <- receptor_data |> colnames()
 
-  if (verbose) {
-    cli_alert_success("Loaded ImmunData with the schema: [{schema}]")
-  }
+  cli_alert_success("Loaded ImmunData with the schema: [{schema}]")
 
   ImmunData$new(
     receptors = receptor_data,

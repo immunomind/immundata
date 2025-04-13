@@ -14,8 +14,7 @@ read_repertoires(
   exclude_columns = imd_drop_cols("airr"),
   output_folder = NULL,
   rename_columns = imd_rename_cols("10x"),
-  repertoire_schema = imd_repertoire_schema("airr"),
-  verbose = TRUE
+  repertoire_schema = imd_repertoire_schema("airr")
 )
 }
 \arguments{
@@ -42,11 +41,12 @@ columns are unioned}
 \item{output_folder}{Character string specifying the directory to save the resulting Parquet files. If \code{NULL},
 a folder named \verb{immundata-<basename_of_path>} is created in the same directory as \code{path}.}
 
+\item{rename_columns}{An optional character vector or a function that returns name of the columns to rename in the \code{dplyr}format:
+\code{c(new_name = "old_name")}.}
+
 \item{repertoire_schema}{An optional character vector defining how annotations should be grouped into repertoires
 (for example, \code{c("sample", "donor")}). Currently unused in this function, but reserved
 for future expansions. Default is \code{NULL}.}
-
-\item{verbose}{.  Logical. Not used -- for now.}
 }
 \description{
 This function ingests a repertoire dataset (Parquet, CSV, or TSV), aggregates receptors
