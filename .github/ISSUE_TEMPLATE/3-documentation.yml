@@ -1,5 +1,5 @@
 name: "📚 Tutorial or documentation request"
-description: Propose a tutorial for a specific use case or new documentation
+description: "Propose a tutorial for a specific use case or new documentation."
 labels:
 - documentation
 body:
