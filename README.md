@@ -67,21 +67,21 @@ More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow
 
  - **Latest CRAN release:** simply run
 
-  ``` r
-  pak::pkg_install("immundata")
-  ```
+        ``` r
+        pak::pkg_install("immundata")
+        ```
 
  - **Latest GitHub release:** because releasing on CRAN is limited to one release per one or two months or if the above command doesn't work, try installing the very latest release of `immundata` from the code repository:
 
-  ``` r
-  pak::pkg_install("immunomind/immundata-rlang")
-  ```
+        ``` r
+        pak::pkg_install("immunomind/immundata-rlang")
+        ```
 
  - **Latest development version:** if you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version via:
 
-  ``` r
-  pak::pkg_install("immunomind/immundata-rlang@dev")
-  ```
+        ``` r
+        pak::pkg_install("immunomind/immundata-rlang@dev")
+        ```
 
 
 ## ⚡ Quick Start
@@ -108,67 +108,69 @@ imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md, output_folder = 
 
   1. **Pass a single file name:** if you just have **one** AIRR file:
 
-    ``` r
-    library(immundata)
-    
-    # In this example, we assume 'my_airr_file.tsv' has columns like 'V_gene', 'J_gene', 'CDR3_nt'
-    # that you want to aggregate into a receptor signature.
-    my_immdata <- read_repertoires(
-      path   = "my_airr_file.tsv",
-      schema = c("V_gene", "J_gene", "CDR3_nt")
-    )
-    
-    # The output is an ImmunData object, which you can inspect:
-    my_immdata$receptors()
-    my_immdata$annotations()
-    ```
+        ``` r
+        library(immundata)
+        
+        # In this example, we assume 'my_airr_file.tsv' has columns like 'V_gene', 'J_gene', 'CDR3_nt'
+        # that you want to aggregate into a receptor signature.
+        my_immdata <- read_repertoires(
+          path   = "my_airr_file.tsv",
+          schema = c("V_gene", "J_gene", "CDR3_nt")
+        )
+        
+        # The output is an ImmunData object, which you can inspect:
+        my_immdata$receptors()
+        my_immdata$annotations()
+        ```
 
-  -   The `schema` argument tells `immundata` which columns define the unique receptor signature.
-  -   By default, `read_repertoires()` writes Parquet files into a directory named `immundata-my_airr_file` and then calls `read_immundata()` on it. Consider passing `output_folder` if you want to specify the output path.
+      -   The `schema` argument tells `immundata` which columns define the unique receptor signature.
+      
+      -   By default, `read_repertoires()` writes Parquet files into a directory named `immundata-my_airr_file` and then calls `read_immundata()` on it. Consider passing `output_folder` if you want to specify the output path.
 
   2. **Pass a vector of file names:** for **multiple** files in a vector:
 
-    ``` r
-    many_files <- c("sample1.airr.tsv", "sample2.airr.tsv", "sample3.airr.tsv")
-    
-    my_immdata <- read_repertoires(
-      path   = many_files,
-      schema = c("V_gene", "J_gene", "CDR3_nt")
-    )
-    ```
+        ``` r
+        many_files <- c("sample1.airr.tsv", "sample2.airr.tsv", "sample3.airr.tsv")
+        
+        my_immdata <- read_repertoires(
+          path   = many_files,
+          schema = c("V_gene", "J_gene", "CDR3_nt")
+        )
+        ```
 
-  - `immundata` automatically merges them (depending on your chosen schema) and writes the aggregated data into a single directory of Parquet files.
+      - `immundata` automatically merges them (depending on your chosen schema) and writes the aggregated data into a single directory of Parquet files.
 
   3. **Pass a glob pattern:** if your files follow a consistent naming pattern, you can leverage shell globs:
 
-    ``` r
-    # For example, all AIRR files in the 'samples/' folder
-    my_immdata <- read_repertoires(
-      path   = "samples/*.airr.tsv",
-      schema = c("V_gene", "J_gene", "CDR3_nt")
-    )
-    ```
+        ``` r
+        # For example, all AIRR files in the 'samples/' folder
+        my_immdata <- read_repertoires(
+          path   = "samples/*.airr.tsv",
+          schema = c("V_gene", "J_gene", "CDR3_nt")
+        )
+        ```
 
-  - Behind the scenes, `read_repertoires()` expands the glob with `Sys.glob(...)`, merges the data, and produces a single `ImmunData`. Think about it as a huge table instead of smaller multiple repertoire tables.
+      - Behind the scenes, `read_repertoires()` expands the glob with `Sys.glob(...)`, merges the data, and produces a single `ImmunData`. Think about it as a huge table instead of smaller multiple repertoire tables.
 
   4. **Use a metadata file:** sometimes you need more control over the data source (e.g. consistent sample naming, extra columns). In that case:
 
-    1.  **Load metadata** with `read_metadata()`.
-    2.  **Pass** the resulting data frame to `read_repertoires(path = "<metadata>", ..., metadata = md)`. Mind the `"<metadata>"` string we pass to the function. It indicates that we should take file paths from the input metadata table.
+        1.  **Load metadata** with `read_metadata()`.
+        
+        2.  **Pass** the resulting data frame to `read_repertoires(path = "<metadata>", ..., metadata = md)`. Mind the `"<metadata>"` string we pass to the function. It indicates that we should take file paths from the input metadata table.
 
     For example:
 
-    ``` r
-    # Suppose metadata.tsv has a column 'File' with paths to your AIRR files
-    md <- read_metadata("metadata.tsv", filename_col = "File")
-    my_immdata <- read_repertoires(
-      path     = "<metadata>"
-      metadata = md,
-      schema   = c("V_gene", "J_gene", "CDR3_nt")
-    )
-    ```
+        ``` r
+        # Suppose metadata.tsv has a column 'File' with paths to your AIRR files
+        md <- read_metadata("metadata.tsv", filename_col = "File")
+        my_immdata <- read_repertoires(
+          path     = "<metadata>"
+          metadata = md,
+          schema   = c("V_gene", "J_gene", "CDR3_nt")
+        )
+        ```
 
-  - This approach **unifies** sample-level metadata (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
+      - This approach **unifies** sample-level metadata (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
 
 ### Alternative to files: convert data lists from `immunarch` 
 
@@ -430,6 +432,7 @@ If you are looking for prioritized support and setting up your data pipelines, c
     **Option 2:** If you know what you are doing, pass argument `enforce_schema = FALSE` to `read_repertoires`. The resultant table will have NAs in the place of missing values. But don't use it without considering the first option. Broken schema usually means that there are some issues in the how the data were processed upstream.
 
 10. **Q: `immundata` is too verbose, I'm tired of all the messages. How to turn them off?**
+    
     A: Run the following code ``options(rlib_message_verbosity = "quiet")`` to turn off messages.
 
 11. **Q: I don't want to use `pak`, how can I use the good old `install.packages`?**
