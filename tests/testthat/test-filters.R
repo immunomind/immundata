@@ -21,11 +21,13 @@ test_that("filter_receptors() filters ImmunData by receptor-level conditions", {
   idata_filtered <- filter_receptors(idata, v_call == "TRBV7-9*01")
   checkmate::expect_r6(idata_filtered, "ImmunData")
 
-  v_vals <- idata_filtered$receptors %>% distinct(v_call) %>% pull(v_call)
+  v_vals <- idata_filtered$receptors %>%
+    distinct(v_call) %>%
+    pull(v_call)
   expect_true(all(v_vals == "TRBV7-9*01"), info = "Receptors table should only have TRBV12-1 after filter.")
 
   # Confirm that annotations are correspondingly smaller
-  expect_lte(idata_filtered$annotations |> collect() |> nrow() , idata$annotations |> collect() |> nrow())
+  expect_lte(idata_filtered$annotations |> collect() |> nrow(), idata$annotations |> collect() |> nrow())
 })
 
 test_that("filter_annotations() filters ImmunData by annotation-level conditions (locus)", {
@@ -44,7 +46,9 @@ test_that("filter_annotations() filters ImmunData by annotation-level conditions
   checkmate::expect_r6(filtered, classes = "ImmunData")
 
   # Confirm all `locus` values in annotations are "TRB"
-  unique_locus <- filtered$annotations %>% distinct(locus) %>% pull(locus)
+  unique_locus <- filtered$annotations %>%
+    distinct(locus) %>%
+    pull(locus)
   expect_equal(unique(unique_locus), "TCRB")
 
   # The receptor table should be smaller or the same size, never bigger
