@@ -66,7 +66,7 @@ read_repertoires <- function(path,
                              exclude_columns = imd_drop_cols("airr"),
                              output_folder = NULL,
                              rename_columns = imd_rename_cols("10x"),
-                             repertoire_schema = imd_repertoire_schema("airr")) {
+                             repertoire_schema = NULL) {
   start_time <- Sys.time()
 
   assert_character(path)
