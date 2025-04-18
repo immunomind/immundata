@@ -1,4 +1,5 @@
 #' @importFrom R6 R6Class
+#' @importFrom dplyr arrange_at vars
 #'
 #' @title ImmunData: A Unified Structure for Immune Receptor Repertoire Data
 #'
@@ -86,9 +87,10 @@ ImmunData <- R6Class(
     repertoires = function() {
       # TODO: cache repertoire table to memory if not very big?
       if (!is.null(private$.repertoire_table)) {
-        private$.repertoire_table |> collect()
+        private$.repertoire_table |>
+          collect() |>
+          arrange_at(vars(1))
       } else {
-        warning("No repertoires aggregated for this ImmunData. See `?agg_repertoires` for more information.")
         NULL
       }
     }
