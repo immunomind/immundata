@@ -9,11 +9,13 @@ print.ImmunData <- function(x, ...) {
   }
 
   if (!is.null(x$annotations)) {
+    cli::cat_line()
     cli::cli_h2("{cli::col_br_yellow('Annotations')}:")
     print(x$annotations)
   }
 
   if (!is.null(x$schema_receptor)) {
+    cli::cat_line()
     cli::cli_h2("{cli::col_br_red('Receptor schema:')}")
     schema <- x$schema_receptor
     # TODO: improve this
@@ -25,6 +27,7 @@ print.ImmunData <- function(x, ...) {
   }
 
   if (!is.null(x$schema_repertoire)) {
+    cli::cat_line()
     cli::cli_h2("{cli::col_br_magenta('Repertoire schema:')}")
     schema <- x$schema_repertoire
     names(schema) <- rep(">", times = length(schema))
@@ -32,6 +35,7 @@ print.ImmunData <- function(x, ...) {
   }
 
   if (!is.null(x$repertoires)) {
+    cli::cat_line()
     cli::cli_h2("{cli::col_br_cyan('List of repertoires:')}")
     print(x$repertoires)
   }

@@ -1,3 +1,8 @@
+#' @importFrom dplyr filter mutate select semi_join
+#' @importFrom checkmate assert_r6 assert_character assert_choice
+#' @importFrom rlang sym enquos as_string
+#' @importFrom dbplyr sql
+#'
 #' @title Filter ImmunData by Receptor Features (Exact, Fuzzy, or Regex Matching)
 #'
 #' @description
@@ -17,10 +22,7 @@
 #'
 #' @return New ImmunData object with both receptors and annotations filtered.
 #'
-#' @importFrom dplyr filter mutate select semi_join
-#' @importFrom checkmate assert_r6 assert_character assert_choice
-#' @importFrom rlang sym enquos as_string
-#' @importFrom dbplyr sql
+#' @export
 filter_receptors <- function(idata, ..., seq_options = NULL) {
   checkmate::assert_r6(idata, "ImmunData")
   dots <- rlang::enquos(...)
@@ -165,6 +167,7 @@ filter_annotations <- function(idata, ...) {
 
   ImmunData$new(receptors = new_receptors, annotations = new_annotations, schema = idata$schema_receptor)
 }
+
 
 #' @importFrom checkmate assert
 #' @importFrom duckplyr duckdb_tibble
