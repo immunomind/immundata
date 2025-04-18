@@ -13,6 +13,7 @@
 #' These filenames are defined in `imd_files()` and follow the Immundata storage convention.
 #'
 #' @param path Path to the folder containing the saved ImmunData files.
+#' @param repertoire_schema Character vector. Vector of column names to aggregate repertoires by.
 #'
 #' @return A new `ImmunData` object containing receptor and annotation data.
 #'
@@ -42,10 +43,16 @@ read_immundata <- function(path, repertoire_schema = NULL) {
 
   cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
 
-  ImmunData$new(
+  idata <- ImmunData$new(
     receptors = receptor_data,
     annotations = annotation_data,
-    schema = schema,
-    repertoires = repertoire_schema
+    schema = schema
   )
+
+  if (!is.null(repertoire_schema)) {
+    idata <- agg_repertoires(idata, repertoire_schema)
+    cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
+  }
+
+  idata
 }
