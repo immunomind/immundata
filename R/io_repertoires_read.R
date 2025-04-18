@@ -69,43 +69,43 @@ read_repertoires <- function(path,
                              repertoire_schema = NULL) {
   start_time <- Sys.time()
 
-  assert_character(path)
-  assert_character(schema)
+  checkmate::assert_character(path)
+  checkmate::assert_character(schema)
   if (!is.null(metadata)) {
-    assert_data_frame(metadata)
+    checkmate::assert_data_frame(metadata)
   }
-  assert_character(
+  checkmate::assert_character(
     cell_id_col,
     min.len = 1,
     max.len = 1,
     null.ok = TRUE
   )
-  assert_character(count_col,
+  checkmate::assert_character(count_col,
     max.len = 1,
     null.ok = TRUE
   )
-  assert_character(output_folder,
+  checkmate::assert_character(output_folder,
     max.len = 1,
     null.ok = TRUE
   )
-  assert(
-    test_character(repertoire_schema,
+  checkmate::assert(
+    checkmate::test_character(repertoire_schema,
       null.ok = TRUE
     ),
-    test_function(repertoire_schema)
+    checkmate::test_function(repertoire_schema)
   )
-  assert(
-    test_character(rename_columns, null.ok = TRUE),
-    test_function(rename_columns)
+  checkmate::assert(
+    checkmate::test_character(rename_columns, null.ok = TRUE),
+    checkmate::test_function(rename_columns)
   )
-  assert_character(
+  checkmate::assert_character(
     exclude_columns,
     null.ok = TRUE
   )
-  assert_logical(enforce_schema)
+  checkmate::assert_logical(enforce_schema)
 
   path <- normalizePath(Sys.glob(path), mustWork = FALSE)
-  assert_file_exists(path)
+  checkmate::assert_file_exists(path)
 
   # Read the dataset
   cli_alert_info("Reading repertoire data from:")
@@ -243,48 +243,29 @@ read_repertoires <- function(path,
       full_join(metadata_duckdb, by = immundata_filename_col)
   }
 
-  # Create the output folder
-  if (!is.null(output_folder)) {
-    output_folder <- normalizePath(output_folder, mustWork = FALSE)
-  } else {
+  idata <- ImmunData$new(
+    receptors = receptor_data,
+    annotations = annotation_data,
+    schema = schema
+  )
+
+  if (is.null(output_folder)) {
     base <- basename(path[1])
     name <- tools::file_path_sans_ext(base)
     output_folder <- file.path(dirname(path[1]), paste0("immundata-", name))
   }
   dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
-
-  #
-  # TODO: make ImmunData object + write_immundata + read it again (?)
-  #
-
-  receptor_path <- file.path(output_folder, imd_files()$receptors)
-  annotations_path <- file.path(output_folder, imd_files()$annotations)
-
-  cli_alert_info("Writing the receptor data to [{receptor_path}]")
-  compute_parquet(receptor_data,
-    receptor_path,
-    options = list(
-      compression = "zstd",
-      compression_level = 9
-    )
-  )
-
-  cli_alert_info("Writing the annotation data to [{annotations_path}]")
-  compute_parquet(annotation_data,
-    annotations_path,
-    options = list(
-      compression = "zstd",
-      compression_level = 9
-    )
-  )
+  write_immundata(idata, output_folder)
 
   final_time <- format(round(Sys.time() - start_time, 2))
   cli_alert_info("Time elapsed: {.emph {final_time}}")
 
-  cli_alert_success("ImmunData files saved to [{output_folder}]")
+  cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
 
-  #
-  # TODO: pass the repertoire schema
-  #
-  read_immundata(path = output_folder, repertoire_schema = repertoire_schema)
+  if (!is.null(repertoire_schema)) {
+    idata <- agg_repertoires(idata, repertoire_schema)
+    cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
+  }
+
+  idata
 }
