@@ -1,3 +1,6 @@
+# TODO: Use rlang::.data
+utils::globalVariables(c("dd", "n_cells", "p", "tmp_receptor_cells"))
+
 #' @title Internal Immundata Global Configuration
 #'
 #' @description
@@ -29,6 +32,7 @@ IMD_GLOBALS <- list(
     proportion = "imd_proportion",
     n_receptors = "n_receptors",
     n_cells = "n_cells",
+    n_repertoires = "n_repertoires",
     filename = "filename"
   ),
   files = list(
@@ -76,15 +80,6 @@ IMD_GLOBALS <- list(
           )
         )
       )
-    ),
-    repertoires = list(
-      airr = function() {
-        any_of(
-          filename = "filename",
-          sample = "sample",
-          repertoire_id = "repertoire_id"
-        )
-      }
     )
   )
 )
