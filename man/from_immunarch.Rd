@@ -2,54 +2,53 @@
 % Please edit documentation in R/io_immundata_conversion.R
 \name{from_immunarch}
 \alias{from_immunarch}
-\title{Convert immunarch data to ImmunData}
+\title{Convert an immunarch Object into an ImmunData Dataset}
 \usage{
 from_immunarch(
-  immdata,
+  imm,
   schema,
-  output_folder,
-  repertoire_id_col = "Sample",
-  cdr3_col = "CDR3.aa",
-  v_col = "V.name",
-  j_col = "J.name",
-  count_col = "Count"
+  data_folder,
+  immunarch_folder = file.path(tempdir(), "immunarch_folder")
 )
 }
 \arguments{
-\item{immdata}{A list-like object with fields \code{data} (a named list of data frames)
-and \code{meta} (a data frame of sample metadata). This is the usual format from immunarch.}
+\item{imm}{A list returned by \code{immunarch::repLoad()}, typically containing:
+\itemize{
+\item \strong{\code{data}}: a named list of \code{data.frame}s, one per repertoire.
+\item \strong{\code{meta}}: (optional) a \code{data.frame} of sample metadata.
+}}
 
-\item{schema}{A named list for your ImmunData receptor schema. If \code{NULL}, a default will be used.}
+\item{schema}{Character vector of column names that together define unique
+receptors (for example, \code{c("CDR3.aa", "V.name", "J.name")}).}
 
-\item{cdr3_col}{The immunarch column storing CDR3 amino acid sequences (default \code{"CDR3.aa"}).}
+\item{data_folder}{Path to the output directory where the resulting ImmunData
+Parquet files will be stored. This directory will be created if it does
+not already exist.}
 
-\item{v_col}{The immunarch column storing V segment (default \code{"V.name"}).}
-
-\item{j_col}{The immunarch column storing J segment (default \code{"J.name"}).}
-
-\item{count_col}{The column representing read counts or clonotype counts (default \code{"Count"}).}
-
-\item{sample_col}{A column name in \code{immdata$meta} that uniquely identifies each sample
-(default \code{"Sample"}).}
-
-\item{verbose}{Logical indicating whether to print progress messages (default \code{FALSE}).}
+\item{immunarch_folder}{Path to a directory where intermediate TSV files will
+be written. Defaults to \code{file.path(tempdir(), "immunarch_folder")}.}
 }
 \value{
-An \code{ImmunData} R6 object with \code{.receptors} and \code{.annotations} tables containing
-the unified immunarch data.
+An \link{ImmunData} object containing all repertoires from the input
+immunarch object, with data saved under \code{data_folder}.
 }
 \description{
-Takes a typical immunarch data structure (e.g., \code{immdata$data} and \code{immdata$meta})
-and merges all samples into a single table. It annotates each row with
-sample metadata, renames relevant columns, and returns a new \code{ImmunData} object.
+The \code{from_immunarch()} function takes an \strong{immunarch} object (as returned by
+\code{immunarch::repLoad()}), writes each repertoire to a TSV file with an added
+\code{filename} column in a specified folder, and then imports those files into
+an \strong{ImmunData} object via \code{read_repertoires()}.
 }
 \examples{
 \dontrun{
-# Suppose immdata is a typical immunarch dataset:
-# immdata$data -> named list of data frames
-# immdata$meta -> data frame with sample info
-new_imm <- from_immunarch(immdata)
-new_imm$receptors   # Access the receptor-level data
-new_imm$annotations # Access the annotation-level table
+imm <- immunarch::repLoad("/path/to/your/files")
+idata <- from_immunarch(imm,
+  schema = c("CDR3.aa", "V.name"),
+  immunarch_folder = tempdir(),
+  data_folder = "/path/to/immundata_out"
+)
 }
+
+}
+\seealso{
+\code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=read_immundata]{read_immundata()}}, \link{ImmunData}
 }

@@ -20,6 +20,7 @@ Imports:
     R6,
     checkmate,
     dplyr,
+    dbplyr,
     glue,
     lifecycle,
     readr,

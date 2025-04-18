@@ -2,15 +2,30 @@
 % Please edit documentation in R/operations_filter.R
 \name{filter_receptors}
 \alias{filter_receptors}
-\title{Filter ImmunData by Receptor Features}
+\title{Filter ImmunData by Receptor Features (Exact, Fuzzy, or Regex Matching)}
 \usage{
-filter_receptors(idata, ...)
+filter_receptors(idata, ..., seq_options = NULL)
 }
 \arguments{
-\item{idata}{\link{ImmunData} object.}
+\item{idata}{ImmunData object}
 
-\item{...}{Parameters passed to \link[dplyr:filter]{dplyr::filter}.}
+\item{...}{Regular dplyr‑style filtering expressions (applied first)}
+
+\item{seq_options}{Optional named list with (any subset of)
+\itemize{
+\item \code{query_col} – column to compare (character, length 1)
+\item \code{patterns}  – character vector of sequences / regexes
+\item \code{method}    – \code{"exact"} | \code{"regex"} | \code{"lev"} | \code{"hamm"}
+\item \code{max_dist}  – numeric; for fuzzy methods, keep rows ≤ \code{max_dist}
+\item \code{name_type} – \code{"index"} | \code{"pattern"} (passed through)
+If \code{seq_options} is \code{NULL} no sequence filtering is done. Use \code{\link[=make_seq_options]{make_seq_options()}} for convenience.
+}}
+}
+\value{
+New ImmunData object with both receptors and annotations filtered.
 }
 \description{
-A short description...
+Filter an \code{ImmunData} object by receptor features, supporting exact, Levenshtein,
+Hamming, or regular-expression matching on a specified sequence column. User-provided filters
+(\code{...}) are applied before any patterns-based matching.
 }

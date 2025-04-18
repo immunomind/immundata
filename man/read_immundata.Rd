@@ -8,6 +8,8 @@ read_immundata(path, repertoire_schema = NULL)
 }
 \arguments{
 \item{path}{Path to the folder containing the saved ImmunData files.}
+
+\item{repertoire_schema}{Character vector. Vector of column names to aggregate repertoires by.}
 }
 \value{
 A new \code{ImmunData} object containing receptor and annotation data.

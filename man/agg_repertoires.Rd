@@ -4,15 +4,56 @@
 \alias{agg_repertoires}
 \title{Define repertoires by aggregating annotation fields for ImmunData}
 \usage{
-agg_repertoires(idata, schema = "repertoire_id", sep = "-")
+agg_repertoires(idata, schema = "repertoire_id")
 }
 \arguments{
-\item{idata}{\link{ImmunData} object.}
+\item{idata}{An \link{ImmunData} object.}
 
-\item{schema}{A character vector of column names in \code{.annotations} used to define repertoire grouping.}
-
-\item{sep}{Currently unused. A string separator used to concatenate multiple columns into a single repertoire ID.}
+\item{schema}{Character vector of column names that, taken together, define a
+repertoire (default \code{"repertoire_id"}).  Can be length > 1 for composite
+repertoires.}
+}
+\value{
+A \strong{new} \link{ImmunData} object whose \code{annotations} contain four extra
+columns (\code{n_repertoires}, \code{n_receptors}, \code{n_cells}, \code{imd_prop}) and whose
+\code{repertoires} slot holds the per‑repertoire summary table.
 }
 \description{
-Aggregates receptors to repertoires by selected annotating columns.
+Groups the annotation table of an \strong{ImmunData} object by one or more
+user‑supplied columns that together define a \emph{repertoire} (e.g. sample,
+donor + time‑point).
+For each repertoire it computes:
+\itemize{
+\item \strong{\code{n_receptors}} – number of unique receptors in the repertoire
+\item \strong{\code{n_cells}}     – total cell/UMI counts (\code{imd_count}) in the repertoire
+}
+
+For every receptor it also adds:
+\itemize{
+\item \strong{\code{n_repertoires}} – how many distinct repertoires this receptor occurs in
+\item \strong{\code{imd_proportion}}      – proportion of its repertoire occupied by the receptor
+}
+
+All new columns are appended to the annotation table; a repertoire summary
+table is returned in the new object’s \code{repertoires} slot.
+}
+\details{
+The function first summarises \code{idata$annotations} to obtain per‑repertoire
+and per‑receptor counts, then left‑joins the results back:
+\enumerate{
+\item \strong{Per‑repertoire totals} (\code{repertoires_table})
+\code{n_receptors = n()}
+\code{n_cells     = sum(imd_count)}
+\item \strong{Receptor repertoire‑count} (\code{n_repertoires}) – distinct combinations
+of \code{schema} and \code{imd_receptor_id}.
+\item \strong{Per‑repertoire receptor proportion} (\code{imd_prop}) – receptor cells /
+total cells inside that repertoire.
+}
+
+The receptor table itself is \strong{not} modified; only the annotation table
+gains the new columns.  A fresh \link{ImmunData} object is returned so downstream
+pipelines remain lazy and chainable.
+}
+\seealso{
+\code{\link[=filter_receptors]{filter_receptors()}}, \code{\link[=annotate_receptors]{annotate_receptors()}}
 }
