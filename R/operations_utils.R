@@ -42,7 +42,12 @@ make_seq_options <- function(query_col,
 
 
 
-annotate_tbl_distance <- function(tbl_data, query_col, patterns, method = c("lev", "hamm"), max_dist = NA, name_type = c("pattern", "index")) {
+annotate_tbl_distance <- function(tbl_data,
+                                  query_col,
+                                  patterns,
+                                  method = c("lev", "hamm"),
+                                  max_dist = NA,
+                                  name_type = c("pattern", "index")) {
   # TODO: tibble? duckdb_tibble?
   # assert_r6(idata, "ImmunData")
 

@@ -98,9 +98,8 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
     left_join(receptor_props, by = c(schema, receptor_id))
 
   ImmunData$new(
-    receptors = idata$receptors,
-    annotations = new_annotations,
     schema = idata$schema_receptor,
+    annotations = new_annotations,
     repertoires = repertoires_table
   )
 }

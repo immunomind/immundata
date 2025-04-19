@@ -3,11 +3,11 @@
 #' @importFrom rlang sym enquos as_string
 #' @importFrom dbplyr sql
 #'
-#' @title Filter ImmunData by Receptor Features (Exact, Fuzzy, or Regex Matching)
+#' @title Filter ImmunData by Receptor Features or Annotations
 #'
 #' @description
-#' Filter an `ImmunData` object by receptor features, supporting exact, Levenshtein,
-#' Hamming, or regular-expression matching on a specified sequence column. User-provided filters
+#' Filter an `ImmunData` object by receptor features or annotations, supporting exact, Levenshtein,
+#' Hamming, or regular-expression matching on a specified column with sequences, e.g., CDR3 or FR1. User-provided filters
 #' (`...`) are applied before any patterns-based matching.
 #'
 #' @param idata      ImmunData object
@@ -22,17 +22,18 @@
 #'
 #' @return New ImmunData object with both receptors and annotations filtered.
 #'
+#' @concept Filtering
 #' @export
-filter_receptors <- function(idata, ..., seq_options = NULL) {
+filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = TRUE) {
   checkmate::assert_r6(idata, "ImmunData")
   dots <- rlang::enquos(...)
 
   receptor_id <- imd_schema()$receptor
 
   # Run "basic" filters first
-  new_receptors <- idata$receptors
+  new_annotations <- idata$annotations
   if (length(dots) > 0) {
-    new_receptors <- new_receptors |> filter(!!!dots)
+    new_annotations <- new_annotations |> filter(!!!dots)
   }
 
   #
@@ -56,9 +57,9 @@ filter_receptors <- function(idata, ..., seq_options = NULL) {
     # Exact
     #
     if (seq_options$method == "exact") {
-      new_receptors <- new_receptors |> filter(!!col_sym %in% seq_options$patterns)
+      new_annotations <- new_annotations |> filter(!!col_sym %in% seq_options$patterns)
 
-      keep_ids <- new_receptors |> select({{ receptor_id }})
+      keep_ids <- new_annotations |> select({{ receptor_id }})
 
       new_annotations <- idata$annotations |>
         semi_join(keep_ids, by = receptor_id)
@@ -68,11 +69,13 @@ filter_receptors <- function(idata, ..., seq_options = NULL) {
     # Regex
     #
     else if (seq_options$method == "regex") {
-      new_receptors <- annotate_tbl_regex(new_receptors,
+      filtered_data <- annotate_tbl_regex(
+        new_annotations |>
+          select(!!rlang::sym(receptor_id), !!col_sym),
         query_col = seq_options$query_col,
         patterns = seq_options$patterns,
-        name_type = seq_options$name_type,
-        filter_out = TRUE
+        filter_out = TRUE,
+        name_type = seq_options$name_type
       )
     }
 
@@ -80,12 +83,12 @@ filter_receptors <- function(idata, ..., seq_options = NULL) {
     # Levenshtein / hamming
     #
     else {
-      new_receptors <- annotate_tbl_distance(
-        new_receptors,
+      filtered_data <- annotate_tbl_distance(
+        new_annotations |>
+          select(!!rlang::sym(receptor_id), !!col_sym),
         query_col = seq_options$query_col,
-        patterns  = seq_options$patterns,
-        method    = seq_options$method,
-        max_dist  = seq_options$max_dist,
+        patterns = seq_options$patterns,
+        max_dist = seq_options$max_dist,
         name_type = seq_options$name_type
       )
     }
@@ -102,20 +105,20 @@ filter_receptors <- function(idata, ..., seq_options = NULL) {
         lev   = "imd_dist_lev_",
         hamm  = "imd_dist_hamm_"
       )
-      pat_cols <- grep(pat_prefix, colnames(new_receptors), value = TRUE)
+      pat_cols <- grep(pat_prefix, colnames(filtered_data), value = TRUE)
 
       # 2) pull out a tiny table of receptor_id + those columns
-      receptor_pattern_tbl <- new_receptors |>
+      receptor_pattern_tbl <- filtered_data |>
         select({{ receptor_id }}, all_of(pat_cols))
 
       # 3) drop them from receptors
-      new_receptors <- new_receptors |>
+      filtered_data <- filtered_data |>
         select(-all_of(pat_cols))
 
       # 4) filter annotations to only the kept receptors
-      keep_ids <- new_receptors |> select({{ receptor_id }})
+      keep_ids <- filtered_data |> select({{ receptor_id }})
 
-      new_annotations <- idata$annotations |>
+      new_annotations <- new_annotations |>
         semi_join(keep_ids, by = receptor_id)
 
       # 5) stitch the pattern columns onto annotations
@@ -128,44 +131,22 @@ filter_receptors <- function(idata, ..., seq_options = NULL) {
   # No sequence filters
   #
   else {
-    keep_ids <- new_receptors |> select({{ receptor_id }})
+    keep_ids <- new_annotations |> select({{ receptor_id }})
 
-    new_annotations <- idata$annotations |>
+    new_annotations <- new_annotations |>
       semi_join(keep_ids, by = receptor_id)
   }
 
-  ImmunData$new(
-    receptors = new_receptors,
-    annotations = new_annotations,
-    schema = idata$schema_receptor
+  new_idata <- ImmunData$new(
+    schema = idata$schema_receptor,
+    annotations = new_annotations
   )
-}
 
-
-#' @title Filter ImmunData by Annotations
-#'
-#' @description
-#' A short description...
-#'
-#' @param idata [ImmunData] object.
-#' @param ... Parameters passed to [dplyr::filter].
-#'
-#' @export
-filter_annotations <- function(idata, ...) {
-  checkmate::assert_r6(idata, "ImmunData")
-
-  new_annotations <- idata$annotations |> filter(...)
-
-  receptor_id_col <- imd_schema()$receptor
-  receptor_ids <- new_annotations |>
-    select({{ receptor_id_col }}) |>
-    distinct(!!rlang::sym(receptor_id_col))
-
-  # TODO: do I need to recompute counts / proportions each time?
-
-  new_receptors <- idata$receptors |> semi_join(receptor_ids, by = receptor_id_col)
-
-  ImmunData$new(receptors = new_receptors, annotations = new_annotations, schema = idata$schema_receptor)
+  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
+    new_idata |> agg_repertoires(idata$schema_repertoire)
+  } else {
+    new_idata
+  }
 }
 
 
@@ -181,18 +162,17 @@ filter_annotations <- function(idata, ...) {
 #' @param idata [ImmunData] object.
 #' @param cells Vector of cell identifiers or barcodes to filter by.
 #'
+#' @concept Filtering
+#' @rdname filter
 #' @export
-filter_cells <- function(idata, cells) {
-  # TODO: Figure out what are the options to pass the cells
-  # - character vector
-  # - something from Seurat / AnnData?
-
+filter_cells <- function(idata, cells, keep_repertoires = TRUE) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert(
     checkmate::check_character(cells, min.len = 1),
     checkmate::check_integer(cells, min.len = 1),
     checkmate::check_double(cells, min.len = 1)
   )
+  checkmate::assert_logical(keep_repertoires)
 
   barcode_col_id <- imd_schema()$cell
   barcodes_table <- duckdb_tibble(A = unique(cells))
@@ -200,14 +180,44 @@ filter_cells <- function(idata, cells) {
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)
 
-  # TODO: do I need to recompute proportions each time?
+  new_idata <- ImmunData$new(
+    schema = idata$schema_receptor,
+    annotations = new_annotations
+  )
 
-  receptor_id_col <- imd_schema()$receptor
-  receptor_ids <- new_annotations |>
-    select({{ receptor_id_col }}) |>
-    distinct(!!rlang::sym(receptor_id_col))
+  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
+    new_idata |> agg_repertoires(idata$schema_repertoire)
+  } else {
+    new_idata
+  }
+}
 
-  new_receptors <- idata$receptors |> semi_join(receptor_ids, by = receptor_id_col)
+#' @concept Filtering
+#' @rdname filter
+#' @export
+filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
+  checkmate::assert_r6(idata, "ImmunData")
+  checkmate::assert(
+    checkmate::check_character(receptors, min.len = 1),
+    checkmate::check_integer(receptors, min.len = 1),
+    checkmate::check_double(receptors, min.len = 1)
+  )
+  checkmate::assert_logical(keep_repertoires)
 
-  ImmunData$new(receptors = new_receptors, annotations = new_annotations, schema = idata$schema_receptor)
+  receptors_col_id <- imd_schema()$receptor
+  receptors_table <- duckdb_tibble(A = unique(receptors))
+  colnames(receptors_table) <- receptors_col_id
+
+  new_annotations <- idata$annotations |> semi_join(receptors_table, by = receptors_col_id)
+
+  new_idata <- ImmunData$new(
+    schema = idata$schema_receptor,
+    annotations = new_annotations
+  )
+
+  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
+    new_idata |> agg_repertoires(idata$schema_repertoire)
+  } else {
+    new_idata
+  }
 }
