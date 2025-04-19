@@ -2,9 +2,12 @@
 % Please edit documentation in R/operations_filter.R
 \name{filter_cells}
 \alias{filter_cells}
+\alias{filter_receptors}
 \title{Filter ImmunData by Passed Cell IDs or Barcodes}
 \usage{
-filter_cells(idata, cells)
+filter_cells(idata, cells, keep_repertoires = TRUE)
+
+filter_receptors(idata, receptors, keep_repertoires = TRUE)
 }
 \arguments{
 \item{idata}{\link{ImmunData} object.}
@@ -14,3 +17,4 @@ filter_cells(idata, cells)
 \description{
 A short description...
 }
+\concept{Filtering}

@@ -12,7 +12,7 @@ test_that("exact matching with single and multiple patterns", {
 
   # Single pattern
   pat1 <- all_receptors$cdr3_aa[1]
-  out1 <- filter_receptors(idata, seq_options = make_seq_options(
+  out1 <- filter_immundata(idata, seq_options = make_seq_options(
     query_col = "cdr3_aa",
     patterns = pat1,
     method = "exact", name_type = "pattern"
@@ -27,7 +27,7 @@ test_that("exact matching with single and multiple patterns", {
 
   # Multiple patterns
   pats <- unique(all_receptors$cdr3_aa)[1:2]
-  out2 <- filter_receptors(idata, seq_options = make_seq_options(
+  out2 <- filter_immundata(idata, seq_options = make_seq_options(
     query_col = "cdr3_aa",
     patterns = pats,
     method = "exact", name_type = "pattern"

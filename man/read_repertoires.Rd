@@ -14,18 +14,20 @@ read_repertoires(
   exclude_columns = imd_drop_cols("airr"),
   output_folder = NULL,
   rename_columns = imd_rename_cols("10x"),
-  repertoire_schema = NULL
+  repertoire_schema = NULL,
+  metadata_file_col = "File"
 )
 }
 \arguments{
 \item{path}{Path to an input file. This file may be Parquet, CSV, or TSV. The file extension is
-automatically detected and handled.}
+automatically detected and handled. The files can be archived via GZIP, no need to unarchive them.
+Pass \code{"<metadata>"} to read files from \code{"filename"} column from the input metadata table.}
 
 \item{schema}{Character vector defining which columns in the input data should be used to
-identify unique receptor signatures. For example, \code{c("V_gene", "J_gene", "CDR3_nt")}.}
+identify unique receptor signatures. For example, \code{c("cdr3_aa", "v_call")}.}
 
 \item{metadata}{An optional data frame containing additional metadata to merge into the annotation table.
-Default is \code{NULL}.}
+Default is \code{NULL}. See \code{\link[=read_metadata]{read_metadata()}} for more information.}
 
 \item{cell_id_col}{An optional character string specifying the column in the input data that represents
 cell ids or barcodes or other unique identifiers. Default is \code{NULL}.}

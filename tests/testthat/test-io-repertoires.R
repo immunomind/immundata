@@ -33,14 +33,36 @@ test_that("read_repertoires() works with sample data and merges metadata", {
   checkmate::expect_r6(imdata, classes = "ImmunData")
 
   # Check if the output files exist
-  expect_true(file.exists(file.path(outdir, imd_files()$receptors)))
+  expect_true(file.exists(file.path(outdir, imd_files()$metadata)))
   expect_true(file.exists(file.path(outdir, imd_files()$annotations)))
+})
 
-  # Optionally, test that the annotation table has merged columns from metadata
-  # e.g. "metadata_samples" column or similar:
-  # (If 'imdata$annotations()' is how you access the annotation table, for example)
-  # ann <- imdata$annotations()
-  # expect_true("sample_name" %in% colnames(ann))
+test_that("read_repertoires() works with <metadata>", {
+  # Load example data shipped with your package
+  md_path <- system.file("extdata", "metadata_samples.tsv", package = "immundata")
+
+  # This function presumably reads the metadata file
+  # (If you have a 'read_metadata()' or 'load_metadata()' function.)
+  metadata_df <- read_metadata(md_path)
+
+  outdir <- tempdir()
+
+  # Run the function
+  imdata <- read_repertoires(
+    path = "<metadata>",
+    schema = c("cdr3_aa", "v_call"),
+    metadata = metadata_df,
+    output_folder = outdir
+  )
+
+  # Basic check: Did we get an object back?
+  expect_true(!is.null(imdata))
+
+  checkmate::expect_r6(imdata, classes = "ImmunData")
+
+  # Check if the output files exist
+  expect_true(file.exists(file.path(outdir, imd_files()$metadata)))
+  expect_true(file.exists(file.path(outdir, imd_files()$annotations)))
 })
 
 test_that("read_repertoires() case 1: no barcode_col and no count_col", {
@@ -63,7 +85,7 @@ test_that("read_repertoires() case 1: no barcode_col and no count_col", {
   checkmate::expect_r6(imdata, classes = "ImmunData")
 
   # Check that the function didn't crash and files were saved
-  expect_true(file.exists(file.path(outdir, imd_files()$receptors)))
+  expect_true(file.exists(file.path(outdir, imd_files()$metadata)))
   expect_true(file.exists(file.path(outdir, imd_files()$annotations)))
 
   # You can do further checks on the resulting annotation columns, etc.

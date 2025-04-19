@@ -12,7 +12,7 @@ test_that("Regex matching returns correct results", {
 
   regex <- paste0('^', substr(all_receptors$cdr3_aa[1], 1, 4))
 
-  out <- filter_receptors(
+  out <- filter_immundata(
     idata,
     seq_options = make_seq_options(
       query_col = "cdr3_aa",
