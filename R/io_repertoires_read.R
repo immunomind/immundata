@@ -14,13 +14,14 @@
 #'
 #' @param path
 #'   Path to an input file. This file may be Parquet, CSV, or TSV. The file extension is
-#'   automatically detected and handled.
+#'   automatically detected and handled. The files can be archived via GZIP, no need to unarchive them.
+#'   Pass `"<metadata>"` to read files from `"filename"` column from the input metadata table.
 #' @param schema
 #'   Character vector defining which columns in the input data should be used to
-#'   identify unique receptor signatures. For example, `c("V_gene", "J_gene", "CDR3_nt")`.
+#'   identify unique receptor signatures. For example, `c("cdr3_aa", "v_call")`.
 #' @param metadata
 #'   An optional data frame containing additional metadata to merge into the annotation table.
-#'   Default is `NULL`.
+#'   Default is `NULL`. See [read_metadata()] for more information.
 #' @param cell_id_col
 #'   An optional character string specifying the column in the input data that represents
 #'   cell ids or barcodes or other unique identifiers. Default is `NULL`.
@@ -66,14 +67,14 @@ read_repertoires <- function(path,
                              exclude_columns = imd_drop_cols("airr"),
                              output_folder = NULL,
                              rename_columns = imd_rename_cols("10x"),
-                             repertoire_schema = NULL) {
+                             repertoire_schema = NULL,
+                             metadata_file_col = "File") {
   start_time <- Sys.time()
 
   checkmate::assert_character(path)
   checkmate::assert_character(schema)
-  if (!is.null(metadata)) {
-    checkmate::assert_data_frame(metadata)
-  }
+  checkmate::assert_data_frame(metadata, null.ok = T)
+  checkmate::assert_character(metadata_file_col, null.ok = T)
   checkmate::assert_character(
     cell_id_col,
     min.len = 1,
@@ -104,12 +105,20 @@ read_repertoires <- function(path,
   )
   checkmate::assert_logical(enforce_schema)
 
-  path <- normalizePath(Sys.glob(path), mustWork = FALSE)
+  # TODO: define "<metadata>" in globals.R
+  if (path[1] == "<metadata>") {
+    if (!is.null(metadata)) {
+      path <- normalizePath(metadata[[metadata_file_col]])
+    } else {
+      cli_abort("Passed `<metadata>`, but no `metadata` table provided. Please provide either a list of file paths or a metadata table.")
+    }
+  } else {
+    path <- normalizePath(Sys.glob(path), mustWork = FALSE)
+  }
   checkmate::assert_file_exists(path)
 
   # Read the dataset
   cli_alert_info("Reading repertoire data from:")
-
   file_check_results <- check_file_extensions(path)
   input_file_type <- file_check_results$filetype
   delim <- file_check_results$delim
@@ -244,9 +253,8 @@ read_repertoires <- function(path,
   }
 
   idata <- ImmunData$new(
-    receptors = receptor_data,
+    schema = schema,
     annotations = annotation_data,
-    schema = schema
   )
 
   if (is.null(output_folder)) {
@@ -255,6 +263,18 @@ read_repertoires <- function(path,
     output_folder <- file.path(dirname(path[1]), paste0("immundata-", name))
   }
   dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
+
+  #
+  # Create repertoires
+  #
+  if (!is.null(repertoire_schema)) {
+    cli_alert_info("Aggregating repertoires...")
+    idata <- agg_repertoires(idata, repertoire_schema)
+  }
+
+  #
+  # Save the created ImmunData on disk
+  #
   write_immundata(idata, output_folder)
 
   final_time <- format(round(Sys.time() - start_time, 2))
@@ -263,7 +283,6 @@ read_repertoires <- function(path,
   cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
 
   if (!is.null(repertoire_schema)) {
-    idata <- agg_repertoires(idata, repertoire_schema)
     cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
   }
 

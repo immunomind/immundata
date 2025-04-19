@@ -1,3 +1,5 @@
+#' @importFrom jsonlite write_json
+#'
 #' @title Write an ImmunData Object to Disk as Parquet Files
 #'
 #' @description
@@ -48,22 +50,16 @@ write_immundata <- function(idata, output_folder) {
   output_folder <- normalizePath(output_folder, mustWork = FALSE)
   dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
 
-  receptor_path <- file.path(output_folder, imd_files()$receptors)
+  metadata_path <- file.path(output_folder, imd_files()$metadata)
   annotations_path <- file.path(output_folder, imd_files()$annotations)
 
-  receptor_path <- file.path(output_folder, imd_files()$receptors)
-  annotations_path <- file.path(output_folder, imd_files()$annotations)
-
-  cli_alert_info("Writing the receptor data to [{receptor_path}]")
-  compute_parquet(idata$receptors,
-    receptor_path,
-    options = list(
-      compression = "zstd",
-      compression_level = 9
-    )
+  metadata_json <- list(
+    version = as.character(packageVersion("immundata")),
+    receptor_schema = idata$schema_receptor,
+    repertoire_schema = idata$schema_repertoire
   )
 
-  cli_alert_info("Writing the annotation data to [{annotations_path}]")
+  cli_alert_info("Writing the receptor annotation data to [{annotations_path}]")
   compute_parquet(idata$annotations,
     annotations_path,
     options = list(
@@ -71,6 +67,9 @@ write_immundata <- function(idata, output_folder) {
       compression_level = 9
     )
   )
+
+  cli_alert_info("Writing the metadata to [{metadata_path}]")
+  jsonlite::write_json(metadata_json, metadata_path)
 
   cli_alert_success("ImmunData files saved to [{output_folder}]")
 

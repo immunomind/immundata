@@ -35,7 +35,13 @@ IMD_GLOBALS <- list(
     n_repertoires = "n_repertoires",
     filename = "filename"
   ),
+  meta_schema = list(
+    version = "version",
+    receptor_schema = "receptor_schema",
+    repertoire_schema = "repertoire_schema"
+  ),
   files = list(
+    metadata = "metadata.json",
     receptors = "receptors.parquet",
     annotations = "annotations.parquet"
   ),
@@ -96,6 +102,12 @@ IMD_GLOBALS <- list(
 imd_schema <- function() {
   # TODO: pass value to the function
   IMD_GLOBALS$schema
+}
+
+#' @export
+imd_meta_schema <- function() {
+  # TODO: pass value to the function
+  IMD_GLOBALS$meta_schema
 }
 
 #' @title Get Immundata Default File Names
