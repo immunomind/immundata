@@ -15,14 +15,15 @@ RoxygenNote: 7.3.2
 Depends: 
     R (>= 4.1.0),
     duckplyr (>= 1.0.1)
-Imports: 
-    cli,
-    R6,
+Imports:
     checkmate,
-    dplyr,
+    cli,
     dbplyr,
+    dplyr,
     glue,
+    jsonlite,
     lifecycle,
+    R6,
     readr,
     rlang
 Suggests: 
