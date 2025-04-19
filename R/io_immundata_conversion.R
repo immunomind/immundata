@@ -58,12 +58,13 @@ from_immunarch <- function(
   }
 
   # write each repertoire with a 'filename' column
+  immundata_filename_col <- IMD_GLOBALS$schema$filename
   file_paths <- c()
   for (nm in names(rep_list)) {
     df <- rep_list[[nm]]
-    if ("filename" %in% colnames(df)) {
-      cli::cli_alert_warning("{nm}: Removing `filename` columns from repertoires for compatability with `immundata`.")
-      df$filename <- NULL
+    if (immundata_filename_col %in% colnames(df)) {
+      cli::cli_alert_warning("{nm}: Removing `{immundata_filename_col}` columns from repertoires for compatability with `immundata`.")
+      df[[immundata_filename_col]] <- NULL
     }
     if (!("repertoire_id" %in% colnames(df))) {
       cli::cli_alert_info("{nm}: Adding `repertoire_id` column for compatability with `immundata`.")
@@ -81,8 +82,14 @@ from_immunarch <- function(
   metadata_df <- NULL
   if (!is.null(imm$meta)) {
     metadata_df <- imm$meta
-
-    metadata_df$filename <- normalizePath(file_paths[metadata_df$Sample])
+    if ("Sample" %in% metadata_df) {
+      metadata_df[[immundata_filename_col]] <- normalizePath(file_paths[metadata_df$Sample])
+    } else {
+      cli_abort("No `Sample` in the metadata object. Please create the column with repertoires names from `$data`")
+    }
+  } else {
+    # TODO: Check at the beginning
+    cli_abort("No `meta` object in the input list. Are you sure this is a correct `immunarch` dataset?")
   }
 
   # import into ImmunData via read_repertoires()
