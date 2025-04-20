@@ -421,19 +421,23 @@ TODO
 
 ### Hybrid datasets 
 
-#### Multi-locus data 
+#### Multi-locus data
 
 TODO
 
-#### Multiple contigs for TCR 
+#### Multiple contigs for TCR
 
 TODO
 
-#### BCR-heavy chains with multiple light chains 
+#### BCR-heavy chains with multiple light chains
 
 TODO
 
-#### Bulk and single-cell data integration 
+#### Bulk and single-cell data integration
+
+TODO
+
+### Receptor clusters and motifs
 
 TODO
 
