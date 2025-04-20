@@ -6,35 +6,17 @@
 # `immundata` in R 
 
 - [📦 Installation](#-installation)
-  - [Prerequisites](#prerequisites)
-  - [Install the package](#install-the-package)
 - [⚡ Quick Start](#-quick-start)
 - [🧬 Workflow Explained](#-workflow-explained)
-  - [Phase 1: Ingestion](#phase-1-ingestion)
-  - [Phase 2: Analysis](#phase-2-analysis)
 - [💾 Ingestion](#-ingestion)
-  - [Load AIRR data into `immundata`](#load-airr-data-into-immundata)
-  - [Working with metadata table files](#working-with-metadata-table-files)
-  - [Writing data on disk after preprocessing or analysis](#writing-data-on-disk-after-preprocessing-or-analysis)
-  - [Re-aggregating data using receptor and repertoire schemas](#re-aggregating-data-using-receptor-and-repertoire-schemas)
-  - [Preprocessing strategies](#preprocessing-strategies)
 - [🛠 Analysis](#-analysis)
   - [Filtering](#filtering)
-    - [Filter by receptor features or their identifiers](#filter-by-receptor-features-or-their-identifiers)
-    - [Filter by annotation](#filter-by-annotation)
-    - [Filter by cells identifiers or barcodes](#filter-by-cells-identifiers-or-barcodes)
-    - [Filter by repertoire](#filter-by-repertoire)
   - [Annotations](#annotations)
-    - [Annotate by receptor feature](#annotate-by-receptor-feature)
-    - [Annotate by receptor id](#annotate-by-receptor-id)
-    - [Annotate by barcode aka cell id](#annotate-by-barcode-aka-cell-id)
-  - [Analyse the data](#analyse-the-data)
-    - [Basic analysis in `immundata`](#basic-analysis-in-immundata)
-    - [Exporatory and statistical analysis in `immunarch`](#exporatory-and-statistical-analysis-in-immunarch)
+  - [Compute statistics](#compute-statistics)
 - [🧩 Use Cases](#-use-cases)
   - [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
-  - [Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq](#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq)
   - [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
+  - [Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq](#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq)
   - [Spatial -- spatial transcriptomics and cell coordinates](#spatial---spatial-transcriptomics-and-cell-coordinates)
   - [Annotate immune receptors using external AIRR databases](#annotate-immune-receptors-using-external-airr-databases)
   - [Immunogenicity -- run external tools such as TCRdist to annotate ImmunData](#immunogenicity----run-external-tools-such-as-tcrdist-to-annotate-immundata)
@@ -44,10 +26,6 @@
     - [BCR-heavy chains with multiple light chains](#bcr-heavy-chains-with-multiple-light-chains)
     - [Bulk and single-cell data integration](#bulk-and-single-cell-data-integration)
 - [🧠 Advanced Topics](#-advanced-topics)
-  - [Integrate into your package](#integrate-into-your-package)
-  - [How `immundata` reads the data](#how-immundata-reads-the-data)
-  - [Change RAM limits to accelerate the backend computations](#change-ram-limits-to-accelerate-the-backend-computations)
-  - [Save your intermediate data for faster computations and reproducibility](#save-your-intermediate-data-for-faster-computations-and-reproducibility)
 - [🏷 About](#-about)
   - [Citation](#citation)
   - [License](#license)
@@ -390,7 +368,7 @@ TODO
 
 `annotate_cells`
 
-### Analyse the data 
+### Compute statistics
 
 #### Basic analysis in `immundata` 
 
@@ -408,6 +386,10 @@ TODO
 
 TODO
 
+### Paired-chain -- scVDJseq or other technologies
+
+TODO
+
 ### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
 
 -   load annotation data
@@ -420,10 +402,6 @@ For more information see the vignette tutorial:
 
 - run `vignette("single_cell")` from R, or
 - follow the link to read it online: [link](link).
-
-### Paired-chain -- scVDJseq or other technologies
-
-TODO
 
 ### Spatial -- spatial transcriptomics and cell coordinates
 
