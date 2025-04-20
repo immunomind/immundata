@@ -5,15 +5,15 @@
 
 # `immundata` in R 
 
-- [📦 Installation](#-installation)
-- [⚡ Quick Start](#-quick-start)
-- [🧬 Workflow Explained](#-workflow-explained)
-- [💾 Ingestion](#-ingestion)
-- [🛠 Analysis](#-analysis)
+- 📦 [Installation](#-installation)
+- ⚡ [Quick Start](#-quick-start)
+- 🧬 [Workflow Explained](#-workflow-explained)
+- 💾 [Ingestion](#-ingestion)
+- 🛠 [Analysis](#-analysis)
   - [Filtering](#filtering)
   - [Annotations](#annotations)
   - [Compute statistics](#compute-statistics)
-- [🧩 Use Cases](#-use-cases)
+- 🧩 [Use Cases](#-use-cases)
   - [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
   - [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
   - [Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq](#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq)
@@ -25,13 +25,13 @@
     - [Multiple contigs for TCR](#multiple-contigs-for-tcr)
     - [BCR-heavy chains with multiple light chains](#bcr-heavy-chains-with-multiple-light-chains)
     - [Bulk and single-cell data integration](#bulk-and-single-cell-data-integration)
-- [🧠 Advanced Topics](#-advanced-topics)
-- [🏷 About](#-about)
+- 🧠 [Advanced Topics](#-advanced-topics)
+- 🏷 [About](#-about)
   - [Citation](#citation)
   - [License](#license)
   - [Author and contributors](#author-and-contributors)
   - [Commercial usage](#commercial-usage)
-- [🤔 FAQ](#-faq)
+- 🤔 [FAQ](#-faq)
 
 ---
 
