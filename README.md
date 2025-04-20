@@ -36,8 +36,7 @@
 ---
 
 > [!WARNING]
-> `immundata` is still in the **0.x** series. Until we reach 1.0.0,  
-> breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0).  
+> `immundata` is still in the **0.x** series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0).  
 > When you attach the package you’ll see startup messages summarising
 > the most important changes—please read them.  
 > If something that used to work suddenly fails, check the updated
