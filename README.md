@@ -5,8 +5,8 @@
   - [Install the package](#install-the-package)
 - [⚡ Quick Start](#-quick-start)
 - [🧬 Workflow](#-workflow)
-  - [Phase 1: Ingestion](#phase-1--ingestion)
-  - [Phase 2: Analysis](#phase-2--analysis)
+  - [Phase 1: Ingestion](#phase-1-ingestion)
+  - [Phase 2: Analysis](#phase-2-analysis)
 - [💾 Ingestion](#-ingestion)
   - [Load AIRR data into `immundata`](#load-airr-data-into-immundata)
   - [Working with metadata table files](#working-with-metadata-table-files)
@@ -68,21 +68,21 @@ More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow
 
  - **Latest CRAN release:** simply run
 
-        ```r
-        pak::pkg_install("immundata")
-        ```
+    ```r
+    pak::pkg_install("immundata")
+    ```
 
  - **Latest GitHub release:** because releasing on CRAN is limited to one release per one or two months or if the above command doesn't work, try installing the very latest release of `immundata` from the code repository:
 
-        ```r
-        pak::pkg_install("immunomind/immundata-rlang")
-        ```
+    ```r
+    pak::pkg_install("immunomind/immundata-rlang")
+    ```
 
  - **Latest development version:** if you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version via:
 
-        ```r
-        pak::pkg_install("immunomind/immundata-rlang@dev")
-        ```
+    ```r
+    pak::pkg_install("immunomind/immundata-rlang@dev")
+    ```
 
 
 ## ⚡ Quick Start
@@ -92,6 +92,7 @@ More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow
 > analyse cell clusters from single-cell data,
 > work with paired-chain data,
 > search for matches in databases with disease-associated TCR and BCR data?
+> 
 > Take a look at the [🧩 Use Cases section](#-use-cases) below.
 
 
@@ -132,7 +133,7 @@ ImmunData splits the workflow into two clear phases:
 
 2. **Analysis**  – explore, annotate, filter and compute on that object
 
-Before we go into more details for each of the phase, there are three essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries.
+Before we go into more details for each of the phase, there are three simple yet essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries.
 
 1. **Aggregation of receptors** – ... people analyse a specific receptors; data lineage is crucial for full reproducibility
 
@@ -150,15 +151,21 @@ Read metadata
         → Aggregate repertoires
 ```
 
-1) **Read metadata** – bring in any sample‑ or donor‑level info (optional) via `read_metadata()`. Optional step - you don't need when you don't have per-sample / per-patient metadata.
+1) **Read metadata** – bring in any sample‑ or donor‑level info (optional) via `read_metadata()`.
+  
+  Optional step - you don't need when you don't have per-sample / per-patient metadata.
 
 2) **Read repertoires** – Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
 
-3) **Preprocess** – drop unwanted cols, drop nonproductive sequences, rename to AIRR schema, remove duplicate contigs by passing the preprocessing strategy to `read_repertoires()`. Optional yet recommended step, turned on by default.
+3) **Preprocess** – drop unwanted cols, drop nonproductive sequences, rename to AIRR schema, remove duplicate contigs by passing the preprocessing strategy to `read_repertoires()`.
+
+  Optional yet recommended step, turned on by default.
 
 4) **Aggregate receptors** – collapse by CDR3/V/J (or your schema) by passing a receptor schema to `read_repertoires()`.
 
-5) **Aggregate repertoires** – group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function. Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
+5) **Aggregate repertoires** – group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function.
+
+  Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
 
 ### Phase 2: Analysis
 
