@@ -4,7 +4,7 @@
   - [Prerequisites](#prerequisites)
   - [Install the package](#install-the-package)
 - [⚡ Quick Start](#-quick-start)
-- [🧬 Workflow](#-workflow)
+- [🧬 Workflow Explained](#-workflow-explained)
   - [Phase 1: Ingestion](#phase-1-ingestion)
   - [Phase 2: Analysis](#phase-2-analysis)
 - [💾 Ingestion](#-ingestion)
@@ -125,11 +125,11 @@ list.files("./immundata-quick-start")
 ```
 
 
-## 🧬 Workflow
+## 🧬 Workflow Explained
 
-ImmunData splits the workflow into two clear phases:
+`immundata` splits the workflow into two clear phases:
 
-1. **Ingestion** – get your raw files into a tidy `ImmunData` object  
+1. **Ingestion** – get your raw files into a tidy `immundata::ImmunData` object  
 
 2. **Analysis**  – explore, annotate, filter and compute on that object
 
@@ -153,19 +153,19 @@ Read metadata
 
 1) **Read metadata** – bring in any sample‑ or donor‑level info (optional) via `read_metadata()`.
   
-  Optional step - you don't need when you don't have per-sample / per-patient metadata.
+    Optional step - you don't need when you don't have per-sample / per-patient metadata.
 
 2) **Read repertoires** – Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
 
 3) **Preprocess** – drop unwanted cols, drop nonproductive sequences, rename to AIRR schema, remove duplicate contigs by passing the preprocessing strategy to `read_repertoires()`.
 
-  Optional yet recommended step, turned on by default.
+    Optional yet recommended step, turned on by default.
 
 4) **Aggregate receptors** – collapse by CDR3/V/J (or your schema) by passing a receptor schema to `read_repertoires()`.
 
 5) **Aggregate repertoires** – group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function.
 
-  Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
+    Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
 
 ### Phase 2: Analysis
 
@@ -188,17 +188,17 @@ Import annotations
 
 4) **Compute** – on this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
 
-    a)  use `immunarch` for the most common analysis functions. The package will automatically annotate both *receptors/cells* (!) and *repertoires* (!!) if it is possible.
+    1) use `immunarch` for the most common analysis functions. The package will automatically annotate both *receptors/cells* (!) and *repertoires* (!!) if it is possible.
 
-    b)  simply mutate on the whole dataset using `dplyr` syntax, like compute the number of cells or whatever
+    2)  simply mutate on the whole dataset using `dplyr` syntax, like compute the number of cells or whatever
 
-    c)  more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`
+    3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`
 
-        i) Function is supported by `duckdb` - then use `dd$<function_name>`
+      1) Function is supported by `duckdb` - then use `dd$<function_name>`
 
-        ii) Use SQL
+      2) Use SQL
 
-        iii) Run a completely custom function
+      3) Run a completely custom function
 
 5)  **Annotate** – `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
 
