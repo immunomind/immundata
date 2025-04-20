@@ -4,25 +4,16 @@
   - [Prerequisites](#prerequisites)
   - [Install the package](#install-the-package)
 - [⚡ Quick Start](#-quick-start)
-- [💾 Input / Output](#-input--output)
+- [🧬 Workflow](#-workflow)
+  - [Phase 1: Ingestion](#-phase-1--ingestion)
+  - [Phase 2: Analysis](#-phase-2--analysis)
+- [💾 Ingestion](#-ingestion)
   - [Load AIRR data into `immundata`](#load-airr-data-into-immundata)
   - [Working with metadata table files](#working-with-metadata-table-files)
   - [Writing data on disk after preprocessing or analysis](#writing-data-on-disk-after-preprocessing-or-analysis)
   - [Re-aggregating data using receptor and repertoire schemas](#re-aggregating-data-using-receptor-and-repertoire-schemas)
   - [Preprocessing strategies](#preprocessing-strategies)
-- [🧩 Use Cases](#-use-cases)
-  - [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
-  - [Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq](#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq)
-  - [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
-  - [Spatial -- spatial transcriptomics and cell coordinates](#spatial---spatial-transcriptomics-and-cell-coordinates)
-  - [Annotate immune receptors using external AIRR databases](#annotate-immune-receptors-using-external-airr-databases)
-  - [Immunogenicity -- run external tools such as TCRdist to annotate ImmunData](#immunogenicity----run-external-tools-such-as-tcrdist-to-annotate-immundata)
-  - [Hybrid datasets](#hybrid-datasets)
-    - [Multi-locus data](#multi-locus-data)
-    - [Multiple contigs for TCR](#multiple-contigs-for-tcr)
-    - [BCR-heavy chains with multiple light chains](#bcr-heavy-chains-with-multiple-light-chains)
-    - [Bulk and single-cell data integration](#bulk-and-single-cell-data-integration)
-- [🛠 Data Manipulation](#-data-manipulation)
+- [🛠 Analysis](#-analysis)
   - [Filtering](#filtering)
     - [Filter by receptor features or their identifiers](#filter-by-receptor-features-or-their-identifiers)
     - [Filter by annotation](#filter-by-annotation)
@@ -35,6 +26,18 @@
   - [Analyse the data](#analyse-the-data)
     - [Basic analysis in `immundata`](#basic-analysis-in-immundata)
     - [Exporatory and statistical analysis in `immunarch`](#exporatory-and-statistical-analysis-in-immunarch)
+- [🧩 Use Cases](#-use-cases)
+  - [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
+  - [Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq](#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq)
+  - [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
+  - [Spatial -- spatial transcriptomics and cell coordinates](#spatial---spatial-transcriptomics-and-cell-coordinates)
+  - [Annotate immune receptors using external AIRR databases](#annotate-immune-receptors-using-external-airr-databases)
+  - [Immunogenicity -- run external tools such as TCRdist to annotate ImmunData](#immunogenicity----run-external-tools-such-as-tcrdist-to-annotate-immundata)
+  - [Hybrid datasets](#hybrid-datasets)
+    - [Multi-locus data](#multi-locus-data)
+    - [Multiple contigs for TCR](#multiple-contigs-for-tcr)
+    - [BCR-heavy chains with multiple light chains](#bcr-heavy-chains-with-multiple-light-chains)
+    - [Bulk and single-cell data integration](#bulk-and-single-cell-data-integration)
 - [🧠 Advanced Topics](#-advanced-topics)
   - [Integrate into your package](#integrate-into-your-package)
   - [How `immundata` reads the data](#how-immundata-reads-the-data)
@@ -54,7 +57,7 @@
 
 Before installing any release or pre-release version of `immundata`, please install `pak` that will simplify the installation of any package, not just `immundata`:
 
-``` r
+```r
 install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
 ```
 
@@ -65,28 +68,37 @@ More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow
 
  - **Latest CRAN release:** simply run
 
-        ``` r
+        ```r
         pak::pkg_install("immundata")
         ```
 
  - **Latest GitHub release:** because releasing on CRAN is limited to one release per one or two months or if the above command doesn't work, try installing the very latest release of `immundata` from the code repository:
 
-        ``` r
+        ```r
         pak::pkg_install("immunomind/immundata-rlang")
         ```
 
  - **Latest development version:** if you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version via:
 
-        ``` r
+        ```r
         pak::pkg_install("immunomind/immundata-rlang@dev")
         ```
 
 
 ## ⚡ Quick Start
 
-Use the immune repertoires packaged with `immundata` for quick dive. Replace files paths to run the code on your data.
+> [!NOTE]
+> Interested in specific use cases, e.g., 
+> analyse cell clusters from single-cell data,
+> work with paired-chain data,
+> search for matches in databases with disease-associated TCR and BCR data?
+> Take a look at the [🧩 Use Cases section](#-use-cases) below.
 
-``` r
+
+Use the immune repertoire data packaged with `immundata` for quick dive.
+Replace `system.file` calls with your local file paths to run the code on your data.
+
+```r
 library(immundata)
 
 # Metadata table with additional sample-level information
@@ -112,7 +124,81 @@ list.files("./immundata-quick-start")
 ```
 
 
-## 💾 Input / Output
+## 🧬 Workflow
+
+ImmunData splits the workflow into two clear phases:
+
+1. **Ingestion** – get your raw files into a tidy `ImmunData` object  
+
+2. **Analysis**  – explore, annotate, filter and compute on that object
+
+Before we go into more details for each of the phase, there are three essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries.
+
+1. **Aggregation of receptors** – ... people analyse a specific receptors; data lineage is crucial for full reproducibility
+
+2. **Aggregation of repertoires** – ...
+
+3. **Receptor and cell identifiers ("barcodes")** – ...
+
+### Phase 1: Ingestion
+
+```
+Read metadata  
+  → Read repertoires  
+    → Preprocess  
+      → Aggregate receptors  
+        → Aggregate repertoires
+```
+
+1) **Read metadata** – bring in any sample‑ or donor‑level info (optional) via `read_metadata()`. Optional step - you don't need when you don't have per-sample / per-patient metadata.
+
+2) **Read repertoires** – Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
+
+3) **Preprocess** – drop unwanted cols, drop nonproductive sequences, rename to AIRR schema, remove duplicate contigs by passing the preprocessing strategy to `read_repertoires()`. Optional yet recommended step, turned on by default.
+
+4) **Aggregate receptors** – collapse by CDR3/V/J (or your schema) by passing a receptor schema to `read_repertoires()`.
+
+5) **Aggregate repertoires** – group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function. Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
+
+### Phase 2: Analysis
+
+```
+Import annotations
+  → Aggregate repertoires
+    → Filter
+      → Compute
+        → Annotate
+          → Export annotations
+```
+
+1) **Import annotations** – `annotate_cells` from the single-cell data
+
+2) **Aggregate repertoires** – Optionally aggregate to repertoires, potentially using the newly annotate data.
+
+3) **Filter** –`filter_immundata` gets you identifiers of interest and
+    their corresponding receptor features, potentially using the
+    annotation from the previous step
+
+4) **Compute** – on this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
+
+    a)  use `immunarch` for the most common analysis functions. The package will automatically annotate both *receptors/cells* (!) and *repertoires* (!!) if it is possible.
+
+    b)  simply mutate on the whole dataset using `dplyr` syntax, like compute the number of cells or whatever
+
+    c)  more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`
+
+        i) Function is supported by `duckdb` - then use `dd$<function_name>`
+
+        ii) Use SQL
+
+        iii) Run a completely custom function
+
+5)  **Annotate** – `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
+
+6)  **Export** – `write_annotations` optionally, writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
+
+
+## 💾 Ingestion
 
 ### Load AIRR data into `immundata`
 
@@ -120,7 +206,7 @@ list.files("./immundata-quick-start")
 
   1. **Pass a single file name:** if you just have **one** AIRR file:
 
-        ``` r
+        ```r
         library(immundata)
         
         # In this example, we assume 'my_airr_file.tsv' has columns like 'V_gene', 'J_gene', 'CDR3_nt'
@@ -141,7 +227,7 @@ list.files("./immundata-quick-start")
 
   2. **Pass a vector of file names:** for **multiple** files in a vector:
 
-        ``` r
+        ```r
         many_files <- c("sample1.airr.tsv", "sample2.airr.tsv", "sample3.airr.tsv")
         
         my_immdata <- read_repertoires(
@@ -154,7 +240,7 @@ list.files("./immundata-quick-start")
 
   3. **Pass a glob pattern:** if your files follow a consistent naming pattern, you can leverage shell globs:
 
-        ``` r
+        ```r
         # For example, all AIRR files in the 'samples/' folder
         my_immdata <- read_repertoires(
           path   = "samples/*.airr.tsv",
@@ -173,7 +259,7 @@ list.files("./immundata-quick-start")
         For example:
 
 
-        ``` r
+        ```r
         # Suppose metadata.tsv has a column 'File' with paths to your AIRR files
         md <- read_metadata("metadata.tsv", filename_col = "File")
         my_immdata <- read_repertoires(
@@ -202,17 +288,67 @@ list.files("./immundata-quick-start")
 
 ### Re-aggregating data using receptor and repertoire schemas
 
-This is the key concept that distinguished `immundata` from DataFrame-based libraries.
-
--   people analyse a specific receptors
--   data lineage is crucial for full reproducibility
-
+ - [ ] TODO
+ 
 ### Preprocessing strategies 
 
 -   filtering non productive
 -   double contigs
 -   double BCR chains
 -   locus
+
+
+## 🛠 Analysis
+
+### Filtering 
+
+#### Filter by receptor features or their identifiers 
+
+`filter_receptors`
+
+one, several, regex, edit distance
+
+#### Filter by annotation 
+
+`filter_annotations`
+
+one, several values, several columns
+
+#### Filter by cells identifiers or barcodes 
+
+`filter_cells`
+
+list of barcodes
+
+#### Filter by repertoire 
+
+`filter_repertoires`
+
+TODO
+
+### Annotations 
+
+#### Annotate by receptor feature 
+
+`annotate_receptors`
+
+#### Annotate by receptor ID 
+
+`annotate_receptors`
+
+#### Annotate by barcode a.k.a. cell ID
+
+`annotate_cells`
+
+### Analyse the data 
+
+#### Basic analysis in `immundata` 
+
+Find receptors from several repertoires or groups which have >2 abundance
+
+#### Exporatory and statistical analysis in `immunarch` 
+
+TODO
 
 
 ## 🧩 Use Cases
@@ -272,58 +408,6 @@ TODO
 
 TODO
 
-
-## 🛠 Data Manipulation 
-
-### Filtering 
-
-#### Filter by receptor features or their identifiers 
-
-`filter_receptors`
-
-one, several, regex, edit distance
-
-#### Filter by annotation 
-
-`filter_annotations`
-
-one, several values, several columns
-
-#### Filter by cells identifiers or barcodes 
-
-`filter_cells`
-
-list of barcodes
-
-#### Filter by repertoire 
-
-`filter_repertoires`
-
-TODO
-
-### Annotations 
-
-#### Annotate by receptor feature 
-
-`annotate_receptors`
-
-#### Annotate by receptor ID 
-
-`annotate_receptors`
-
-#### Annotate by barcode a.k.a. cell ID
-
-`annotate_cells`
-
-### Analyse the data 
-
-#### Basic analysis in `immundata` 
-
-Find receptors from several repertoires or groups which have >2 abundance
-
-#### Exporatory and statistical analysis in `immunarch` 
-
-TODO
 
 
 ## 🧠 Advanced Topics 
@@ -459,7 +543,7 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
     A: Nothing will stop you, eh? You are welcome:
 
-    ``` r
+    ```r
     # Release
     install.packages("immundata")
 
