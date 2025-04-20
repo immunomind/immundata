@@ -55,6 +55,7 @@
   - [Commercial usage](#commercial-usage)
 - [🤔 FAQ](#-faq)
 
+---
 
 ## 📦 Installation
 
@@ -95,6 +96,7 @@ More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow
     pak::pkg_install("immunomind/immundata-rlang@dev")
     ```
 
+---
 
 ## ⚡ Quick Start
 
@@ -233,6 +235,7 @@ Import annotations
 
     `write_annotations` optionally, writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
 
+---
 
 ## 💾 Ingestion
 
@@ -343,6 +346,7 @@ Import annotations
 -   double BCR chains
 -   locus
 
+---
 
 ## 🛠 Analysis
 
@@ -396,6 +400,7 @@ Find receptors from several repertoires or groups which have >2 abundance
 
 TODO
 
+---
 
 ## 🧩 Use Cases
 
@@ -454,7 +459,7 @@ TODO
 
 TODO
 
-
+---
 
 ## 🧠 Advanced Topics 
 
@@ -500,6 +505,8 @@ TODO
 
 TODO
 
+---
+
 ## 🏷 About 
 
 ### Citation 
@@ -519,6 +526,8 @@ TODO
 `immundata` is free to use for commercial usage. However, corporate users will not get a prioritized support for `immundata`-related issues, immune repertoire analysis questions or data engineering questions, related to building scalable immune repertoire and other -omics pipelines. The priority of open-source tool `immundata` is open-source science.
 
 If you are looking for prioritized support and setting up your data pipelines, consider contacting Vadim Nazarov for commercial consulting and support options.
+
+---
 
 ## 🤔 FAQ 
 
