@@ -35,6 +35,22 @@
 
 ---
 
+> [!WARNING]
+> `immundata` is still in the **0.x** series. Until we reach 1.0.0,  
+> breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0).  
+> When you attach the package you’ll see startup messages summarising
+> the most important changes—please read them.  
+> If something that used to work suddenly fails, check the updated
+> documentation (`?function_name`) first.
+>   
+> **Tip:** if your analysis depends on a specific behaviour, pin the
+> exact version with `renv` or  
+> ```r
+> pak::pkg_install("immunomind/immundata@0.2.1")
+> ```  
+> I’ll keep publishing tagged releases with full docs so you can always
+> roll back if needed.
+
 ## 📦 Installation
 
 ### Prerequisites
@@ -128,7 +144,7 @@ list.files("./immundata-quick-start")
 
 Before we go into more details for each of the phase, there are three simple yet essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries.
 
-1. **Aggregation of receptors** – ... people analyse a specific receptors; data lineage is crucial for full reproducibility
+1. **Aggregation of receptors** – ... people analyse a specific receptors; data lineage is crucial for full reproducibility.
 
 2. **Aggregation of repertoires** – ...
 
