@@ -26,6 +26,9 @@
 #' @export
 filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = TRUE) {
   checkmate::assert_r6(idata, "ImmunData")
+  checkmate::assert_list(seq_options, null.ok = TRUE)
+  checkmate::assert_logical(keep_repertoires)
+
   dots <- rlang::enquos(...)
 
   receptor_id <- imd_schema()$receptor

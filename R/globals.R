@@ -26,6 +26,7 @@ IMD_GLOBALS <- list(
   schema = list(
     cell = "imd_cell_id",
     receptor = "imd_receptor_id",
+    group = "imd_group_id",
     repertoire = "imd_repertoire_id",
     metadata_filename = "imd_filename",
     count = "imd_count",

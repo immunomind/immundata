@@ -45,9 +45,8 @@
 #'   `repertoires` slot holds the per‑repertoire summary table.
 #'
 #' @seealso [filter_receptors()], [annotate_receptors()]
-#' @importFrom dplyr summarise distinct left_join select mutate n
+#' @importFrom dplyr summarise distinct left_join select mutate n relocate
 #' @export
-
 agg_repertoires <- function(idata, schema = "repertoire_id") {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_character(schema, min.len = 1)
@@ -61,6 +60,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
   }
 
   receptor_id <- imd_schema()$receptor
+  repertoire_id <- imd_schema()$repertoire
   repertoire_schema_sym <- to_sym(schema)
   prop_col <- imd_schema()$proportion
   imd_count_col <- imd_schema()$count
@@ -70,14 +70,18 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
       .by = schema,
       n_receptors = n(),
       n_cells = sum(!!to_sym(imd_count_col))
-    )
+    ) |>
+    mutate(
+      {{ repertoire_id }} := row_number()
+    ) |>
+    relocate({{ repertoire_id }})
 
   #
   # n_repertoires
   #
   repertoire_counts <- idata$annotations |>
     select(all_of(c(receptor_id, schema))) |>
-    distinct() |>
+    distinct({{ receptor_id }}, .keep_all = TRUE) |>
     summarise(.by = receptor_id, n_repertoires = n())
   new_annotations <- idata$annotations |> left_join(repertoire_counts, by = receptor_id)
 
