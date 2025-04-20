@@ -71,19 +71,25 @@ More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow
 ### Install the package
 
 
- - **Latest CRAN release:** simply run
+ - **Latest CRAN release:**
+ 
+    To install the latest CRAN-distributed version, simply run:
 
     ```r
     pak::pkg_install("immundata")
     ```
 
- - **Latest GitHub release:** because releasing on CRAN is limited to one release per one or two months or if the above command doesn't work, try installing the very latest release of `immundata` from the code repository:
+ - **Latest GitHub release:**
+ 
+    Releasing new package versions on CRAN is limited to one release per one or two months. If you want to install the very latest release, or if the above command doesn't work, try installing `immundata` from the code repository:
 
     ```r
     pak::pkg_install("immunomind/immundata-rlang")
     ```
 
- - **Latest development version:** if you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version via:
+ - **Latest development version:** 
+ 
+    If you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version:
 
     ```r
     pak::pkg_install("immunomind/immundata-rlang@dev")
@@ -130,6 +136,7 @@ imdata
 list.files("./immundata-quick-start")
 ```
 
+---
 
 ## 🧬 Workflow Explained
 
@@ -146,6 +153,8 @@ Before we go into more details for each of the phase, there are three simple yet
 2. **Aggregation of repertoires** – ...
 
 3. **Receptor and cell identifiers ("barcodes")** – ...
+
+And now, let's dive into how you work with `immundata`.
 
 ### Phase 1: Ingestion
 
