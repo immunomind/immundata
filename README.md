@@ -115,7 +115,8 @@ samples <- c(
 md <- read_metadata(md_path)
 
 # Pass the file paths and the metadata table to the function to read the dataset into R
-imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md, output_folder = "./immundata-quick-start")
+imdata <- read_repertoires(samples, c("cdr3_aa", "v_call"), md,
+                           output_folder = "./immundata-quick-start")
 
 # Print the resultant object in the detailed yet manageable format
 imdata
@@ -157,15 +158,23 @@ Read metadata
   
     This step is optional. You can safely skip it if you don't have per-sample pr per-donor metadata, such as therapy response, HLA, age, etc.
 
-2) **Read repertoires** – Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
+2) **Read repertoires:**
 
-3) **Preprocess** – drop unwanted cols, drop nonproductive sequences, rename to AIRR schema, remove duplicate contigs by passing the preprocessing strategy to `read_repertoires()`.
+    Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
+
+3) **Preprocess:**
+
+    Drop unwanted cols, drop nonproductive sequences, rename to AIRR schema, remove duplicate contigs by passing the preprocessing strategy to `read_repertoires()`.
 
     Optional yet recommended step, turned on by default.
 
-4) **Aggregate receptors** – collapse by CDR3/V/J (or your schema) by passing a receptor schema to `read_repertoires()`.
+4) **Aggregate receptors:**
 
-5) **Aggregate repertoires** – group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function.
+    Collapse by CDR3/V/J (or your schema) by passing a receptor schema to `read_repertoires()`.
+
+5) **Aggregate repertoires:**
+
+    Group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function.
 
     Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
 
@@ -180,15 +189,21 @@ Import annotations
           → Export annotations
 ```
 
-1) **Import annotations** – `annotate_cells` from the single-cell data
+1) **Import annotations:**
 
-2) **Aggregate repertoires** – Optionally aggregate to repertoires, potentially using the newly annotate data.
+    `annotate_cells` from the single-cell data
 
-3) **Filter** –`filter_immundata` gets you identifiers of interest and
-    their corresponding receptor features, potentially using the
-    annotation from the previous step
+2) **Aggregate repertoires:**
 
-4) **Compute** – on this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
+    Optionally aggregate to repertoires, potentially using the newly annotate data.
+
+3) **Filter:**
+
+    `filter_immundata` gets you identifiers of interest and their corresponding receptor features, potentially using the annotation from the previous step
+
+4) **Compute:**
+
+    On this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
 
     1) use `immunarch` for the most common analysis functions. The package will automatically annotate both *receptors/cells* (!) and *repertoires* (!!) if it is possible.
 
@@ -196,9 +211,13 @@ Import annotations
 
     3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`. See the [🧠 Advanced Topics](#-advanced-topics) for more details.
 
-5)  **Annotate** – `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
+5)  **Annotate:**
 
-6)  **Export** – `write_annotations` optionally, writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
+    `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
+
+6)  **Export:**
+
+    `write_annotations` optionally, writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
 
 
 ## 💾 Ingestion
