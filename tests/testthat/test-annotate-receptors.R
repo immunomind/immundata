@@ -1,4 +1,4 @@
-test_that("annotate_receptors adds receptor‑level annotations by identifier or feature", {
+test_that("annotate_receptors adds receptor‑level annotations", {
   idata <- get_test_idata()
   receptor_id_col <- imd_schema()$receptor
 
@@ -7,46 +7,36 @@ test_that("annotate_receptors adds receptor‑level annotations by identifier or
     collect() |> head(5)
 
   ann <- tibble(
-    receptor_id  = recs[[receptor_id_col]],
-    receptor_seq = recs$cdr3_aa,
+    sequence_id  = recs[[receptor_id_col]],
+    receptor_seq = paste0("ANN_", recs$cdr3_aa),
     annot_field  = paste0("annotation", 1:nrow(recs))
   )
 
-
-  #
-  # Test matching by identifier
-  #
   out <- annotate_receptors(
     idata,
-    annotations = ann,
-    match_col = c(idata = receptor_id_col, annotations = "receptor_id")
+    annotations = ann
+  )
+
+  actual_annot <- out$annotations |>
+    collect() |>
+    arrange(across(everything()))
+  expected_annot <- idata$annotations |>
+    collect() |>
+    left_join(ann, by = join_by(imd_receptor_id == sequence_id)) |>
+    arrange(across(everything()))
+
+  expect_equal(
+    actual_annot |> count(),
+    expected_annot |> count()
   )
 
   expect_equal(
-    colnames(out$receptors),
-    colnames(idata$receptors)
+    sort(colnames(actual_annot)),
+    sort(c(colnames(idata$annotations), "receptor_seq", "annot_field"))
   )
+
   expect_equal(
-    collect(out$receptors),
-    collect(idata$receptors)
+    actual_annot,
+    expected_annot
   )
-
-  #
-  # Test matching by sequence
-  #
-  print(out)
-
-  # annotations slot must have new column 'receptor_seq2'
-  expect_true("receptor_seq2" %in% colnames(out$annotations))
-
-  # for each receptor in ann, all annotation rows with that receptor get the correct seq
-  for (i in seq_len(nrow(ann))) {
-    rid <- ann$receptor_id[i]
-    seq2 <- ann$receptor_seq2[i]
-    got <- out$annotations %>%
-      filter(!!sym(receptor_id_col) == rid) %>%
-      pull(receptor_seq2) %>%
-      unique()
-    expect_equal(got, seq2)
-  }
 })

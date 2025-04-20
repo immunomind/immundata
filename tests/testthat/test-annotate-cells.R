@@ -1,60 +1,53 @@
-test_that("annotate_cells adds cell‑level annotations and enforces remove_limit", {
+test_that("annotate_cells adds cell‑level annotations", {
   idata <- get_test_idata()
   cell_id_col <- imd_schema()$cell
 
-  # collect annotation table to data.frame to use as input
-  ann_df <- idata$annotations %>% collect()
-  # pick 5 barcodes
-  barcodes <- ann_df[[cell_id_col]][1:5]
-  # build a small annotation table with a new flag
-  cell_ann <- data.frame(
-    barcode = barcodes,
-    new_flag = letters[1:5],
-    stringsAsFactors = FALSE
+  idata <- ImmunData$new(schema = idata$schema_receptor,
+                         annotations = idata$annotations |>
+                           collect() |>
+                           rename(old_cell_id = !!rlang::sym(cell_id_col)) |>
+                           mutate({{ cell_id_col }} := as.character(old_cell_id)) |>
+                           as_duckdb_tibble())
+
+  recs <- idata$annotations |>
+    select( {{ cell_id_col }}, cdr3_aa) |>
+    collect() |> head(5)
+
+  ann <- data.frame(
+    receptor_seq = paste0("ANN_", recs$cdr3_aa),
+    annot_field  = paste0("annotation", 1:nrow(recs)),
+    stringsAsFactors = FALSE,
+    row.names = recs[[cell_id_col]]
   )
 
-  # explicit match_col
   out <- annotate_cells(
     idata,
-    annotations = cell_ann,
-    match_col = c(idata = cell_id_col, annotations = "barcode")
+    annotations = ann
   )
 
-  # receptors table unchanged
+  ann[["cell_id"]] <- rownames(ann)
+  ann <- as_tibble(ann)
+
+  actual_annot <- out$annotations |>
+    collect() |>
+    arrange(across(everything()))
+  expected_annot <- idata$annotations |>
+    collect() |>
+    left_join(ann, by = join_by(imd_cell_id == cell_id)) |>
+    arrange(across(everything()))
+
   expect_equal(
-    collect(out$receptors),
-    collect(idata$receptors)
+    actual_annot |> count(),
+    expected_annot |> count()
   )
 
-  # annotations slot must have new_flag column
-  expect_true("new_flag" %in% colnames(out$annotations))
-
-  # rows matching barcodes should get the correct flag; others are NA
-  got_flags <- out$annotations %>%
-    select(!!sym(cell_id_col), new_flag) %>%
-    collect()
-  for (i in seq_along(barcodes)) {
-    bc <- barcodes[i]
-    flag <- cell_ann$new_flag[i]
-    expect_true(all(got_flags$new_flag[got_flags[[cell_id_col]] == bc] == flag))
-  }
-  # rows not in cell_ann have new_flag == NA
-  non_match <- setdiff(ann_df[[cell_id_col]], barcodes)
-  expect_true(all(is.na(
-    got_flags$new_flag[got_flags[[cell_id_col]] %in% non_match]
-  )))
-
-  # remove_limit: provide too many rows should error
-  big_ann <- ann_df
-  expect_error(
-    annotate_cells(idata, big_ann, match_col = c(idata = cell_id_col, annotations = "."),
-                   remove_limit = FALSE),
-    "exceed existing idata annotations"
+  expect_equal(
+    sort(colnames(actual_annot)),
+    sort(c(colnames(idata$annotations), "receptor_seq", "annot_field"))
   )
 
-  # but with remove_limit = TRUE it works (no error)
-  expect_silent(
-    annotate_cells(idata, big_ann, match_col = c(idata = cell_id_col, annotations = "<rownames>"),
-                   remove_limit = TRUE)
+  expect_equal(
+    actual_annot,
+    expected_annot
   )
 })
