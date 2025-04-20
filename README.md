@@ -151,9 +151,11 @@ Read metadata
         → Aggregate repertoires
 ```
 
-1) **Read metadata** – bring in any sample‑ or donor‑level info (optional) via `read_metadata()`.
+1) **Read metadata:**
+
+    This step loads any sample‑ or donor‑level info to your environment using `read_metadata()` function.
   
-    Optional step - you don't need when you don't have per-sample / per-patient metadata.
+    This step is optional. You can safely skip it if you don't have per-sample pr per-donor metadata, such as therapy response, HLA, age, etc.
 
 2) **Read repertoires** – Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
 
@@ -192,13 +194,7 @@ Import annotations
 
     2)  simply mutate on the whole dataset using `dplyr` syntax, like compute the number of cells or whatever
 
-    3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`
-
-      1) Function is supported by `duckdb` - then use `dd$<function_name>`
-
-      2) Use SQL
-
-      3) Run a completely custom function
+    3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`. See the [🧠 Advanced Topics](#-advanced-topics) for more details.
 
 5)  **Annotate** – `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
 
@@ -211,22 +207,24 @@ Import annotations
 
 **`immundata`** provides a flexible system for loading immune receptor repertoire files from different sources -- CSV, TSV and Parquet files, possibly gzipped, with some optionality. The main function for this is `read_repertoires()`. Below are four ways to pass your file paths.
 
-  1. **Pass a single file name:** if you just have **one** AIRR file:
+  1. **Pass a single file name:**
+  
+      If you just have **one** AIRR file:
 
-        ```r
-        library(immundata)
-        
-        # In this example, we assume 'my_airr_file.tsv' has columns like 'V_gene', 'J_gene', 'CDR3_nt'
-        # that you want to aggregate into a receptor signature.
-        my_immdata <- read_repertoires(
-          path   = "my_airr_file.tsv",
-          schema = c("V_gene", "J_gene", "CDR3_nt")
-        )
-        
-        # The output is an ImmunData object, which you can inspect:
-        my_immdata$receptors()
-        my_immdata$annotations()
-        ```
+      ```r
+      library(immundata)
+      
+      # In this example, we assume 'my_airr_file.tsv' has columns like 'V_gene', 'J_gene', 'CDR3_nt'
+      # that you want to aggregate into a receptor signature.
+      my_immdata <- read_repertoires(
+        path   = "my_airr_file.tsv",
+        schema = c("V_gene", "J_gene", "CDR3_nt")
+      )
+      
+      # The output is an ImmunData object, which you can inspect:
+      my_immdata$receptors()
+      my_immdata$annotations()
+      ```
 
       - The `schema` argument tells `immundata` which columns define the unique receptor signature.
       
@@ -444,6 +442,14 @@ Why split it up?
 -   **Modularity**: If something breaks, you can debug whether it’s in metadata parsing or the actual repertoire table creation.
 -   **Reusability**: It is straightforward to share one folder with two `immundata` files.
 -   **Performance**: Once your data is in `immundata` format, you can load it in future sessions in **constant time** without merging or parsing again.
+
+### Custom functions for analysis
+
+1) Function is supported by `duckdb` - then use `dd$<function_name>`
+
+2) Use SQL
+
+3) Run a completely custom function
 
 ### Change RAM limits to accelerate the backend computations 
 
