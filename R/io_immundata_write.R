@@ -1,5 +1,3 @@
-#' @importFrom jsonlite write_json
-#'
 #' @title Write an ImmunData Object to Disk as Parquet Files
 #'
 #' @description

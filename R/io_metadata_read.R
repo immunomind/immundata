@@ -29,22 +29,16 @@
 #' @return A validated and updated metadata data frame with absolute file paths,
 #'   and an additional column renamed according to `IMD_GLOBALS$schema$filename`.
 #'
-#' @importFrom readr read_delim
-#' @importFrom checkmate test_data_frame test_file_exists
-#' @importFrom cli cli_alert_warning cli_alert_info cli_alert_success cli_abort
-#' @importFrom utils tail
-#'
 #' @export
-
 read_metadata <- function(metadata, filename_col = "File", delim = "\t", ...) {
 
-  if (!test_data_frame(metadata) && !test_file_exists(metadata)) {
+  if (!checkmate::test_data_frame(metadata) && !checkmate::test_file_exists(metadata)) {
     cli_abort("Error in metadata: the input metadata should be either a data frame or an existing file.")
   }
 
   # Get the metadata table
   metadata_source <- NA
-  if (test_file_exists(metadata)) {
+  if (checkmate::test_file_exists(metadata)) {
     metadata_table <- read_delim(metadata, delim = delim, ...)
     metadata_source <- "file" # TODO: enum
   } else {

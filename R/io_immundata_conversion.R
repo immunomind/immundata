@@ -32,8 +32,6 @@
 #' )
 #' }
 #'
-#' @importFrom checkmate assert_list
-#' @importFrom readr write_tsv
 #' @export
 from_immunarch <- function(
     imm,

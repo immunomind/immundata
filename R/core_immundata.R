@@ -1,6 +1,3 @@
-#' @importFrom R6 R6Class
-#' @importFrom dplyr arrange_at vars
-#'
 #' @title ImmunData: A Unified Structure for Immune Receptor Repertoire Data
 #'
 #' @description
@@ -51,7 +48,7 @@ ImmunData <- R6Class(
       self$schema_receptor <- schema
 
       if (!is.null(repertoires)) {
-        self$schema_repertoire <- setdiff(colnames(repertoires), c(imd_schema()$repertoire, imd_schema()$n_receptors, imd_schema()$n_cells))
+        self$schema_repertoire <- setdiff(colnames(repertoires), c(imd_schema()$repertoire, imd_schema()$n_receptors, imd_schema()$n_barcodes, imd_schema()$n_cells))
         private$.repertoire_table <- repertoires
       }
     }

@@ -1,4 +1,3 @@
-#' @importFrom tools file_ext
 check_file_extensions <- function(path, verbose = TRUE) {
 
   ol <- cli_ol()
@@ -38,16 +37,4 @@ check_file_extensions <- function(path, verbose = TRUE) {
   }
 
   list(filetype = input_file_type, delim = delim)
-}
-
-get_test_idata <- function() {
-  sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
-  )
-  read_repertoires(
-    path          = sample_files,
-    schema        = c("cdr3_aa", "v_call"),
-    output_folder = tempfile()
-  )
 }
