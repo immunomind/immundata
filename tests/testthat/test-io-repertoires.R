@@ -99,7 +99,7 @@ test_that("read_repertoires() errors when both barcode_col and count_col are set
     read_repertoires(
       path = sample_file,
       schema = c("cdr3_aa", "v_call"),
-      cell_id_col = "barcode",
+      barcode_col = "barcode",
       count_col = "count_col" # Not actually in the file, but we want the code path tested
     ),
     "Undefined case"
@@ -113,7 +113,9 @@ test_that("read_repertoires() excludes specified columns", {
   imdata <- read_repertoires(
     path = sample_file,
     schema = c("cdr3_aa", "v_call"), # columns that do exist
-    exclude_columns = exclude_cols,
+    preprocess = list(
+      exclude_columns = make_exclude_columns(cols = exclude_cols)
+    ),
     output_folder = file.path(tempdir(), "test-exclude")
   )
 
@@ -166,8 +168,10 @@ test_that("read_repertoires() excludes columns AND renames simultaneously", {
   imdata <- read_repertoires(
     path = sample_file,
     schema = c("cdr3_aa", "v_call", "j_gene"),
+    preprocess = list(
+      exclude_columns = make_exclude_columns(cols = exclude_cols)
+    ),
     rename_columns = rename_map,
-    exclude_columns = exclude_cols,
     output_folder = file.path(tempdir(), "test-exclude-rename")
   )
 

@@ -1,6 +1,3 @@
-#' @importFrom duckplyr as_tbl as_duckdb_tibble
-#' @importFrom dplyr right_join
-#'
 #' @title Build a `seq_options` list for sequence‑based receptor filtering
 #'
 #' @description
@@ -107,7 +104,7 @@ annotate_tbl_distance <- function(tbl_data,
 
   # TODO: max dist. Left join - compute. Right join - filter
   if (is.na(max_dist)) {
-    tbl_data |> left_join(uniq, by = query_col)
+    tbl_data |> left_join(uniq |> compute(), by = query_col)
   } else {
     sql_expr <- sprintf("LEAST(%s) <= %d", paste(dist_cols, collapse = ", "), max_dist)
 
@@ -116,7 +113,7 @@ annotate_tbl_distance <- function(tbl_data,
       filter(dbplyr::sql(sql_expr)) |>
       as_duckdb_tibble()
 
-    tbl_data |> right_join(uniq, by = query_col)
+    tbl_data |> right_join(uniq |> compute(), by = query_col)
   }
 }
 

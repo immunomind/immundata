@@ -1,11 +1,11 @@
-#' @importFrom cli cli_h1 cli_h2 cli_text cli_bullets
 #' @export
 print.ImmunData <- function(x, ...) {
   cli::cli_h1("{cli::col_blue('ImmunData')}")
 
-  if (!is.null(x$receptors)) {
+  receptors <- x$receptors
+  if (!is.null(receptors)) {
     cli::cli_h2("{cli::col_green('Receptors:')}")
-    print(x$receptors)
+    print(receptors)
   }
 
   if (!is.null(x$annotations)) {
