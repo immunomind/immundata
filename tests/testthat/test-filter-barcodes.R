@@ -1,29 +1,26 @@
-test_that("filter_cells() filters ImmunData by a set of cell barcodes", {
+test_that("filter_barcodes() filters ImmunData by a set of cell barcodes", {
   outdir <- tempdir()
 
-  sample_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
-  idata <- read_repertoires(
-    path = sample_file,
-    schema = c("cdr3_aa", "v_call"),
-    output_folder = outdir
-  )
+  idata <- get_test_idata()
+
+  barcode_col <- imd_schema_sym("barcode")
 
   # Suppose the annotation table has a column "imd_cell_id" with barcodes
   # We'll pick the first few for demonstration
   all_cells <- idata$annotations %>%
-    distinct(imd_cell_id) %>%
-    pull(imd_cell_id)
+    distinct(!!barcode_col) %>%
+    pull(!!barcode_col)
 
   # If there are at least 5 cells, let's pick a subset
   some_cells <- head(all_cells, 5)
 
-  filtered <- filter_cells(idata, some_cells)
+  filtered <- filter_barcodes(idata, some_cells)
   checkmate::expect_r6(filtered, classes = "ImmunData")
 
   # The new annotation table should only have those 5
   new_cells <- filtered$annotations %>%
-    distinct(imd_cell_id) %>%
-    pull(imd_cell_id)
+    distinct(!!barcode_col) %>%
+    pull(!!barcode_col)
 
   expect_equal(sort(new_cells), sort(some_cells))
 

@@ -24,17 +24,23 @@ utils::globalVariables(c("dd", "n_cells", "p", "tmp_receptor_cells"))
 #' @keywords internal
 IMD_GLOBALS <- list(
   schema = list(
-    cell = "imd_cell_id",
     receptor = "imd_receptor_id",
+    cell = "imd_barcode",
+    barcode = "imd_barcode",
+    chain = "imd_chain_id",
     group = "imd_group_id",
     repertoire = "imd_repertoire_id",
     metadata_filename = "imd_filename",
     count = "imd_count",
+    receptor_count = "imd_count",
+    chain_count = "imd_n_chains",
     proportion = "imd_proportion",
     n_receptors = "n_receptors",
+    n_barcodes = "n_barcodes",
     n_cells = "n_cells",
     n_repertoires = "n_repertoires",
-    filename = "filename"
+    filename = "filename",
+    locus = "locus"
   ),
   meta_schema = list(
     version = "version",
@@ -47,24 +53,21 @@ IMD_GLOBALS <- list(
     annotations = "annotations.parquet"
   ),
   rename_cols = list(
-    default = function() {
+    default = c(
+      v_call = "v_gene",
+      d_call = "d_gene",
+      j_call = "j_gene",
+      d_call = "d_gene",
+      locus = "chain"
+    ),
+    `10x` =
       c(
-        v_call = any_of(c("v_gene")),
-        d_call = any_of(c("d_gene")),
-        j_call = any_of(c("j_gene")),
-        d_call = any_of(c("d_gene")),
-        locus = any_of(c("chain"))
+        v_call = "v_gene",
+        d_call = "d_gene",
+        j_call = "j_gene",
+        d_call = "d_gene",
+        locus = "chain"
       )
-    },
-    `10x` = function() {
-      c(
-        v_call = any_of(c("v_gene")),
-        d_call = any_of(c("d_gene")),
-        j_call = any_of(c("j_gene")),
-        d_call = any_of(c("d_gene")),
-        locus = any_of(c("chain"))
-      )
-    }
   ),
   drop_cols = list(
     airr = c(
@@ -72,6 +75,13 @@ IMD_GLOBALS <- list(
       "v_sequence_alignment", "d_sequence_alignment", "j_sequence_alignment",
       "rev_comp", "sequence_alignment", "germline_alignment",
       "v_cigar", "d_cigar", "j_cigar"
+    ),
+    `10x` = c(
+      "full_length",
+      "is_cell",
+      "contig_id",
+      "raw_clonotype_id",
+      "raw_consensus_id"
     )
   ),
   agg_schema = list(
@@ -100,55 +110,62 @@ IMD_GLOBALS <- list(
 #'
 #' @return A named list of schema field names.
 #' @export
-imd_schema <- function() {
-  # TODO: pass value to the function
-  IMD_GLOBALS$schema
+imd_schema <- function(key = NULL) {
+  if (is.null(key)) {
+    IMD_GLOBALS$schema
+  } else {
+    checkmate::assert_choice(key, names(IMD_GLOBALS$schema))
+    IMD_GLOBALS$schema[[key]]
+  }
 }
 
+#' @rdname imd_schema
+#' @export
+imd_schema_sym <- function(key = NULL) {
+  if (is.null(key)) {
+    IMD_GLOBALS$schema
+  } else {
+    checkmate::assert_choice(key, names(IMD_GLOBALS$schema))
+    rlang::sym(IMD_GLOBALS$schema[[key]])
+  }
+}
+
+#' @rdname imd_schema
 #' @export
 imd_meta_schema <- function() {
   # TODO: pass value to the function
   IMD_GLOBALS$meta_schema
 }
 
-#' @title Get Immundata Default File Names
-#'
-#' @description
-#' Returns the standardized default filenames for storing receptor-level and annotation-level
-#' data as used in `read_repertoires()` and related Immundata I/O functions.
-#'
-#' @return A named list of file names (e.g., `receptors.parquet`, `annotations.parquet`).
+#' @rdname imd_schema
 #' @export
 imd_files <- function() {
   IMD_GLOBALS$files
 }
 
-#' Return a list of columns to rename
-#' @param format File format
+#' @rdname imd_schema
 #' @export
 imd_rename_cols <- function(format = "default") {
-  check_character(format)
-  check_choice(format, names(IMD_GLOBALS$rename_cols))
+  checkmate::assert_character(format)
+  checkmate::assert_choice(format, names(IMD_GLOBALS$rename_cols))
 
   IMD_GLOBALS$rename_cols[[format]]
 }
 
-#' Return a list of columns to drop from the dataset
-#' @param format File format
+#' @rdname imd_schema
 #' @export
 imd_drop_cols <- function(format = "airr") {
-  check_character(format)
-  check_choice(format, names(IMD_GLOBALS$drop_cols))
+  checkmate::assert_character(format)
+  checkmate::assert_choice(format, names(IMD_GLOBALS$drop_cols))
 
   IMD_GLOBALS$drop_cols[[format]]
 }
 
-#' Return a typical repertoire columns, which define a repertoire for a specific format
-#' @param format File format
+#' @rdname imd_schema
 #' @export
 imd_repertoire_schema <- function(format = "airr") {
-  check_character(format)
-  check_choice(format, c("airr"))
+  checkmate::assert_character(format)
+  checkmate::assert_choice(format, c("airr"))
 
   IMD_GLOBALS$agg_schema$repertoires[[format]]
 }

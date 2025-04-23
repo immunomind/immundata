@@ -1,4 +1,4 @@
-test_that("annotate_cells adds cell‑level annotations", {
+test_that("annotate_barcodes adds cell‑level annotations", {
   idata <- get_test_idata()
   cell_id_col <- imd_schema()$cell
 
@@ -20,7 +20,7 @@ test_that("annotate_cells adds cell‑level annotations", {
     row.names = recs[[cell_id_col]]
   )
 
-  out <- annotate_cells(
+  out <- annotate_barcodes(
     idata,
     annotations = ann
   )
@@ -33,7 +33,7 @@ test_that("annotate_cells adds cell‑level annotations", {
     arrange(across(everything()))
   expected_annot <- idata$annotations |>
     collect() |>
-    left_join(ann, by = join_by(imd_cell_id == cell_id)) |>
+    left_join(ann, by = join_by(imd_barcode == cell_id)) |>
     arrange(across(everything()))
 
   expect_equal(

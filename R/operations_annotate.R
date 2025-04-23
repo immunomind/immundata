@@ -53,8 +53,6 @@
 #'
 #' @concept Annotation
 #' @rdname annotate
-#' @importFrom checkmate assert_r6 assert_data_frame assert_character assert_logical
-#' @importFrom dplyr left_join rename
 #' @export
 annotate_immundata <- function(idata,
                                annotations,
@@ -127,11 +125,11 @@ annotate_receptors <- function(idata,
 #' @concept Annotation
 #' @rdname annotate
 #' @export
-annotate_cells <- function(idata,
-                           annotations,
-                           annot_col = "<rownames>",
-                           keep_repertoires = TRUE,
-                           remove_limit = FALSE) {
+annotate_barcodes <- function(idata,
+                              annotations,
+                              annot_col = "<rownames>",
+                              keep_repertoires = TRUE,
+                              remove_limit = FALSE) {
   if (annot_col == "<rownames>") {
     annotations[["imd_row_names"]] <- rownames(annotations)
     annot_col <- "imd_row_names"

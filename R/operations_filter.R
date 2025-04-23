@@ -1,8 +1,3 @@
-#' @importFrom dplyr filter mutate select semi_join
-#' @importFrom checkmate assert_r6 assert_character assert_choice
-#' @importFrom rlang sym enquos as_string
-#' @importFrom dbplyr sql
-#'
 #' @title Filter ImmunData by Receptor Features or Annotations
 #'
 #' @description
@@ -19,6 +14,8 @@
 #'   * `max_dist`  – numeric; for fuzzy methods, keep rows ≤ `max_dist`
 #'   * `name_type` – `"index"` | `"pattern"` (passed through)
 #'   If `seq_options` is `NULL` no sequence filtering is done. Use [make_seq_options()] for convenience.
+#' @param receptors Vector of receptor identifiers to filter by.
+#' @param cells Vector of cell identifiers or barcodes to filter by.
 #'
 #' @return New ImmunData object with both receptors and annotations filtered.
 #'
@@ -152,33 +149,20 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
   }
 }
 
-
-#' @importFrom checkmate assert
-#' @importFrom duckplyr duckdb_tibble
-#' @importFrom dplyr distinct
-#'
-#' @title Filter ImmunData by Passed Cell IDs or Barcodes
-#'
-#' @description
-#' A short description...
-#'
-#' @param idata [ImmunData] object.
-#' @param cells Vector of cell identifiers or barcodes to filter by.
-#'
 #' @concept Filtering
-#' @rdname filter
+#' @rdname filter_immundata
 #' @export
-filter_cells <- function(idata, cells, keep_repertoires = TRUE) {
+filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert(
-    checkmate::check_character(cells, min.len = 1),
-    checkmate::check_integer(cells, min.len = 1),
-    checkmate::check_double(cells, min.len = 1)
+    checkmate::check_character(barcodes, min.len = 1),
+    checkmate::check_integer(barcodes, min.len = 1),
+    checkmate::check_double(barcodes, min.len = 1)
   )
   checkmate::assert_logical(keep_repertoires)
 
   barcode_col_id <- imd_schema()$cell
-  barcodes_table <- duckdb_tibble(A = unique(cells))
+  barcodes_table <- duckdb_tibble(A = unique(barcodes))
   colnames(barcodes_table) <- barcode_col_id
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)
@@ -196,7 +180,7 @@ filter_cells <- function(idata, cells, keep_repertoires = TRUE) {
 }
 
 #' @concept Filtering
-#' @rdname filter
+#' @rdname filter_immundata
 #' @export
 filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
   checkmate::assert_r6(idata, "ImmunData")
