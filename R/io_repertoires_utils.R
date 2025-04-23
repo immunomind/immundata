@@ -1,4 +1,3 @@
-#' @importFrom tools file_ext
 check_file_extensions <- function(path, verbose = TRUE) {
 
   ol <- cli_ol()

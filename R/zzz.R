@@ -1,4 +1,3 @@
-#' @importFrom utils packageVersion
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage("Loading immundata version ", packageVersion(pkgname))
 }

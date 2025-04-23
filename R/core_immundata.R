@@ -1,5 +1,3 @@
-#' @importFrom R6 R6Class
-#'
 #' @title ImmunData: A Unified Structure for Immune Receptor Repertoire Data
 #'
 #' @description
@@ -13,15 +11,9 @@
 ImmunData <- R6Class(
   "ImmunData",
   private = list(
-    # .receptors A receptor-level table containing immune receptor features
-    # (e.g., CDR3, V/J gene, clonotype ID, counts). This table is typically aggregated
-    # and is used for quantitative analysis of immune repertoire signatures.
-    # It can be a local tibble, Arrow Table, DuckDB table, or any other
-    # `dplyr`-compatible backend (including lazy data sources).
-    .receptors = NULL,
 
     # .annotations A barcode-level table that links each barcode (i.e., cell ID)
-    # to a receptor in `.receptors`. It can also store cell-level metadata such as
+    # to a receptor. It can also store cell-level metadata such as
     # sample ID, donor, or tissue source. This table is **not aggregated** and
     # typically contains one row per barcode.
     .annotations = NULL,
@@ -46,29 +38,29 @@ ImmunData <- R6Class(
     #' This constructor expects receptor-level and barcode-level data,
     #' along with a receptor schema defining aggregation and identity fields.
     #'
-    #' @param receptors A receptor-level dataset (e.g., grouped by CDR3/V/J).
+    #' @param schema A character vector specifying the receptor schema (e.g., aggregate fields, ID columns).
     #' @param annotations A cell/barcode-level dataset mapping barcodes to receptor rows.
-    #' @param schema A named list specifying the receptor schema (e.g., aggregate fields, ID columns).
     #' @param repertoires A repertoire table, created inside the body of [agg_repertoires].
-    initialize = function(receptors,
+    initialize = function(schema,
                           annotations,
-                          schema,
                           repertoires = NULL) {
-      private$.receptors <- receptors
       private$.annotations <- annotations
       self$schema_receptor <- schema
 
       if (!is.null(repertoires)) {
-        self$schema_repertoire <- setdiff(colnames(repertoires), c(imd_schema()$n_receptors, imd_schema()$n_cells))
+        self$schema_repertoire <- setdiff(colnames(repertoires), c(imd_schema()$repertoire, imd_schema()$n_receptors, imd_schema()$n_barcodes, imd_schema()$n_cells))
         private$.repertoire_table <- repertoires
       }
     }
   ),
   active = list(
 
-    #' @field receptors Accessor for the receptor-level table (`.receptors`).
+    #' @field receptors Accessor for the dynamically-created table with receptors.
     receptors = function() {
-      private$.receptors
+      receptor_id_col <- imd_schema()$receptor
+      private$.annotations |>
+        select({{ receptor_id_col }}, all_of(self$schema_receptor)) |>
+        distinct(!!rlang::sym(receptor_id_col), .keep_all = TRUE)
     },
 
     #' @field annotations Accessor for the annotation-level table (`.annotations`).
@@ -76,19 +68,14 @@ ImmunData <- R6Class(
       private$.annotations
     },
 
-    #' @field barcodes Get a vector of barcodes from the annotation table.
-    barcodes = function() {
-      barcode_col_id <- imd_schema()$barcode
-      private$.annotations |> select({{ barcode_col_id }})
-    },
-
     #' @field repertoires Get a vector of repertoire names after data aggregation with [agg_repertoires()]
     repertoires = function() {
       # TODO: cache repertoire table to memory if not very big?
       if (!is.null(private$.repertoire_table)) {
-        private$.repertoire_table |> collect()
+        private$.repertoire_table |>
+          collect() |>
+          arrange_at(vars(1))
       } else {
-        warning("No repertoires aggregated for this ImmunData. See `?agg_repertoires` for more information.")
         NULL
       }
     }

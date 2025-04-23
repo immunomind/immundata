@@ -4,7 +4,7 @@
 \alias{read_immundata}
 \title{Load a Saved ImmunData Object from Disk}
 \usage{
-read_immundata(path, repertoire_schema = NULL)
+read_immundata(path, prudence = "stingy")
 }
 \arguments{
 \item{path}{Path to the folder containing the saved ImmunData files.}

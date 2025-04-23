@@ -19,33 +19,32 @@
 #' @seealso [read_repertoires()], [imd_files()], [ImmunData], [duckplyr::read_parquet_duckdb()]
 #'
 #' @export
-read_immundata <- function(path, repertoire_schema = NULL) {
+read_immundata <- function(path, prudence = "stingy") {
   cli_alert_info("Reading ImmunData files from [{.path {path}}]")
 
   assert_directory_exists(path)
-
-  assert_file_exists(file.path(path, imd_files()$receptors))
   assert_file_exists(file.path(path, imd_files()$annotations))
+  assert_file_exists(file.path(path, imd_files()$metadata))
 
-  assert(
-    test_character(repertoire_schema,
-                   null.ok = TRUE
-    ),
-    test_function(repertoire_schema)
+  metadata_json <- jsonlite::read_json(file.path(path, imd_files()$metadata), simplifyVector = T)
+  annotation_data <- read_parquet_duckdb(file.path(path, imd_files()$annotations), prudence = prudence)
+
+  receptor_schema <- metadata_json[[imd_meta_schema()$receptor_schema]]
+  # TODO: run checks/repairs: 1) no receptor schema, need to aggregate; 2) wrong columns; 3) receptor schema but no imd_receptor_id
+
+  repertoire_schema <- metadata_json[[imd_meta_schema()$repertoire_schema]]
+
+  idata <- ImmunData$new(
+    schema = receptor_schema,
+    annotations = annotation_data
   )
 
-  receptor_data <- read_parquet_duckdb(file.path(path, imd_files()$receptors), prudence = "stingy")
-  annotation_data <- read_parquet_duckdb(file.path(path, imd_files()$annotations), prudence = "stingy")
+  cli_alert_success("Loaded ImmunData with the receptor schema: [{receptor_schema}]")
 
-  schema <- receptor_data |> colnames()
-  schema <- setdiff(schema, imd_schema()$receptor)
+  if (length(repertoire_schema) > 0) {
+    idata <- agg_repertoires(idata, repertoire_schema)
+    cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
+  }
 
-  cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
-
-  ImmunData$new(
-    receptors = receptor_data,
-    annotations = annotation_data,
-    schema = schema,
-    repertoires = repertoire_schema
-  )
+  idata
 }

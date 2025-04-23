@@ -2,9 +2,27 @@
 % Please edit documentation in R/globals.R
 \name{imd_schema}
 \alias{imd_schema}
+\alias{imd_schema_sym}
+\alias{imd_meta_schema}
+\alias{imd_files}
+\alias{imd_rename_cols}
+\alias{imd_drop_cols}
+\alias{imd_repertoire_schema}
 \title{Get Immundata Internal Schema Field Names}
 \usage{
-imd_schema()
+imd_schema(key = NULL)
+
+imd_schema_sym(key = NULL)
+
+imd_meta_schema()
+
+imd_files()
+
+imd_rename_cols(format = "default")
+
+imd_drop_cols(format = "airr")
+
+imd_repertoire_schema(format = "airr")
 }
 \value{
 A named list of schema field names.

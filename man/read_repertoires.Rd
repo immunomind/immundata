@@ -8,26 +8,29 @@ read_repertoires(
   path,
   schema,
   metadata = NULL,
-  cell_id_col = NULL,
+  barcode_col = NULL,
   count_col = NULL,
   enforce_schema = TRUE,
-  exclude_columns = imd_drop_cols("airr"),
+  metadata_file_col = "File",
   output_folder = NULL,
+  preprocess = make_default_preprocessing(),
+  postprocess = list(prefix_barcodes = make_barcode_prefix()),
   rename_columns = imd_rename_cols("10x"),
-  repertoire_schema = imd_repertoire_schema("airr")
+  repertoire_schema = NULL
 )
 }
 \arguments{
 \item{path}{Path to an input file. This file may be Parquet, CSV, or TSV. The file extension is
-automatically detected and handled.}
+automatically detected and handled. The files can be archived via GZIP, no need to unarchive them.
+Pass \code{"<metadata>"} to read files from \code{"filename"} column from the input metadata table.}
 
 \item{schema}{Character vector defining which columns in the input data should be used to
-identify unique receptor signatures. For example, \code{c("V_gene", "J_gene", "CDR3_nt")}.}
+identify unique receptor signatures. For example, \code{c("cdr3_aa", "v_call")}.}
 
 \item{metadata}{An optional data frame containing additional metadata to merge into the annotation table.
-Default is \code{NULL}.}
+Default is \code{NULL}. See \code{\link[=read_metadata]{read_metadata()}} for more information.}
 
-\item{cell_id_col}{An optional character string specifying the column in the input data that represents
+\item{barcode_col}{An optional character string specifying the column in the input data that represents
 cell ids or barcodes or other unique identifiers. Default is \code{NULL}.}
 
 \item{count_col}{An optional character string specifying the column in the input data that stores
@@ -35,8 +38,6 @@ bulk receptor counts. Default is \code{NULL}.}
 
 \item{enforce_schema}{Logical. If \code{TRUE}, column names and types must strictly match between files. If \code{FALSE},
 columns are unioned}
-
-\item{exclude_columns}{Character. Vector of columns to exclude from the data. Default is AIRR standard columns \verb{*_cigar} and \verb{*_alignment}.}
 
 \item{output_folder}{Character string specifying the directory to save the resulting Parquet files. If \code{NULL},
 a folder named \verb{immundata-<basename_of_path>} is created in the same directory as \code{path}.}
@@ -47,6 +48,8 @@ a folder named \verb{immundata-<basename_of_path>} is created in the same direct
 \item{repertoire_schema}{An optional character vector defining how annotations should be grouped into repertoires
 (for example, \code{c("sample", "donor")}). Currently unused in this function, but reserved
 for future expansions. Default is \code{NULL}.}
+
+\item{exclude_columns}{Character. Vector of columns to exclude from the data. Default is AIRR standard columns \verb{*_cigar} and \verb{*_alignment}.}
 }
 \description{
 This function ingests a repertoire dataset (Parquet, CSV, or TSV), aggregates receptors
@@ -60,7 +63,7 @@ tables. The resulting data is saved to a designated output folder as two Parquet
 to a Parquet, CSV, or TSV file, using \code{read_parquet_duckdb} or \code{read_csv_duckdb}.
 \item \strong{Aggregation} – Receptor uniqueness is determined by the columns named in
 \code{schema}, while barcodes or counts are handled depending on which parameters
-(\code{cell_id_col}, \code{count_col}) are provided.
+(\code{barcode_col}, \code{count_col}) are provided.
 \item \strong{Saving} – The final receptor-level and annotation-level tables are written
 to Parquet files in \code{output_folder}.
 \item \strong{Reloading} – The function calls \code{\link[=read_immundata]{read_immundata()}} on the newly
