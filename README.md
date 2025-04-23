@@ -3,7 +3,7 @@
 [![Downloads_week](http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
 [![Issues](https://img.shields.io/github/issues/immunomind/immundata-rlang?style=flat-square)](https://github.com/immunomind/immundata-rlang/issues)
 
-# `immundata` in R 
+# 🦋 `immundata` --– A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics in R
 
 - 📦 [Installation](#-installation)
 - ⚡ [Quick Start](#-quick-start)
@@ -60,34 +60,31 @@ Before installing any release or pre-release version of `immundata`, please inst
 install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
 ```
 
-More info if needed is available on [R pak website](https://pak.r-lib.org/#arrow_down-installation).
+More info if needed is available on [pak website](https://pak.r-lib.org/#arrow_down-installation).
 
-### Install the package
+### Install the latest version
 
+To install the latest release of `immundata`, simply run:
 
- - **Latest CRAN release:**
- 
-    To install the latest CRAN-distributed version, simply run:
+```r
+pak::pkg_install("immunomind/immundata-rlang")
+```
 
-    ```r
-    pak::pkg_install("immundata")
-    ```
+Mind that this will install the package from our GitHub instead of CRAN. This method is much preferred due to limitations of CRAN and reliance on other packages, which are distributed via `pak` as well.
 
- - **Latest GitHub release:**
- 
-    Releasing new package versions on CRAN is limited to one release per one or two months. If you want to install the very latest release, or if the above command doesn't work, try installing `immundata` from the code repository:
+### Other installation options
 
-    ```r
-    pak::pkg_install("immunomind/immundata-rlang")
-    ```
+We will periodically release `immundata` on CRAN. To install it from CRAN, run 
 
- - **Latest development version:** 
- 
-    If you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version:
+```r
+pak::pkg_install("immundata")
+```
 
-    ```r
-    pak::pkg_install("immunomind/immundata-rlang@dev")
-    ```
+If you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version:
+
+```r
+pak::pkg_install("immunomind/immundata-rlang@dev")
+```
 
 ---
 
@@ -141,13 +138,30 @@ list.files("./immundata-quick-start")
 
 2. **Analysis**  – explore, annotate, filter and compute on that object
 
-Before we go into more details for each of the phase, there are three simple yet essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries.
+Before we go into more details for each of the phase, there are two simple yet essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries.
 
-1. **Aggregation of receptors** – ... people analyse a specific receptors; data lineage is crucial for full reproducibility.
+1. **Units: chain -> barcode -> receptor**
 
-2. **Aggregation of repertoires** – ...
+  **Chain** One V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). (rearrangement, used "chain" for convenience) - minimally possible data unit, a building block of everything.
+  In case of single-chain data, same as barcode. Never changes after ingest; you can always drill back to the exact sequence.
+  
+  **Barcode** A physical container that stores zero, one, or many chains.
+  In single‑cell it’s a droplet == cell; in bulk it’s an entire sample file; in spatial it’s a spot.
+  (sometimes equal to cell) - biological unit that "stores" relevant biological data. Inherits any per‑cell / per‑sample metadata you add.
+  
+  **Receptor** - logical unit. A logical grouping of chains that you want to treat as one biological “receptor signature”.
+  Can be: α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
+  Minimal data unit for AIRR statistics.
 
-3. **Receptor and cell identifiers ("barcodes")** – ...
+2. **Aggregation: receptors and repertoires**
+
+  The data stored as chains.
+  Biologically-relevant processes are consolidated by barcodes.
+  People think in receptors and repertoires.
+  
+  How do we make it convenient in practical sense?
+  
+  Data lineage is crucial for full reproducibility.
 
 And now, let's dive into how you work with `immundata`.
 
@@ -498,6 +512,10 @@ Why split it up?
 
 TODO
 
+### Make `immundata` even faster with data engineering tricks
+
+TODO - resave the data to use hive partitioning + show benchmarks
+
 ### Save your intermediate data for faster computations and reproducibility 
 
 TODO
@@ -597,22 +615,22 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
 10. **Q: `immundata` is too verbose, I'm tired of all the messages. How to turn them off?**
     
-    A: Run the following code ``options(rlib_message_verbosity = "quiet")`` to turn off messages.
+    A: Run the following code `options(rlib_message_verbosity = "quiet")` in the beginning of your R session to turn off messages.
 
-11. **Q: I don't want to use `pak`, how can I use the good old `install.packages`?**
+11. **Q: I don't want to use `pak`, how can I use the good old `install.packages` or `devtools`?**
 
-    A: Nothing will stop you, eh? You are welcome:
+    A: Nothing will stop you, eh? You are welcome, but I'm not responsible if something won't work due to issues with dependencies:
 
     ```r
-    # Release
+    # CRAN release
     install.packages("immundata")
 
-    # Pre-release
+    # GitHub release
     install.packages(c("devtools", "pkgload"))
     devtools::install_github("immunomind/immundata-rlang")
     devtools::reload(pkgload::inst("immundata"))
 
-    # Dev version
+    # Development version
     devtools::install_github("immunomind/immundata-rlang", ref = "dev")
     devtools::reload(pkgload::inst("immundata"))
     ```

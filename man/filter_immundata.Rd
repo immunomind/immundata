@@ -2,9 +2,15 @@
 % Please edit documentation in R/operations_filter.R
 \name{filter_immundata}
 \alias{filter_immundata}
+\alias{filter_barcodes}
+\alias{filter_receptors}
 \title{Filter ImmunData by Receptor Features or Annotations}
 \usage{
 filter_immundata(idata, ..., seq_options = NULL, keep_repertoires = TRUE)
+
+filter_barcodes(idata, barcodes, keep_repertoires = TRUE)
+
+filter_receptors(idata, receptors, keep_repertoires = TRUE)
 }
 \arguments{
 \item{idata}{ImmunData object}
@@ -20,6 +26,10 @@ filter_immundata(idata, ..., seq_options = NULL, keep_repertoires = TRUE)
 \item \code{name_type} – \code{"index"} | \code{"pattern"} (passed through)
 If \code{seq_options} is \code{NULL} no sequence filtering is done. Use \code{\link[=make_seq_options]{make_seq_options()}} for convenience.
 }}
+
+\item{receptors}{Vector of receptor identifiers to filter by.}
+
+\item{cells}{Vector of cell identifiers or barcodes to filter by.}
 }
 \value{
 New ImmunData object with both receptors and annotations filtered.

@@ -3,7 +3,7 @@
 \name{annotate_immundata}
 \alias{annotate_immundata}
 \alias{annotate_receptors}
-\alias{annotate_cells}
+\alias{annotate_barcodes}
 \title{Join External Annotations onto an ImmunData Object}
 \usage{
 annotate_immundata(
@@ -22,7 +22,7 @@ annotate_receptors(
   remove_limit = FALSE
 )
 
-annotate_cells(
+annotate_barcodes(
   idata,
   annotations,
   annot_col = "<rownames>",

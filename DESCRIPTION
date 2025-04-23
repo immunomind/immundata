@@ -1,6 +1,6 @@
 Package: immundata
 Title: A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics
-Version: 0.0.2
+Version: 0.0.2.9001
 Authors@R: 
     person("Vadim I.", "Nazarov", , "support@immunomind.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3659-2709"))
@@ -17,21 +17,30 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends: 
     R (>= 4.1.0),
-    duckplyr (>= 1.0.1)
+    dplyr,
+    duckplyr (>= 1.0.1.9012)
 Imports:
     checkmate,
     cli,
     dbplyr,
-    dplyr,
+    duckdb,
+    ggplot2,
     glue,
     jsonlite,
     lifecycle,
     R6,
     readr,
-    rlang
+    rlang,
+    stats,
+    tibble,
+    tools,
+    utils
+Remotes:
+    tidyverse/duckplyr
 Suggests: 
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Config/testthat/parallel: true
 VignetteBuilder: knitr
