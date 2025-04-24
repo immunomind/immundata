@@ -171,14 +171,17 @@ annotate_tbl_regex <- function(tbl_data,
 
   tbl_data <- tbl_data |> left_join(uniq, by = query_col)
   if (filter_out) {
+    # TODO: need to replace it with if_else when it is available in duckplyr
     sql_expr <- paste(pattern_cols, collapse = " OR ")
-    tbl_data <- tbl_data |>
+
+    tbl_data |>
       as_tbl() |>
       filter(dbplyr::sql(sql_expr)) |>
-      as_duckdb_tibble()
+      as_duckdb_tibble() |>
+      compute() # TODO: We need a compute here because sometimes duckplyr can't find the table
+  } else {
+    tbl_data
   }
-
-  tbl_data
 }
 
 #' @importFrom rlang sym

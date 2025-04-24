@@ -1,4 +1,4 @@
-test_that("Regex matching returns correct results", {
+testthat::test_that("Regex matching returns correct results", {
   sample_files <- c(
     system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
     system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
@@ -12,7 +12,7 @@ test_that("Regex matching returns correct results", {
 
   regex <- paste0('^', substr(all_receptors$cdr3_aa[1], 1, 4))
 
-  out <- filter_immundata(
+  out <- filter(
     idata,
     seq_options = make_seq_options(
       query_col = "cdr3_aa",

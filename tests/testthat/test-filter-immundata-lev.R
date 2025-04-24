@@ -13,7 +13,7 @@ test_that("Levenshtein fuzzy matching returns correct results", {
 
   pat <- substr(all_receptors$cdr3_aa[1], 1, nchar(all_receptors$cdr3_aa[1]) - 1)
   maxd <- 1
-  out <- filter_immundata(
+  out <- filter(
     idata,
     seq_options = make_seq_options(
       query_col = "cdr3_aa",
@@ -47,7 +47,7 @@ test_that("combined pre-filter and fuzzy matching works correctly", {
   vc <- all_receptors$v_call[5]
   pat <- substr(all_receptors$cdr3_aa[5], 1, nchar(all_receptors$cdr3_aa[5]) - 1)
   maxd <- 1
-  out <- filter_immundata(
+  out <- filter(
     idata,
     v_call == vc,
     seq_options = make_seq_options(

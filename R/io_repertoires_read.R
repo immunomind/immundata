@@ -208,6 +208,7 @@ read_repertoires <- function(path,
 
   immundata_barcode_col <- imd_schema("barcode")
   immundata_receptor_id_col <- imd_schema("receptor")
+  immundata_chain_id_col <- imd_schema("chain")
   immundata_count_col <- imd_schema("count")
   immundata_chain_count <- imd_schema("chain_count")
 
@@ -216,7 +217,10 @@ read_repertoires <- function(path,
   #
   if (is.null(barcode_col) && is.null(count_col)) {
     raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := row_number())
+      mutate(
+        {{ immundata_barcode_col }} := row_number(),
+        {{ immundata_chain_id_col }} := !!rlang::sym(immundata_barcode_col)
+      )
 
     receptor_data <- raw_dataset |>
       summarise(.by = all_of(schema)) |>
@@ -226,7 +230,10 @@ read_repertoires <- function(path,
 
     annotation_data <- receptor_data |>
       full_join(raw_dataset, by = schema) |>
-      mutate({{ immundata_chain_count }} := 1, {{ immundata_count_col }} := 0)
+      mutate(
+        {{ immundata_chain_count }} := 1,
+        {{ immundata_count_col }} := 0
+      )
   }
 
   #
@@ -234,7 +241,10 @@ read_repertoires <- function(path,
   #
   else if (is.null(barcode_col) && !is.null(count_col)) {
     raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := row_number())
+      mutate(
+        {{ immundata_barcode_col }} := row_number(),
+        {{ immundata_chain_id_col }} := !!rlang::sym(immundata_barcode_col)
+      )
 
     receptor_data <- raw_dataset |>
       summarise(.by = all_of(schema)) |>
@@ -244,7 +254,10 @@ read_repertoires <- function(path,
 
     annotation_data <- receptor_data |>
       full_join(raw_dataset, by = schema) |>
-      mutate({{ immundata_chain_count }} := !!rlang::sym(count_col), {{ immundata_count_col }} := 0)
+      mutate(
+        {{ immundata_chain_count }} := !!rlang::sym(count_col),
+        {{ immundata_count_col }} := 0
+      )
   }
 
   #
@@ -252,7 +265,10 @@ read_repertoires <- function(path,
   #
   else if (!is.null(barcode_col) && is.null(count_col)) {
     raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := !!rlang::sym(barcode_col))
+      mutate(
+        {{ immundata_barcode_col }} := !!rlang::sym(barcode_col),
+        {{ immundata_chain_id_col }} := row_number()
+      )
 
     receptor_data <- raw_dataset |>
       summarise(.by = all_of(schema)) |>

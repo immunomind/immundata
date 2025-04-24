@@ -14,7 +14,7 @@ test_that("Hamming fuzzy matching returns correct results", {
   orig <- all_receptors$cdr3_aa[1]
   pat <- paste0("X", substring(orig, 2))
   maxd <- 1
-  out_receptors <- filter_immundata(
+  out_receptors <- filter(
     idata,
     seq_options = make_seq_options(
       query_col = "cdr3_aa",

@@ -3,8 +3,9 @@
 [![Downloads_week](http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
 [![Issues](https://img.shields.io/github/issues/immunomind/immundata-rlang?style=flat-square)](https://github.com/immunomind/immundata-rlang/issues)
 
-# 🦋 `immundata` --– A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics in R
+# 🦋 `immundata` --- A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics in R
 
+- 🤔 [Why `immundata`?](#-why--immundata)
 - 📦 [Installation](#-installation)
 - ⚡ [Quick Start](#-quick-start)
 - 🧬 [Workflow Explained](#-workflow-explained)
@@ -50,6 +51,66 @@
 > I’ll keep publishing tagged releases with full docs so you can always
 > roll back if needed.
 
+## 🤔 Why `immundata`?
+
+For modern data engineering and machine learning immunomics applications, which characterise by large-scale pipelines and more robust and complex engineering around.
+
+Modern immunomics no longer stops at a dozen FASTQ files and a bar plot.
+Today we build terabyte-scale, ML-ready pipelines that connect bulk AIRR-seq, single-cell V(D)J + GEX, spatial transcriptomics, clinical metadata and public databases --- often inside the same analysis notebook.
+
+immundata is the data-engineering backbone that makes this doable without rewriting your biology workflow each time the dataset grows 10×.
+
+- data keeps bigger
+- data complexity - data keeps more complicated with additional metadata
+- workflow complexity - complex data require complex workflows
+- reproducibility
+
+Thus we build tools that follow the key architectural principles:
+
+- **Scalability**
+- **Modularity**
+- **Extendability**
+
+- An open-source and modern data engineering and machine learning stack for immunomics-driven development of personalized immunotherapies and vaccines.
+
+- An open-source ecosystem powering the modern data engineering and machine learning applications for immunomics-driven development of personalized immunotherapies and vaccines.
+
+- The modern data engineering and machine learning stack for immunomics-driven development of personalized immunotherapies and vaccines. Open-source ecosystem built by Vadim Nazarov and the community.
+
+- Open-source ecosystem of immune repertoire tools for the development of personalized immunotherapies and vaccines. Built by Vadim Nazarov and the community.
+
+> I design and develop Machine Learning systems for the domains, where uncertainty is high, risks are huge, but the potential gain is enormous. My core focus is on two domains, which are much more connected to each by core principles than people realize:
+>
+> - Complex LLM systems for the most complex domains of human knowledfge - from healthcare to ...
+>
+> - Modern data engineering and machine learning platforms for multi-modal multi-omic data - single-cell transcriptomics, immune repertoires, etc.
+
+> The principles they unite are:
+Potential Core Principles:
+Complexity and Scale: Both require scalable infrastructure and orchestration (Kubernetes, scalable inference systems, distributed computing frameworks).
+
+Data Richness & Multimodality: Both require dealing with diverse data (text, numerical, genomic, spatial), necessitating advanced data engineering and preprocessing.
+
+High-Precision Requirements: Both demand extremely high-quality outputs (hallucination-free LLMs, precision medicine analytics).
+
+Advanced Model Management: Both scenarios involve complex multi-model deployment, monitoring, and evaluation (MLOps, LLMOps).
+
+Compliance and Security: Both require strict compliance—GDPR, HIPAA for LLM health apps; privacy/security for multi-omics data.
+
+Here are refined examples based on your original statement:
+
+“I specialize in building highly scalable and precise machine learning systems for some of humanity’s most complex domains—ranging from advanced multi-omic biomedical analytics (single-cell transcriptomics, immune repertoires) to sophisticated healthcare-focused generative AI systems.”
+
+or simpler:
+
+“I design machine learning and data engineering platforms that excel in the hardest contexts—complex biomedical datasets (single-cell, immunomics) and advanced generative AI (LLMs) in healthcare, wellness, and personalized medicine.”
+
+
+
+
+Stack: Apache Arrow, Parquet, DuckDB, PostgreSQL, Polars, R dplyr, Python ibis
+
+
 ## 📦 Installation
 
 ### Prerequisites
@@ -90,7 +151,7 @@ pak::pkg_install("immunomind/immundata-rlang@dev")
 
 ## ⚡ Quick Start
 
-> [!NOTE]
+> [!TIP]
 > Interested in specific use cases, e.g., 
 > analyse cell clusters from single-cell data,
 > work with paired-chain data,

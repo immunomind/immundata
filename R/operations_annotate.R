@@ -52,35 +52,38 @@
 #' * [`agg_repertoires()`]   – recompute repertoire summaries
 #'
 #' @concept Annotation
-#' @rdname annotate
 #' @export
-annotate_immundata <- function(idata,
-                               annotations,
-                               match_col,
-                               keep_repertoires = TRUE,
-                               remove_limit = FALSE) {
+left_join.ImmunData <- function(idata,
+                                annotations,
+                                by,
+                                keep_repertoires = TRUE,
+                                remove_limit = FALSE) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_data_frame(annotations)
-  checkmate::assert_character(match_col, min.len = 1, names = "named")
+  checkmate::assert_character(by, min.len = 1, names = "named")
   checkmate::assert_logical(keep_repertoires)
 
   ann_tbl <- as_duckdb_tibble(annotations)
 
-  if (length(setdiff(match_col, colnames(ann_tbl)))) {
-    cli_abort("Column(s) '{setdiff(match_col, colnames(ann_tbl))}' not found in annotations.")
+  if (length(setdiff(by, colnames(ann_tbl)))) {
+    cli_abort("Column(s) '{setdiff(by, colnames(ann_tbl))}' not found in annotations.")
   }
-  if (any(names(match_col) %in% colnames(ann_tbl))) {
-    cli_abort("Column(s) '{names(match_col)[names(match_col) %in% colnames(ann_tbl))]}', reserved for joining with ImmunData, are found in the annotations. Can't rename the table, please make sure the names are unique and not already presented in annotations.")
+  if (any(names(by) %in% colnames(ann_tbl))) {
+    same_col_names <- intersect(names(by), colnames(ann_tbl))
+    if (!all(by[names(by)] == names(by))) {
+      # We don't care about the very same column names, we are try to mitigate risk when there is a collision after (!) the renaming
+      cli_abort("Column(s) '{names(by)[names(by) %in% colnames(ann_tbl)]}', reserved for joining with ImmunData, are found in the annotations. Can't rename the table, please make sure the names are unique and not already presented in annotations.")
+    }
   }
-  if (!all(names(match_col) %in% colnames(idata$annotations))) {
-    cli_abort("Column(s) '{names(match_col)[! names(match_col) %in% colnames(idata$annotations)]}' are not found in ImmunData. Please double-check the column names: {.code colnames(idata$annotations)}.")
+  if (!all(names(by) %in% colnames(idata$annotations))) {
+    cli_abort("Column(s) '{names(by)[! names(by) %in% colnames(idata$annotations)]}' are not found in ImmunData. Please double-check the column names: {.code colnames(idata$annotations)}.")
   }
 
   ann_tbl <- ann_tbl |>
-    rename(match_col)
+    rename(all_of(by))
 
   new_annotations <- idata$annotations %>%
-    left_join(ann_tbl, by = names(match_col))
+    left_join(ann_tbl, by = names(by))
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
@@ -95,11 +98,11 @@ annotate_immundata <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname annotate
+#' @rdname left_join.ImmunData
 #' @export
 annotate_receptors <- function(idata,
                                annotations,
-                               annot_col = "sequence_id",
+                               annot_col = imd_schema("receptor"),
                                keep_repertoires = TRUE,
                                remove_limit = FALSE) {
   if (annot_col == "<rownames>") {
@@ -107,11 +110,11 @@ annotate_receptors <- function(idata,
     annot_col <- "imd_row_names"
   }
   match_col <- c(annot_col)
-  names(match_col) <- imd_schema()$receptor
-  annotate_immundata(
+  names(match_col) <- imd_schema("receptor")
+  left_join(
     idata = idata,
     annotations = annotations,
-    match_col = match_col,
+    by = match_col,
     keep_repertoires = keep_repertoires,
     remove_limit = remove_limit
   )
@@ -123,7 +126,7 @@ annotate_receptors <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname annotate
+#' @rdname left_join.ImmunData
 #' @export
 annotate_barcodes <- function(idata,
                               annotations,
@@ -135,11 +138,34 @@ annotate_barcodes <- function(idata,
     annot_col <- "imd_row_names"
   }
   match_col <- c(annot_col)
-  names(match_col) <- imd_schema()$cell
-  annotate_immundata(
+  names(match_col) <- imd_schema("barcode")
+  left_join(
     idata = idata,
     annotations = annotations,
-    match_col = match_col,
+    by = match_col,
+    keep_repertoires = keep_repertoires,
+    remove_limit = remove_limit
+  )
+}
+
+#' @concept Annotation
+#' @rdname left_join.ImmunData
+#' @export
+annotate_chains <- function(idata,
+                            annotations,
+                            annot_col = imd_schema("chain"),
+                            keep_repertoires = TRUE,
+                            remove_limit = FALSE) {
+  if (annot_col == "<rownames>") {
+    annotations[["imd_row_names"]] <- rownames(annotations)
+    annot_col <- "imd_row_names"
+  }
+  match_col <- c(annot_col)
+  names(match_col) <- imd_schema("chain")
+  left_join(
+    idata = idata,
+    annotations = annotations,
+    by = match_col,
     keep_repertoires = keep_repertoires,
     remove_limit = remove_limit
   )
