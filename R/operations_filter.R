@@ -39,17 +39,8 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
   #
   # With sequence filters
   #
-  if (!is.null(seq_options) &&
-    !is.null(seq_options$patterns) &&
-    length(seq_options$patterns) > 0 &&
-    !is.null(seq_options$query_col)) {
-    defaults <- list(method = "exact", max_dist = NA, name_type = "index")
-    seq_options <- utils::modifyList(defaults, seq_options)
-    seq_options$method <- match.arg(seq_options$method, c("exact", "regex", "lev", "hamm"))
-
-    if (is.na(seq_options$max_dist) && seq_options$method %in% c("lev", "hamm")) {
-      cli::cli_abort("You passed `seq_options` to `filter`, but didn't provide `max_dist` for filtering. Either provide `max_dist` or use `left_join` to annotate receptors with distances to patterns.")
-    }
+  if (!is.null(seq_options)) {
+    seq_options <- check_seq_options(seq_options, mode = "filter")
 
     col_sym <- rlang::sym(seq_options$query_col)
 
@@ -70,8 +61,7 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     #
     else if (seq_options$method == "regex") {
       distance_data <- annotate_tbl_regex(
-        new_annotations |>
-          select(!!rlang::sym(receptor_id), !!col_sym),
+        new_annotations |> select(!!col_sym),
         query_col = seq_options$query_col,
         patterns = seq_options$patterns,
         filter_out = TRUE,
@@ -84,8 +74,7 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     #
     else {
       distance_data <- annotate_tbl_distance(
-        new_annotations |>
-          select(!!rlang::sym(receptor_id), !!col_sym),
+        new_annotations |> select(!!col_sym),
         query_col = seq_options$query_col,
         patterns = seq_options$patterns,
         method = seq_options$method,
@@ -101,7 +90,7 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     # TODO: looks like a case for <move_annotations> from receptors to annotations
     if (seq_options$method != "exact") {
       new_annotations <- new_annotations |>
-        semi_join(distance_data, by = receptor_id)
+        semi_join(distance_data, by = seq_options$query_col)
     }
   }
 
@@ -126,6 +115,7 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     new_idata
   }
 }
+
 
 #' @concept Filtering
 #' @rdname filter.ImmunData
@@ -156,6 +146,7 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
     new_idata
   }
 }
+
 
 #' @concept Filtering
 #' @rdname filter.ImmunData
