@@ -6,9 +6,9 @@
 \usage{
 from_immunarch(
   imm,
-  schema,
-  data_folder,
-  immunarch_folder = file.path(tempdir(), "immunarch_folder")
+  output_folder,
+  schema = c("CDR3.aa", "V.name"),
+  temp_folder = file.path(tempdir(), "temp_folder")
 )
 }
 \arguments{
@@ -18,19 +18,19 @@ from_immunarch(
 \item \strong{\code{meta}}: (optional) a \code{data.frame} of sample metadata.
 }}
 
-\item{schema}{Character vector of column names that together define unique
-receptors (for example, \code{c("CDR3.aa", "V.name", "J.name")}).}
-
-\item{data_folder}{Path to the output directory where the resulting ImmunData
+\item{output_folder}{Path to the output directory where the resulting ImmunData
 Parquet files will be stored. This directory will be created if it does
 not already exist.}
 
-\item{immunarch_folder}{Path to a directory where intermediate TSV files will
-be written. Defaults to \code{file.path(tempdir(), "immunarch_folder")}.}
+\item{schema}{Character vector of column names that together define unique
+receptors (for example, \code{c("CDR3.aa", "V.name", "J.name")}).}
+
+\item{temp_folder}{Path to a directory where intermediate TSV files will
+be written. Defaults to \code{file.path(tempdir(), "temp_folder")}.}
 }
 \value{
 An \link{ImmunData} object containing all repertoires from the input
-immunarch object, with data saved under \code{data_folder}.
+immunarch object, with data saved under \code{output_folder}.
 }
 \description{
 The \code{from_immunarch()} function takes an \strong{immunarch} object (as returned by
@@ -43,8 +43,8 @@ an \strong{ImmunData} object via \code{read_repertoires()}.
 imm <- immunarch::repLoad("/path/to/your/files")
 idata <- from_immunarch(imm,
   schema = c("CDR3.aa", "V.name"),
-  immunarch_folder = tempdir(),
-  data_folder = "/path/to/immundata_out"
+  temp_folder = tempdir(),
+  output_folder = "/path/to/immundata_out"
 )
 }
 

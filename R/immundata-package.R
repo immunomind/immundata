@@ -40,6 +40,7 @@
 #' @importFrom cli cli_ul
 #' @importFrom dplyr all_of
 #' @importFrom dplyr any_of
+#' @importFrom dplyr arrange_at
 #' @importFrom dplyr collect
 #' @importFrom dplyr compute
 #' @importFrom dplyr filter

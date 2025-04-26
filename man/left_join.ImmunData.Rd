@@ -10,7 +10,7 @@
 \method{left_join}{ImmunData}(
   idata,
   annotations,
-  match_col,
+  by,
   keep_repertoires = TRUE,
   remove_limit = FALSE
 )
@@ -45,12 +45,6 @@ annotate_chains(
 \item{annotations}{A data frame or tibble with the annotations you
 wish to add.}
 
-\item{match_col}{\emph{Named} character vector where
-names = column(s) in \strong{\code{idata$annotations}},
-values = corresponding column(s) in
-\strong{\code{annotations}}.
-Each pair defines a join key.}
-
 \item{keep_repertoires}{Logical. After joining, should the repertoire table
 be recomputed (via \code{agg_repertoires()}) so that
 any new columns propagate there as well?}
@@ -59,6 +53,12 @@ any new columns propagate there as well?}
 you try to join a \emph{very wide} annotation table
 (>\,50 columns) to guard against accidental GEX
 matrices; set to \code{TRUE} to override.}
+
+\item{match_col}{\emph{Named} character vector where
+names = column(s) in \strong{\code{idata$annotations}},
+values = corresponding column(s) in
+\strong{\code{annotations}}.
+Each pair defines a join key.}
 }
 \value{
 A \strong{new} \link{ImmunData} object with the extra columns appended to

@@ -2,9 +2,15 @@
 % Please edit documentation in R/operations_filter.R
 \name{filter.ImmunData}
 \alias{filter.ImmunData}
+\alias{filter_barcodes}
+\alias{filter_receptors}
 \title{Filter ImmunData by Receptor Features or Annotations}
 \usage{
 \method{filter}{ImmunData}(idata, ..., seq_options = NULL, keep_repertoires = TRUE)
+
+filter_barcodes(idata, barcodes, keep_repertoires = TRUE)
+
+filter_receptors(idata, receptors, keep_repertoires = TRUE)
 }
 \arguments{
 \item{idata}{ImmunData object}
