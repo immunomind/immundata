@@ -38,23 +38,25 @@ make_seq_options <- function(query_col,
 }
 
 
-
 annotate_tbl_distance <- function(tbl_data,
                                   query_col,
                                   patterns,
                                   method = c("lev", "hamm"),
                                   max_dist = NA,
                                   name_type = c("pattern", "index")) {
-  # TODO: tibble? duckdb_tibble?
-  # assert_r6(idata, "ImmunData")
-
   assert_character(query_col, len = 1)
   assert_character(patterns, min.len = 1)
 
   method <- match.arg(method)
   name_type <- match.arg(name_type)
 
-  uniq <- tbl_data |> distinct(!!rlang::sym(query_col))
+  uniq <- tbl_data |>
+    distinct(!!rlang::sym(query_col)) |>
+    as_tbl() |>
+    mutate(
+      kmer_left = dbplyr::sql(cli::format_inline("{query_col}[:3]")),
+      kmer_right = dbplyr::sql(cli::format_inline("{query_col}[-2:]"))
+    )
 
   # TODO: use globals for col prefix
   col_prefix <- paste0("imd_dist_", method, "_")
@@ -77,7 +79,17 @@ annotate_tbl_distance <- function(tbl_data,
     # 1) Levenshtein distance
     #
     if (method == "lev") {
-      uniq <- uniq |> mutate(!!col_name_out := dd$levenshtein(!!rlang::sym(query_col), p))
+      len_p <- nchar(p)
+      sql_expr <- cli::format_inline(
+        "CASE WHEN ",
+        " kmer_left = {query_col}[:3] AND kmer_right = {query_col}[-2:] AND",
+        " length({query_col}) >= {len_p - max_dist} AND length({query_col}) <= {len_p + max_dist}",
+        " THEN levenshtein({query_col}, '{p}')",
+        " ELSE NULL END"
+      )
+
+      uniq <- uniq |>
+        mutate({{ col_name_out }} := dbplyr::sql(sql_expr))
     }
 
     #
@@ -85,15 +97,14 @@ annotate_tbl_distance <- function(tbl_data,
     #
     else {
       len_p <- nchar(p)
-      sql_expr <- paste0(
-        "CASE WHEN length(", query_col, ") = ", len_p,
-        " THEN hamming(", query_col, ", '", gsub("'", "''", p, fixed = TRUE), "')",
+      sql_expr <- cli::format_inline(
+        "CASE WHEN length({query_col}) = {len_p}",
+        " THEN hamming({query_col}, '{p}')",
         " ELSE NULL END"
       )
+
       uniq <- uniq |>
-        as_tbl() |>
-        mutate({{ col_name_out }} := dbplyr::sql(sql_expr)) |>
-        as_duckdb_tibble()
+        mutate({{ col_name_out }} := dbplyr::sql(sql_expr))
     }
   }
 
@@ -102,18 +113,33 @@ annotate_tbl_distance <- function(tbl_data,
   # TODO: benchmark 1 - distinct vs no distinct
   # TODO: benchmark 2 - pre-optimize vs no optimize
 
+  # TODO: fun experiment - compute for patterns, then filter out, then compute again, and so on.
+  # filter out -> filter out those who has <= max_dist (!) because we already found them and just need to store
+
+  # TODO: Benchmarks
+  # 1) distinct vs non-distinct
+  # 2) pre-optimize vs no optimization for levenshtein
+  # 3) step-by-step filtering out "good" sequences
+  # 4) precompute sequence length before (!) any filtering, on data loading, and don't compute it here
+
   # TODO: max dist. Left join - compute. Right join - filter
   if (is.na(max_dist)) {
-    tbl_data |> left_join(uniq |> compute(), by = query_col)
+    uniq <- uniq |>
+      as_duckdb_tibble() |>
+      compute()
+    uniq
   } else {
     sql_expr <- sprintf("LEAST(%s) <= %d", paste(dist_cols, collapse = ", "), max_dist)
 
     uniq <- uniq |>
-      as_tbl() |>
       filter(dbplyr::sql(sql_expr)) |>
       as_duckdb_tibble()
 
-    tbl_data |> right_join(uniq |> compute(), by = query_col)
+    output <- uniq |>
+      left_join(tbl_data, by = query_col) |>
+      compute()
+
+    output
   }
 }
 

@@ -20,7 +20,7 @@
 #' @return New ImmunData object with both receptors and annotations filtered.
 #'
 #' @concept Filtering
-#' @export
+#' @exportS3Method dplyr::filter
 filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = TRUE) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_list(seq_options, null.ok = TRUE)
@@ -48,7 +48,7 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     seq_options$method <- match.arg(seq_options$method, c("exact", "regex", "lev", "hamm"))
 
     if (is.na(seq_options$max_dist) && seq_options$method %in% c("lev", "hamm")) {
-      cli::cli_abort("You passed `seq_options` to `filter_receptors`, but didn't provide `max_dist` for filtering. Either provide `max_dist` or use `annotate_receptors` to annotate receptors with distances to patterns.")
+      cli::cli_abort("You passed `seq_options` to `filter`, but didn't provide `max_dist` for filtering. Either provide `max_dist` or use `left_join` to annotate receptors with distances to patterns.")
     }
 
     col_sym <- rlang::sym(seq_options$query_col)
@@ -69,7 +69,7 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     # Regex
     #
     else if (seq_options$method == "regex") {
-      filtered_data <- annotate_tbl_regex(
+      distance_data <- annotate_tbl_regex(
         new_annotations |>
           select(!!rlang::sym(receptor_id), !!col_sym),
         query_col = seq_options$query_col,
@@ -83,11 +83,12 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     # Levenshtein / hamming
     #
     else {
-      filtered_data <- annotate_tbl_distance(
+      distance_data <- annotate_tbl_distance(
         new_annotations |>
           select(!!rlang::sym(receptor_id), !!col_sym),
         query_col = seq_options$query_col,
         patterns = seq_options$patterns,
+        method = seq_options$method,
         max_dist = seq_options$max_dist,
         name_type = seq_options$name_type
       )
@@ -99,31 +100,8 @@ filter.ImmunData <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     # TODO: Refactor, but I'm not sure how to do it properly. Simply split to separte functions <compute distance> + <filter immundata>?
     # TODO: looks like a case for <move_annotations> from receptors to annotations
     if (seq_options$method != "exact") {
-      # 1) figure out the prefix for the columns we want to move
-      pat_prefix <- switch(seq_options$method,
-        regex = "match_regex_",
-        lev   = "imd_dist_lev_",
-        hamm  = "imd_dist_hamm_"
-      )
-      pat_cols <- grep(pat_prefix, colnames(filtered_data), value = TRUE)
-
-      # 2) pull out a tiny table of receptor_id + those columns
-      receptor_pattern_tbl <- filtered_data |>
-        select({{ receptor_id }}, all_of(pat_cols))
-
-      # 3) drop them from receptors
-      filtered_data <- filtered_data |>
-        select(-all_of(pat_cols))
-
-      # 4) filter annotations to only the kept receptors
-      keep_ids <- filtered_data |> select({{ receptor_id }})
-
       new_annotations <- new_annotations |>
-        semi_join(keep_ids, by = receptor_id)
-
-      # 5) stitch the pattern columns onto annotations
-      new_annotations <- new_annotations |>
-        left_join(receptor_pattern_tbl, by = receptor_id)
+        semi_join(distance_data, by = receptor_id)
     }
   }
 
