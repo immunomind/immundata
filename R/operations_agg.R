@@ -66,8 +66,9 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
   chain_count_col <- imd_schema("chain_count")
   n_receptors_col <- imd_schema("n_receptors")
   n_barcodes_col <- imd_schema("n_barcodes")
+  n_repertoires_col <- imd_schema("n_repertoires")
 
-  cols_to_drop <- c(repertoire_id, imd_count_col, prop_col, n_receptors_col, n_barcodes_col)
+  cols_to_drop <- c(repertoire_id, imd_count_col, prop_col, n_receptors_col, n_barcodes_col, n_repertoires_col)
 
   new_annotations <- idata$annotations |> select(-any_of(cols_to_drop))
 

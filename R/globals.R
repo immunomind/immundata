@@ -40,7 +40,11 @@ IMD_GLOBALS <- list(
     n_cells = "n_cells",
     n_repertoires = "n_repertoires",
     filename = "filename",
-    locus = "locus"
+    locus = "locus",
+    sim_exact = "imd_sim_exact_",
+    sim_regex = "imd_sim_regex_",
+    sim_hamm = "imd_sim_hamm_",
+    sim_lev = "imd_sim_lev_"
   ),
   meta_schema = list(
     version = "version",
