@@ -52,7 +52,7 @@
 #' * [`agg_repertoires()`]   – recompute repertoire summaries
 #'
 #' @concept Annotation
-#' @export
+#' @exportS3Method dplyr::left_join
 left_join.ImmunData <- function(idata,
                                 annotations,
                                 by,
@@ -62,6 +62,19 @@ left_join.ImmunData <- function(idata,
   checkmate::assert_data_frame(annotations)
   checkmate::assert_character(by, min.len = 1, names = "named")
   checkmate::assert_logical(keep_repertoires)
+
+  if (!remove_limit && ncol(annotations) >= 100) {
+    rlang::abort(cli::format_inline(paste0(
+      "Well, well, well, would you look at that... ",
+      "Decided to dump all tens of thousands genes into your repertoire data, I guess?",
+      "\nI mean, sure, do whataver you want. But I'm not responsible for the freezes or crashes.",
+      "\nPass ",
+      cli::col_cyan("`remove_limit = True`"),
+      " to {.code left_join} to allow working with annotations of arbitrary size.",
+      "\nBut remember:\n\n",
+      cli::col_red("\tyou have been warned.\n\n")
+    )))
+  }
 
   ann_tbl <- as_duckdb_tibble(annotations)
 
@@ -118,11 +131,6 @@ annotate_receptors <- function(idata,
     keep_repertoires = keep_repertoires,
     remove_limit = remove_limit
   )
-  #   if (!remove_limit && ncol(ann_tbl) > 50) {
-  #     cli_abort("Well, well, well, would you look at that... Decided to dump all tens of thousands genes into your repertoire data?
-  # I mean, sure, do whataver you want. But I'm not responsible for the freezes or crashes.
-  # Pass cli::col_magenta('`remove_limit = True`') to `annotate_cells` to allow working with annotations of arbitrary size.
-  # But remember: cli::col_red('you have been warned').")
 }
 
 #' @concept Annotation
