@@ -1,43 +1,64 @@
-#' @title Write an ImmunData Object to Disk as Parquet Files
+#' @title Save ImmunData to disk
 #'
 #' @description
-#' `write_immundata()` takes an [ImmunData] object and serializes its
-#' receptor and annotation tables to two Parquet files in a specified
-#' directory, using Zstandard compression for efficient storage and retrieval.
+#' Serializes the essential components of an `ImmunData` object to disk for
+#' efficient storage and later retrieval. It saves the core annotation data
+#' (`idata$annotations`) as a compressed Parquet file and accompanying metadata
+#' (including receptor/repertoire schemas and package version) as a JSON file
+#' within a specified directory.
 #'
-#' @param idata [ImmunData] object containing the receptor and annotation tables.
-#' @param output_folder Character(1). Path to the directory where the Parquet
-#'   files will be written.  If the directory does not exist, it will be
-#'   created (recursively).
+#' @param idata The `ImmunData` object to save. Must be an R6 object of class
+#'   `ImmunData` containing at least the `$annotations` table and schema information
+#'   (`$schema_receptor`, optionally `$schema_repertoire`).
+#' @param output_folder Character(1). Path to the directory where the output files
+#'   will be written. If the directory does not exist, it will be created
+#'   recursively.
 #'
 #' @details
-#' The function performs the following steps:
-#' 1. Validates that `idata` is an `ImmunData` object and that
-#'    `output_folder` is a single non-`NULL` string.
-#' 2. Normalizes and creates `output_folder` (if needed).
-#' 3. Determines the filenames for the receptor and annotation tables
-#'    via `imd_files()$receptors` and `imd_files()$annotations`.
-#' 4. Writes `idata$receptors` and `idata$annotations` as Parquet files
-#'    to those paths, using Zstandard compression (`compression = "zstd"`)
-#'    at level 9 for a good balance of speed and file size.
-#' 5. Emits informative CLI messages before and after writing each file.
+#' The function performs the following actions:
+#' 1. Validates the input `idata` object and `output_folder` path.
+#' 2. Creates the `output_folder` if it doesn't exist.
+#' 3. Constructs a list containing metadata: `immundata` package version,
+#'    receptor schema (`idata$schema_receptor`), and repertoire schema
+#'    (`idata$schema_repertoire`).
+#' 4. Writes the metadata list to `metadata.json` within `output_folder`.
+#' 5. Writes the `idata$annotations` table (a `duckplyr_df` or similar) to
+#'    `annotations.parquet` within `output_folder`. Uses Zstandard compression
+#'    (`compression = "zstd"`, `compression_level = 9`) for a good balance
+#'    between file size and read/write speed.
+#' 6. Uses internal helper `imd_files()` to determine the standard filenames
+#'    (`metadata.json`, `annotations.parquet`).
+#'
+#' The receptor data itself (if stored separately in future versions) is not
+#' saved by this function; only the annotations linking to receptors are saved,
+#' along with the schema needed to reconstruct/interpret them.
 #'
 #' @return
-#' Invisibly returns the input [ImmunData]. The primary side effect is the creation of
-#' two Parquet files in `output_folder`.
+#' Invisibly returns the input `idata` object. Its primary effect is creating
+#' `metadata.json` and `annotations.parquet` files in the `output_folder`.
+#'
+#' @seealso [read_immundata()] for loading the saved data, [read_repertoires()]
+#'   which uses this function internally, [ImmunData] class definition.
+#'
+#' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Suppose `idata` is an ImmunData object you constructed earlier:
-#' outdir <- tempfile("immundata_")
-#' write_immundata(idata, outdir)
-#' # Now you can inspect:
-#' list.files(outdir)
+#' # Assume 'my_idata' is an ImmunData object created previously
+#' # my_idata <- read_repertoires(...)
+#'
+#' # Define an output directory
+#' save_dir <- tempfile("saved_immundata_")
+#'
+#' # Save the ImmunData object
+#' write_immundata(my_idata, save_dir)
+#'
+#' # Check the created files
+#' list.files(save_dir) # Should show "annotations.parquet" and "metadata.json"
+#'
+#' # Clean up
+#' unlink(save_dir, recursive = TRUE)
 #' }
-#'
-#' @seealso [read_repertoires()], [read_immundata()], [ImmunData]
-#'
-#' @export
 write_immundata <- function(idata, output_folder) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_character(output_folder,
@@ -57,7 +78,7 @@ write_immundata <- function(idata, output_folder) {
     repertoire_schema = idata$schema_repertoire
   )
 
-  cli_alert_info("Writing the receptor annotation data to [{annotations_path}]")
+  cli::cli_alert_info("Writing the receptor annotation data to [{annotations_path}]")
   compute_parquet(idata$annotations,
     annotations_path,
     options = list(
@@ -66,10 +87,10 @@ write_immundata <- function(idata, output_folder) {
     )
   )
 
-  cli_alert_info("Writing the metadata to [{metadata_path}]")
+  cli::cli_alert_info("Writing the metadata to [{metadata_path}]")
   jsonlite::write_json(metadata_json, metadata_path)
 
-  cli_alert_success("ImmunData files saved to [{output_folder}]")
+  cli::cli_alert_success("ImmunData files saved to [{output_folder}]")
 
   invisible(idata)
 }
