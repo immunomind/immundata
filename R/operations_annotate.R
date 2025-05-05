@@ -1,63 +1,98 @@
-#' @title Join External Annotations onto an ImmunData Object
+#' @title Annotate ImmunData object
 #'
-#' @description
-#' `annotate_immundata()` is the low‑level engine that merges an external
-#' annotation table into the **annotation slot** of an [ImmunData]
-#' object.  You specify one or more matching columns—typically receptor IDs
-#' or cell barcodes—and the function performs a `left_join()` so that every
-#' row in `idata$annotations` inherits the new information.  Convenience
-#' wrappers [`annotate_receptors()`] and [`annotate_cells()`] handle the
-#' common “receptor ID” and “cell barcode” use‑cases.
+#' @description Joins additional annotation data to the annotations slot of an `ImmunData` object.
 #'
-#' @param idata            An [ImmunData] object.
-#' @param annotations      A data frame or tibble with the annotations you
-#'                         wish to add.
-#' @param match_col        *Named* character vector where
-#'                         names = column(s) in **`idata$annotations`**,
-#'                         values = corresponding column(s) in
-#'                         **`annotations`**.
-#'                         Each pair defines a join key.
-#' @param keep_repertoires Logical. After joining, should the repertoire table
-#'                         be recomputed (via \code{agg_repertoires()}) so that
-#'                         any new columns propagate there as well?
-#' @param remove_limit     Logical.  If `FALSE` (default) the function aborts if
-#'                         you try to join a *very wide* annotation table
-#'                         (>\,50 columns) to guard against accidental GEX
-#'                         matrices; set to `TRUE` to override.
+#' This function allows you to add extra information to your repertoire data by joining a
+#' dataframe of annotations based on specified columns. It supports joining by
+#' one or more columns.
 #'
-#' @return A **new** [ImmunData] object with the extra columns appended to
-#'   its `annotations` table (and, if `keep_repertoires = TRUE`, to the
-#'   repertoire table too).  The `receptors` table is *not* modified.
+#' @param idata An `ImmunData` R6 object containing repertoire and annotation data.
+#' @param annotations A data frame containing the annotations to be joined.
+#' @param by A named character vector specifying the columns to join by. The names of the
+#'   vector should be the column names in `idata$annotations` and the values should be
+#'   the corresponding column names in the `annotations` data frame.
+#' @param annot_col A character vector specifying the column with receptor, barcode or chain identifiers
+#'   to annotate a corresponding receptors, barode or chains in `idata`.
+#' @param keep_repertoires Logical. If `TRUE` (default) and the `ImmunData` object
+#'   contains repertoire data (`idata$schema_repertoire` is not NULL), the repertoires
+#'   will be re-aggregated after joining the annotations. Set to `FALSE` if you do not
+#'   want to re-aggregate repertoires immediately.
+#' @param remove_limit Logical. If `FALSE` (default), a warning will be issued if the
+#'   `annotations` data frame has 100 or more columns, suggesting potential performance
+#'   issues. Set to `TRUE` to disable this warning and allow joining of annotations
+#'   with an arbitrary number of columns. Use with caution, as joining wide dataframes
+#'   can be memory-intensive and slow.
 #'
-#' @examples
-#' \dontrun{
-#' # Add clonotype assignments by receptor ID
-#' ann <- data.frame(
-#'   receptor_id = c(1, 5, 9),
-#'   clonotype   = c("C1", "C1", "C2")
-#' )
-#' idata2 <- annotate_receptors(idata, ann)
+#' @return A new `ImmunData` object with the annotations joined to the `annotations` slot.
 #'
-#' # Add a mitochondrial percentage per cell (row names as barcodes)
-#' mito <- data.frame(
-#'   pct_mito = runif(nrow(idata$annotations)),
-#'   row.names = idata$annotations$imd_cell_id
-#' )
-#' idata3 <- annotate_cells(idata, mito, annot_col = "<rownames>")
-#' }
+#' @details The function performs a left join operation, keeping all rows from
+#'   `idata$annotations` and adding matching columns from the `annotations` data frame.
+#'   If there are multiple matches in `annotations` for a row in `idata$annotations`,
+#'   all combinations will be returned, potentially increasing the number of rows
+#'   in the resulting annotations table.
 #'
-#' @seealso
-#' * [`annotate_receptors()`] – wrapper for receptor‑level joins
-#' * [`annotate_cells()`]    – wrapper for cell‑level joins
-#' * [`agg_repertoires()`]   – recompute repertoire summaries
+#'   The function uses `checkmate` to validate the input types and structure.
+#'
+#'   A check is performed to ensure that the columns specified in `by` exist in both
+#'   `idata$annotations` and the `annotations` data frame.
+#'
+#'   The `annotations` data frame is converted to a duckdb tibble internally for
+#'   efficient joining, especially with large datasets.
+#'
+#' @section Warning:
+#' By default (`remove_limit = FALSE`), joining an `annotations` data frame with 100 or
+#' more columns will trigger a warning. This is a safeguard to prevent accidental
+#' joining of very wide data (e.g., gene expression data) that could lead to
+#' performance degradation or crashes. If you understand the risks and intend to join
+#' a wide data frame, set `remove_limit = TRUE`.
 #'
 #' @concept Annotation
-#' @exportS3Method dplyr::left_join
-left_join.ImmunData <- function(idata,
-                                annotations,
-                                by,
-                                keep_repertoires = TRUE,
-                                remove_limit = FALSE) {
+#' @examples
+#' \dontrun{
+#' # Assuming 'my_immun_data' is an ImmunData object and 'sample_info' is a data frame
+#' # with a column 'sample_id' matching 'sample' in my_immun_data$annotations
+#' # and additional columns like 'treatment' and 'disease_status'.
+#'
+#' sample_info <- data.frame(
+#'   sample_id = c("sample1", "sample2", "sample3", "sample4"),
+#'   treatment = c("Treatment A", "Treatment B", "Treatment A", "Treatment C"),
+#'   disease_status = c("Healthy", "Disease", "Healthy", "Disease"),
+#'   stringsAsFactors = FALSE # Important to keep characters as characters
+#' )
+#'
+#' # Join sample information using the 'sample' column
+#' my_immun_data_annotated <- annotate(
+#'   idata = my_immun_data,
+#'   annotations = sample_info,
+#'   by = c("sample" = "sample_id")
+#' )
+#'
+#' # New sample_info
+#'
+#' # Join data by multiple columns, e.g., 'sample' and 'barcode'
+#' # Assuming 'cell_annotations' is a data frame with 'sample_barcode' and 'cell_type'
+#' my_immun_data_cell_annotated <- annotate(
+#'   idata = my_immun_data,
+#'   annotations = cell_annotations,
+#'   by = c("sample" = "sample", "barcode" = "sample_barcode")
+#' )
+#'
+#' # Join a wide dataframe, suppressing the column limit warning
+#' # Assuming 'gene_expression' is a data frame with 'barcode' and many gene columns
+#' my_immun_data_gene_expression <- annotate(
+#'   idata = my_immun_data,
+#'   annotations = gene_expression,
+#'   by = c("barcode" = "barcode"),
+#'   remove_limit = TRUE
+#' )
+#' }
+#'
+#' @export
+annotate <- function(idata,
+                     annotations,
+                     by,
+                     keep_repertoires = TRUE,
+                     remove_limit = FALSE) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_data_frame(annotations)
   checkmate::assert_character(by, min.len = 1, names = "named")
@@ -111,7 +146,7 @@ left_join.ImmunData <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname left_join.ImmunData
+#' @rdname annotate
 #' @export
 annotate_receptors <- function(idata,
                                annotations,
@@ -124,7 +159,7 @@ annotate_receptors <- function(idata,
   }
   match_col <- c(annot_col)
   names(match_col) <- imd_schema("receptor")
-  left_join(
+  annotate(
     idata = idata,
     annotations = annotations,
     by = match_col,
@@ -134,7 +169,7 @@ annotate_receptors <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname left_join.ImmunData
+#' @rdname annotate
 #' @export
 annotate_barcodes <- function(idata,
                               annotations,
@@ -147,7 +182,7 @@ annotate_barcodes <- function(idata,
   }
   match_col <- c(annot_col)
   names(match_col) <- imd_schema("barcode")
-  left_join(
+  annotate(
     idata = idata,
     annotations = annotations,
     by = match_col,
@@ -157,7 +192,7 @@ annotate_barcodes <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname left_join.ImmunData
+#' @rdname annotate
 #' @export
 annotate_chains <- function(idata,
                             annotations,
@@ -170,7 +205,7 @@ annotate_chains <- function(idata,
   }
   match_col <- c(annot_col)
   names(match_col) <- imd_schema("chain")
-  left_join(
+  annotate(
     idata = idata,
     annotations = annotations,
     by = match_col,
