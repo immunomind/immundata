@@ -8,6 +8,8 @@
 \alias{imd_rename_cols}
 \alias{imd_drop_cols}
 \alias{imd_repertoire_schema}
+\alias{imd_receptor_features}
+\alias{imd_receptor_chains}
 \title{Get Immundata Internal Schema Field Names}
 \usage{
 imd_schema(key = NULL)
@@ -23,6 +25,10 @@ imd_rename_cols(format = "default")
 imd_drop_cols(format = "airr")
 
 imd_repertoire_schema(format = "airr")
+
+imd_receptor_features(schema)
+
+imd_receptor_chains(schema)
 }
 \value{
 A named list of schema field names.

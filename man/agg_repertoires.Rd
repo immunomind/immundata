@@ -2,58 +2,99 @@
 % Please edit documentation in R/operations_agg.R
 \name{agg_repertoires}
 \alias{agg_repertoires}
-\title{Define repertoires by aggregating annotation fields for ImmunData}
+\title{Aggregate AIRR data into repertoires and calculate summary statistics}
 \usage{
 agg_repertoires(idata, schema = "repertoire_id")
 }
 \arguments{
-\item{idata}{An \link{ImmunData} object.}
+\item{idata}{An \code{ImmunData} object, typically the output of \code{\link[=read_repertoires]{read_repertoires()}}
+or \code{\link[=read_immundata]{read_immundata()}}. Must contain the \verb{$annotations} table with columns
+specified in \code{schema} and internal columns like \code{imd_receptor_id} and
+\code{imd_chain_count}.}
 
-\item{schema}{Character vector of column names that, taken together, define a
-repertoire (default \code{"repertoire_id"}).  Can be length > 1 for composite
-repertoires.}
+\item{schema}{Character vector. Column name(s) in \code{idata$annotations} that
+define a unique repertoire. For example, \code{c("SampleID")} or
+\code{c("DonorID", "TimePoint")}. Columns must exist in \code{idata$annotations}.
+Default: \code{"repertoire_id"} (assumes such a column exists).}
 }
 \value{
-A \strong{new} \link{ImmunData} object whose \code{annotations} contain four extra
-columns (\code{n_repertoires}, \code{n_receptors}, \code{n_cells}, \code{imd_prop}) and whose
-\code{repertoires} slot holds the per‑repertoire summary table.
+A \strong{new} \code{ImmunData} object. Its \verb{$annotations} table includes the
+added columns (\code{imd_repertoire_id}, \code{imd_count}, \code{imd_proportion}, \code{n_repertoires}).
+Its \verb{$repertoires} slot contains the summary table linking \code{schema} columns
+to \code{imd_repertoire_id}, \code{n_barcodes}, and \code{n_receptors}.
 }
 \description{
-Groups the annotation table of an \strong{ImmunData} object by one or more
-user‑supplied columns that together define a \emph{repertoire} (e.g. sample,
-donor + time‑point).
-For each repertoire it computes:
+Groups the annotation table of an \code{ImmunData} object by user-specified
+columns to define distinct \emph{repertoires} (e.g., based on sample, donor,
+time point). It then calculates summary statistics both per-repertoire and
+per-receptor within each repertoire.
+
+Calculated \strong{per repertoire}:
 \itemize{
-\item \strong{\code{n_receptors}} – number of unique receptors in the repertoire
-\item \strong{\code{n_cells}}     – total cell/UMI counts (\code{imd_count}) in the repertoire
+\item \code{n_barcodes}: Total number of unique cells/barcodes within the repertoire
+(sum of \code{imd_chain_count}, effectively summing unique cells if input was SC,
+or total counts if input was bulk).
+\item \code{n_receptors}: Number of unique receptors (\code{imd_receptor_id}) found within
+the repertoire.
 }
 
-For every receptor it also adds:
+Calculated \strong{per annotation row} (receptor within repertoire context):
 \itemize{
-\item \strong{\code{n_repertoires}} – how many distinct repertoires this receptor occurs in
-\item \strong{\code{imd_proportion}}      – proportion of its repertoire occupied by the receptor
+\item \code{imd_count}: Total count of a specific receptor (\code{imd_receptor_id}) within
+the specific repertoire it belongs to in that row (sum of relevant
+\code{imd_chain_count}).
+\item \code{imd_proportion}: The proportion of the repertoire's total \code{n_barcodes}
+accounted for by that specific receptor (\code{imd_count / n_barcodes}).
+\item \code{n_repertoires}: The total number of distinct repertoires (across the entire
+dataset) in which this specific receptor (\code{imd_receptor_id}) appears.
 }
 
-All new columns are appended to the annotation table; a repertoire summary
-table is returned in the new object’s \code{repertoires} slot.
+These statistics are added to the annotation table, and a summary table is
+stored in the \verb{$repertoires} slot of the returned object.
 }
 \details{
-The function first summarises \code{idata$annotations} to obtain per‑repertoire
-and per‑receptor counts, then left‑joins the results back:
+The function operates on the \code{idata$annotations} table:
 \enumerate{
-\item \strong{Per‑repertoire totals} (\code{repertoires_table})
-\code{n_receptors = n()}
-\code{n_cells     = sum(imd_count)}
-\item \strong{Receptor repertoire‑count} (\code{n_repertoires}) – distinct combinations
-of \code{schema} and \code{imd_receptor_id}.
-\item \strong{Per‑repertoire receptor proportion} (\code{imd_prop}) – receptor cells /
-total cells inside that repertoire.
+\item \strong{Validation:} Checks \code{idata} and existence of \code{schema} columns. Removes
+any pre-existing repertoire summary columns to prevent duplication.
+\item \strong{Repertoire Definition:} Groups annotations by the \code{schema} columns.
+Calculates total counts (\code{n_barcodes}) per group. Assigns a unique integer
+\code{imd_repertoire_id} to each distinct repertoire group. This forms the
+initial \code{repertoires_table}.
+\item \strong{Receptor Counts & Proportion:} Calculates the sum of \code{imd_chain_count}
+for each receptor within each repertoire (\code{imd_count}). Calculates the
+proportion (\code{imd_proportion}) of each receptor within its repertoire.
+\item \strong{Repertoire & Receptor Stats:} Counts unique receptors per repertoire
+(\code{n_receptors}, added to \code{repertoires_table}). Counts the number of
+distinct repertoires each unique receptor appears in (\code{n_repertoires}).
+\item \strong{Join Results:} Joins the calculated \code{imd_count}, \code{imd_proportion}, and
+\code{n_repertoires} back to the annotation table based on repertoire columns
+and \code{imd_receptor_id}.
+\item \strong{Return New Object:} Creates and returns a \emph{new} \code{ImmunData} object
+containing the updated \verb{$annotations} table (with the added statistics)
+and the \verb{$repertoires} slot populated with the \code{repertoires_table}
+(containing \code{schema} columns, \code{imd_repertoire_id}, \code{n_barcodes}, \code{n_receptors}).
 }
 
-The receptor table itself is \strong{not} modified; only the annotation table
-gains the new columns.  A fresh \link{ImmunData} object is returned so downstream
-pipelines remain lazy and chainable.
+The original \code{idata} object remains unmodified. Internal column names are
+typically managed by \code{immundata:::imd_schema()}.
+}
+\examples{
+\dontrun{
+# Assume 'idata_raw' is an ImmunData object loaded via read_repertoires
+# but *without* providing 'repertoire_schema' initially.
+# It has $annotations but $repertoires is likely NULL or empty.
+# Assume idata_raw$annotations has columns "SampleID" and "TimePoint".
+
+# Define repertoires based on SampleID and TimePoint
+idata_aggregated <- agg_repertoires(idata_raw, schema = c("SampleID", "TimePoint"))
+
+# Explore the results
+print(idata_aggregated)
+print(idata_aggregated$repertoires)
+print(head(idata_aggregated$annotations)) # Note the new columns
+}
 }
 \seealso{
-\code{\link[=filter_receptors]{filter_receptors()}}, \code{\link[=annotate_receptors]{annotate_receptors()}}
+\code{\link[=read_repertoires]{read_repertoires()}} (which can call this function), \link{ImmunData} class.
 }

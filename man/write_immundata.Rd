@@ -2,50 +2,70 @@
 % Please edit documentation in R/io_immundata_write.R
 \name{write_immundata}
 \alias{write_immundata}
-\title{Write an ImmunData Object to Disk as Parquet Files}
+\title{Save ImmunData to disk}
 \usage{
 write_immundata(idata, output_folder)
 }
 \arguments{
-\item{idata}{\link{ImmunData} object containing the receptor and annotation tables.}
+\item{idata}{The \code{ImmunData} object to save. Must be an R6 object of class
+\code{ImmunData} containing at least the \verb{$annotations} table and schema information
+(\verb{$schema_receptor}, optionally \verb{$schema_repertoire}).}
 
-\item{output_folder}{Character(1). Path to the directory where the Parquet
-files will be written.  If the directory does not exist, it will be
-created (recursively).}
+\item{output_folder}{Character(1). Path to the directory where the output files
+will be written. If the directory does not exist, it will be created
+recursively.}
 }
 \value{
-Invisibly returns the input \link{ImmunData}. The primary side effect is the creation of
-two Parquet files in \code{output_folder}.
+Invisibly returns the input \code{idata} object. Its primary effect is creating
+\code{metadata.json} and \code{annotations.parquet} files in the \code{output_folder}.
 }
 \description{
-\code{write_immundata()} takes an \link{ImmunData} object and serializes its
-receptor and annotation tables to two Parquet files in a specified
-directory, using Zstandard compression for efficient storage and retrieval.
+Serializes the essential components of an \code{ImmunData} object to disk for
+efficient storage and later retrieval. It saves the core annotation data
+(\code{idata$annotations}) as a compressed Parquet file and accompanying metadata
+(including receptor/repertoire schemas and package version) as a JSON file
+within a specified directory.
 }
 \details{
-The function performs the following steps:
+The function performs the following actions:
 \enumerate{
-\item Validates that \code{idata} is an \code{ImmunData} object and that
-\code{output_folder} is a single non-\code{NULL} string.
-\item Normalizes and creates \code{output_folder} (if needed).
-\item Determines the filenames for the receptor and annotation tables
-via \code{imd_files()$receptors} and \code{imd_files()$annotations}.
-\item Writes \code{idata$receptors} and \code{idata$annotations} as Parquet files
-to those paths, using Zstandard compression (\code{compression = "zstd"})
-at level 9 for a good balance of speed and file size.
-\item Emits informative CLI messages before and after writing each file.
+\item Validates the input \code{idata} object and \code{output_folder} path.
+\item Creates the \code{output_folder} if it doesn't exist.
+\item Constructs a list containing metadata: \code{immundata} package version,
+receptor schema (\code{idata$schema_receptor}), and repertoire schema
+(\code{idata$schema_repertoire}).
+\item Writes the metadata list to \code{metadata.json} within \code{output_folder}.
+\item Writes the \code{idata$annotations} table (a \code{duckplyr_df} or similar) to
+\code{annotations.parquet} within \code{output_folder}. Uses Zstandard compression
+(\code{compression = "zstd"}, \code{compression_level = 9}) for a good balance
+between file size and read/write speed.
+\item Uses internal helper \code{imd_files()} to determine the standard filenames
+(\code{metadata.json}, \code{annotations.parquet}).
 }
+
+The receptor data itself (if stored separately in future versions) is not
+saved by this function; only the annotations linking to receptors are saved,
+along with the schema needed to reconstruct/interpret them.
 }
 \examples{
 \dontrun{
-# Suppose `idata` is an ImmunData object you constructed earlier:
-outdir <- tempfile("immundata_")
-write_immundata(idata, outdir)
-# Now you can inspect:
-list.files(outdir)
-}
+# Assume 'my_idata' is an ImmunData object created previously
+# my_idata <- read_repertoires(...)
 
+# Define an output directory
+save_dir <- tempfile("saved_immundata_")
+
+# Save the ImmunData object
+write_immundata(my_idata, save_dir)
+
+# Check the created files
+list.files(save_dir) # Should show "annotations.parquet" and "metadata.json"
+
+# Clean up
+unlink(save_dir, recursive = TRUE)
+}
 }
 \seealso{
-\code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=read_immundata]{read_immundata()}}, \link{ImmunData}
+\code{\link[=read_immundata]{read_immundata()}} for loading the saved data, \code{\link[=read_repertoires]{read_repertoires()}}
+which uses this function internally, \link{ImmunData} class definition.
 }

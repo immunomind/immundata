@@ -2,30 +2,82 @@
 % Please edit documentation in R/io_immundata_read.R
 \name{read_immundata}
 \alias{read_immundata}
-\title{Load a Saved ImmunData Object from Disk}
+\title{Load a saved ImmunData from disk}
 \usage{
-read_immundata(path, prudence = "stingy")
+read_immundata(path, prudence = "stingy", verbose = TRUE)
 }
 \arguments{
-\item{path}{Path to the folder containing the saved ImmunData files.}
+\item{path}{Character(1). Path to the \strong{directory} containing the saved
+\code{ImmunData} files (\code{annotations.parquet} and \code{metadata.json}).}
+
+\item{prudence}{Character(1). Controls strictness of type inference when
+reading the Parquet file, passed to \code{duckplyr::read_parquet_duckdb()}.
+Default \code{"stingy"} likely implies stricter type checking or safer inference.}
+
+\item{verbose}{Logical(1). If \code{TRUE} (default), prints informative messages
+using \code{cli} during loading. Set to \code{FALSE} for quiet operation.}
 }
 \value{
-A new \code{ImmunData} object containing receptor and annotation data.
+A new \code{ImmunData} object reconstructed from the saved files. If
+repertoire information was saved, it will be recalculated and included.
 }
 \description{
-Loads an \code{ImmunData} object from a directory created by Immundata I/O functions
-(e.g., \code{read_repertoires()} with file splitting or saving). It reads receptor-level
-and annotation-level data from standardized Parquet files and reconstructs a
-new \code{ImmunData} object with inferred schema.
-
-This function expects two files inside the provided directory:
+Reconstructs an \code{ImmunData} object from files previously saved to a directory
+by \code{\link[=write_immundata]{write_immundata()}} or the internal saving step of \code{\link[=read_repertoires]{read_repertoires()}}.
+It reads the \code{annotations.parquet} file for the main data and \code{metadata.json}
+to retrieve the necessary receptor and repertoire schemas.
+}
+\details{
+This function expects a directory structure created by \code{\link[=write_immundata]{write_immundata()}},
+containing at least:
 \itemize{
-\item \code{receptors.parquet}: contains the receptor-level table
-\item \code{annotations.parquet}: contains the annotation-level table
+\item \code{annotations.parquet}: The main annotation data table.
+\item \code{metadata.json}: Contains package version, receptor schema, and optionally
+repertoire schema.
 }
 
-These filenames are defined in \code{imd_files()} and follow the Immundata storage convention.
+The loading process involves:
+\enumerate{
+\item Checking that the specified \code{path} is a directory and contains the
+required \code{annotations.parquet} and \code{metadata.json} files.
+\item Reading \code{metadata.json} using \code{jsonlite::read_json()}.
+\item Reading \code{annotations.parquet} using \code{duckplyr::read_parquet_duckdb()} with
+the specified \code{prudence} level.
+\item Extracting the \code{receptor_schema} and \code{repertoire_schema} from the loaded
+metadata.
+\item Instantiating a new \code{ImmunData} object using the loaded \code{annotations} data
+and the \code{receptor_schema}.
+\item If a non-empty \code{repertoire_schema} was found in the metadata, it calls
+\code{\link[=agg_repertoires]{agg_repertoires()}} on the newly created object to recalculate and
+attach repertoire-level information based on that schema.
+}
+}
+\examples{
+\dontrun{
+# Assume 'my_idata' is an ImmunData object created previously
+# my_idata <- read_repertoires(...)
+
+# Define a temporary directory for saving
+save_dir <- tempfile("saved_immundata_")
+
+# Save the ImmunData object
+write_immundata(my_idata, save_dir)
+
+# --- Later, in a new session or script ---
+
+# Load the ImmunData object back from the directory
+loaded_idata <- read_immundata(save_dir)
+
+# Verify the loaded object
+print(loaded_idata)
+# compare_methods(my_idata$annotations, loaded_idata$annotations) # If available
+
+# Clean up
+unlink(save_dir, recursive = TRUE)
+}
 }
 \seealso{
-\code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=imd_files]{imd_files()}}, \link{ImmunData}, \code{\link[duckplyr:read_parquet_duckdb]{duckplyr::read_parquet_duckdb()}}
+\code{\link[=write_immundata]{write_immundata()}} for saving \code{ImmunData} objects,
+\code{\link[=read_repertoires]{read_repertoires()}} for the primary data loading pipeline, \link{ImmunData} class,
+\code{\link[=agg_repertoires]{agg_repertoires()}} for repertoire definition.
 }

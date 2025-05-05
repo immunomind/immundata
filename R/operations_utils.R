@@ -74,11 +74,12 @@ make_pattern_columns <- function(patterns,
     p_seq <- patterns[[p_index]]
 
     if (name_type == "pattern") {
-      safe_name <- gsub("[^A-Za-z0-9]", "_", p) # just in case
+      safe_name <- gsub("[^A-Za-z0-9]", "_", p_seq) # just in case
       col_name_out <- paste0(col_prefix, safe_name)
     } else if (name_type == "index") {
       col_name_out <- paste0(col_prefix, p_index)
     } else {
+      # TODO: what the heck
       stop("!")
     }
 

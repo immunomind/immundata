@@ -1,26 +1,33 @@
-get_test_idata <- function() {
+get_test_idata_tsv_no_metadata <- function(schema = c("cdr3_aa", "v_call")) {
   sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
+    system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
+    system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
   )
   read_repertoires(
     path          = sample_files,
-    schema        = c("cdr3_aa", "v_call"),
+    schema        = schema,
     output_folder = tempfile()
   )
 }
 
-get_test_idata_with_metadata <- function() {
-  md_path <- system.file("extdata", "metadata_samples.tsv", package = "immundata")
+get_test_idata_tsv_with_metadata <- function(schema = c("cdr3_aa", "v_call")) {
+  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
+  md <- read_metadata(md_path)
 
   sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
+    system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
+    system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
   )
   read_repertoires(
-    path          = sample_files,
-    schema        = c("cdr3_aa", "v_call"),
-    md,
+    path = sample_files,
+    schema = schema,
+    metadata = md,
     output_folder = tempfile()
   )
+}
+
+get_test_idata_tsv_metadata <- function() {
+  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
+
+  read_metadata(md_path)
 }
