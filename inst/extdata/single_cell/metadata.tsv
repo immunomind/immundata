@@ -1,0 +1,4 @@
+File	Tissue	Prefix
+lb6.csv.gz	Blood	LB6_
+ln6.csv.gz	Normal	LN6_
+lt6.csv.gz	Tumor	LT6_
