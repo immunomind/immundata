@@ -1,16 +1,8 @@
-test_that("Regex matching returns correct results", {
-  sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
-  )
-  idata <- read_repertoires(
-    path = sample_files,
-    schema = c("cdr3_aa", "v_call"),
-    output_folder = tempdir()
-  )
+testthat::test_that("Regex matching returns correct results", {
+  idata <- get_test_idata_tsv_no_metadata()
   all_receptors <- idata$receptors %>% collect()
 
-  regex <- paste0('^', substr(all_receptors$cdr3_aa[1], 1, 4))
+  regex <- paste0("^", substr(all_receptors$cdr3_aa[1], 1, 4))
 
   out <- filter_immundata(
     idata,
@@ -32,4 +24,3 @@ test_that("Regex matching returns correct results", {
     gold %>% arrange()
   )
 })
-

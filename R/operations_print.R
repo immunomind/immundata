@@ -17,9 +17,15 @@ print.ImmunData <- function(x, ...) {
   if (!is.null(x$schema_receptor)) {
     cli::cat_line()
     cli::cli_h2("{cli::col_br_red('Receptor schema:')}")
-    schema <- x$schema_receptor
     # TODO: improve this
-    for (val in schema) {
+    cli::cli_text("features:")
+    for (val in imd_receptor_features(x$schema_receptor)) {
+      if (!(val %in% imd_schema())) {
+        cli::cli_bullets(c(">" = val))
+      }
+    }
+    cli::cli_text("chains:")
+    for (val in imd_receptor_chains(x$schema_receptor)) {
       if (!(val %in% imd_schema())) {
         cli::cli_bullets(c(">" = val))
       }

@@ -3,8 +3,27 @@
 [![Downloads_week](http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
 [![Issues](https://img.shields.io/github/issues/immunomind/immundata-rlang?style=flat-square)](https://github.com/immunomind/immundata-rlang/issues)
 
-# 🦋 `immundata` --– A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics in R
+# 🦋 `immundata` --- A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics in R
 
+`immundata` gives the immune repertoire world what AnnData brought to the single‑cell multi-omics --- only tuned for unique properties of AIRR‑seq data, V(D)J pairing and repertoire‑level statistics, and powered by Arrow + DuckDB so you can stay on a laptop or move to the server or cloud without changing a line of code.
+
+---
+
+## 🤔 Why `immundata`?
+
+Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
+
+- We now blend bulk AIRR-seq, single-cell V(D)J + GEX, spatial transcriptomics, clinical metadata and public databases --- often inside the same analysis notebook.
+
+- Pipelines that handle gigabytes today face decagigabytes after the next experiment.
+
+- The same immune repertoire dataset must drive multiple plots, dashboards, deep‑learning models and be reproducible months (or even years) later.
+
+`immundata` is the data-engineering backbone that lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
+
+---
+
+- 🤔 [Why `immundata`?](#-why--immundata)
 - 📦 [Installation](#-installation)
 - ⚡ [Quick Start](#-quick-start)
 - 🧬 [Workflow Explained](#-workflow-explained)
@@ -50,6 +69,7 @@
 > I’ll keep publishing tagged releases with full docs so you can always
 > roll back if needed.
 
+
 ## 📦 Installation
 
 ### Prerequisites
@@ -90,7 +110,7 @@ pak::pkg_install("immunomind/immundata-rlang@dev")
 
 ## ⚡ Quick Start
 
-> [!NOTE]
+> [!TIP]
 > Interested in specific use cases, e.g., 
 > analyse cell clusters from single-cell data,
 > work with paired-chain data,
@@ -106,12 +126,12 @@ Replace `system.file` calls with your local file paths to run the code on your d
 library(immundata)
 
 # Metadata table with additional sample-level information
-md_path <- system.file("extdata", "metadata_samples.tsv", package = "immundata")
+md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
 
 # Two sample files
 samples <- c(
-  system.file("extdata", "sample_0_1k.tsv", package = "immundata"), 
-  system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
+  system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"), 
+  system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
   )
 
 # Read the metadata table
@@ -126,6 +146,8 @@ imdata
 
 # Check the folder immundata created - this is where your dataset resides now
 list.files("./immundata-quick-start")
+
+# Read sections below for data analysis
 ```
 
 ---
@@ -134,13 +156,13 @@ list.files("./immundata-quick-start")
 
 `immundata` splits the workflow into two clear phases:
 
-1. **Ingestion** – get your raw files into a tidy `immundata::ImmunData` object  
+1. **Ingestion** – convert your AIRR file into a special format saved on disk, and then read them to a tidy `immundata::ImmunData` object  
 
 2. **Analysis**  – explore, annotate, filter and compute on that object
 
-Before we go into more details for each of the phase, there are two simple yet essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries.
+Before we go into more details for each of the phase, there are three simple yet essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries, and, by extension, affect how you work and even *think* about the data analysis in other packages such as `immunarch` which use `immundata` as a backbone for computations.
 
-1. **Units: chain -> barcode -> receptor**
+1. **Data units: chain -> barcode -> receptor**
 
   **Chain** One V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). (rearrangement, used "chain" for convenience) - minimally possible data unit, a building block of everything.
   In case of single-chain data, same as barcode. Never changes after ingest; you can always drill back to the exact sequence.
@@ -152,8 +174,9 @@ Before we go into more details for each of the phase, there are two simple yet e
   **Receptor** - logical unit. A logical grouping of chains that you want to treat as one biological “receptor signature”.
   Can be: α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
   Minimal data unit for AIRR statistics.
+  I decided not to use clonotype because it is too broad and hard to understand.
 
-2. **Aggregation: receptors and repertoires**
+2. **Aggregation: defining receptors and repertoires**
 
   The data stored as chains.
   Biologically-relevant processes are consolidated by barcodes.
@@ -161,25 +184,50 @@ Before we go into more details for each of the phase, there are two simple yet e
   
   How do we make it convenient in practical sense?
   
-  Data lineage is crucial for full reproducibility.
+  Data lineage is crucial for full reproducibility - and this is related to the next point.
+  
+3. **Pipeline-based execution: immutability and materialization**
+
+  Data lineage.
+
+  Data is stored on disk and materialized only if necessary. So your thinking should in pipelines. In other words, creating intermediate ImmunDatas is more than possible but you should cache important results and think like the data will be run as a whole pipeline each time. It may not sound very feasible, but this is almost an only existing solution to make sure we can process large-scale datasets fast. For this, I'm not only providing tutorials on how to do things, but the whole complex `immundata`-related computations are hidden behind the functions. In the ideal world, you don't even know that you work with `immundata` and databases and other immuntability stuff because the analysis functions are coveirng everything for you.
 
 And now, let's dive into how you work with `immundata`.
 
 ### Phase 1: Ingestion
 
 ```
-Read metadata  
-  → Read repertoires  
-    → Preprocess  
-      → Aggregate receptors  
-        → Aggregate repertoires
+      --start--
+          │
+          ▼
+   read_metadata()    ──── Read metadata
+          │
+          ▼ 
+  read_repertoires()  ──┬─ Read repertoire files (*)
+          │             │      ▼
+          │             │  Preprocess
+          │             │      ▼
+          │             │  Aggregate receptors (*)
+          │             │      ▼
+          │             │  Postprocess
+          │             │      ▼
+          │             │  Aggregate repertoires
+          │             │      ▼
+          │             └─ Write data on disk (*)
+          ▼
+   agg_repertoires()  ──── Aggregate repertoires
+          │
+          ▼   
+    --ImmunData--
 ```
+
+Steps marked with `(*)` are non-optional.
 
 1) **Read metadata:**
 
     This step loads any sample‑ or donor‑level info to your environment using `read_metadata()` function.
   
-    This step is optional. You can safely skip it if you don't have per-sample pr per-donor metadata, such as therapy response, HLA, age, etc.
+    This step is optional. You can safely skip it if you don't have per-sample pr per-donor metadata, such as therapy response, HLA, age, etc. But it is highly recommended. See an example of metadata file below in the "Ingestion" section.
 
 2) **Read repertoires:**
 
@@ -248,7 +296,7 @@ Import annotations
 
 ### Load AIRR data into `immundata`
 
-**`immundata`** provides a flexible system for loading immune receptor repertoire files from different sources -- CSV, TSV and Parquet files, possibly gzipped, with some optionality. The main function for this is `read_repertoires()`. Below are four ways to pass your file paths.
+`immundata` provides a flexible system for loading immune receptor repertoire files from different sources -- CSV, TSV and Parquet files, possibly gzipped, with some optionality. The main function for this is `read_repertoires()`. Below are four ways to pass your file paths and one for convering data from existing `immunarch pre-1.0` list objects with `$data` and `$meta`.
 
   1. **Pass a single file name:**
   
@@ -257,50 +305,63 @@ Import annotations
       ```r
       library(immundata)
       
-      # In this example, we assume 'my_airr_file.tsv' has columns like 'V_gene', 'J_gene', 'CDR3_nt'
-      # that you want to aggregate into a receptor signature.
-      my_immdata <- read_repertoires(
-        path   = "my_airr_file.tsv",
-        schema = c("V_gene", "J_gene", "CDR3_nt")
+      inp_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+      
+      idata <- read_repertoires(
+        path   = inp_file,
+        schema = c("cdr3_aa", "v_call")
       )
       
-      # The output is an ImmunData object, which you can inspect:
-      my_immdata$receptors()
-      my_immdata$annotations()
+      print(idata)
       ```
-
-      The `schema` argument tells `immundata` which columns define the unique receptor signature.
-      
-      By default, `read_repertoires()` writes Parquet files into a directory named `immundata-my_airr_file` and then calls `read_immundata()` on it. Consider passing `output_folder` if you want to specify the output path.
 
   2. **Pass a vector of file names:**
   
       For **multiple** files in a vector:
 
       ```r
-      many_files <- c("sample1.airr.tsv", "sample2.airr.tsv", "sample3.airr.tsv")
+      library(immundata)
       
-      my_immdata <- read_repertoires(
-        path   = many_files,
-        schema = c("V_gene", "J_gene", "CDR3_nt")
+      inp_file1 <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+      inp_file2 <- system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+      
+      file_vec <- c(inp_file1, inp_file2)
+      
+      idata <- read_repertoires(
+        path   = file_vec,
+        schema = c("cdr3_aa", "v_call")
       )
+      
+      print(idata)
       ```
 
-      `immundata` automatically merges them (depending on your chosen schema) and writes the aggregated data into a single directory of Parquet files.
+      `immundata` automatically merges them (depending on your chosen schema), writes the aggregated data into a single directory of Parquet files, and produces a single-cell `ImmunData` object. Think about it as a huge table instead of smaller multiple repertoire tables.
 
   3. **Pass a glob pattern:**
   
       If your files follow a consistent naming pattern, you can leverage shell globs:
 
       ```r
+      library(immundata)
+      
+      folder_with_files <- system.file("extdata/tsv", "", package = "immundata")
+      
+      glob_files <- paste0(folder_with_files, "sample*.tsv")
+      
+      print(glob_files)
+      # The output is something like "/Library/Frameworks/.../immundata/extdata/tsv/*"
+      # Mind the star "*" at the end
+      
       # For example, all AIRR files in the 'samples/' folder
-      my_immdata <- read_repertoires(
-        path   = "samples/*.airr.tsv",
-        schema = c("V_gene", "J_gene", "CDR3_nt")
+      idata <- read_repertoires(
+        path   = glob_files,
+        schema = c("cdr3_aa", "v_call")
       )
+      
+      print(idata)
       ```
 
-      Behind the scenes, `read_repertoires()` expands the glob with `Sys.glob(...)`, merges the data, and produces a single `ImmunData`. Think about it as a huge table instead of smaller multiple repertoire tables.
+      Behind the scenes, `read_repertoires()` expands the glob with `Sys.glob(...)`, merges the data, and produces a single `ImmunData`.
 
   4. **Use a metadata file:**
   
@@ -308,23 +369,33 @@ Import annotations
 
         1.  **Load metadata** with `read_metadata()`.
         
-        2.  **Pass** the resulting data frame to `read_repertoires(path = "<metadata>", ..., metadata = md)`. Mind the `"<metadata>"` string we pass to the function. It indicates that we should take file paths from the input metadata table.
+        2.  **Pass** the resulting data frame to `read_repertoires(path = "<metadata>", ..., metadata = md_table)`. Mind the `"<metadata>"` string we pass to the function. It indicates that we should take file paths from the input metadata table.
 
       An example code:
 
-
       ```r
-      # Suppose metadata.tsv has a column 'File' with paths to your AIRR files
-      md <- read_metadata("metadata.tsv", filename_col = "File")
-      my_immdata <- read_repertoires(
-        path     = "<metadata>"
-        metadata = md,
-        schema   = c("V_gene", "J_gene", "CDR3_nt")
+      library(immundata)
+      
+      md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
+      
+      md_table <- read_metadata(md_path)
+      
+      print(md_table)
+      # The column "File" stores the file paths. If you have a different column name
+      # for files, use the `metadata_file_col = "<your column name>"` argument.
+      
+      idata <- read_repertoires(
+        path     = "<metadata>",
+        metadata = md_table,
+        schema   = c("cdr3_aa", "v_call")
       )
+      
+      print(idata)
       ```
 
-
       This approach **unifies** sample-level metadata (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
+      
+      You can pass the metadata table separately along with the list of files as we did in the previous examples without the "<metadata>" directive, but in that case you would need to check the correctness of all filepaths by yourself. Which could be quite cumbersome, to say the least.
       
       The more information on how to work with metadata files, please read the next section.
 
@@ -337,21 +408,38 @@ Import annotations
 ### Working with metadata table files
 
  - [ ] `read_metadata`
+ 
+ Example of metadata
 
-### Writing data on disk after preprocessing or analysis
+### Receptor schema
 
- - [ ] TODO `write_immundata`
+#### Single-chain schema
 
-### Re-aggregating data using receptor and repertoire schemas
+
+#### Paired-chain schema
+
+
+ 
+### Repertoire schema
 
  - [ ] TODO
  
-### Preprocessing strategies 
+### Preprocessing and postprocessing strategies 
 
 -   filtering non productive
 -   double contigs
 -   double BCR chains
 -   locus
+
+### Managing the output and intermediate `immundata` files
+
+By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` if you want to specify the output path.
+
+### Writing ImmunData objects on disk
+
+Why - to save intermediate files
+
+ - [ ] TODO `write_immundata`
 
 ---
 
@@ -397,7 +485,7 @@ TODO
 
 `annotate_cells`
 
-### Compute statistics
+### Compute
 
 #### Basic analysis in `immundata` 
 
@@ -415,9 +503,13 @@ TODO
 
 TODO
 
+if you use immunarch or so, you probably already have a metadata. If you don't better create it
+
 ### Paired-chain -- scVDJseq or other technologies
 
 TODO
+
+It works the same for any data, including bulk and single-cell - just pass a schema
 
 ### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
 
@@ -474,9 +566,15 @@ TODO
 
 ## 🧠 Advanced Topics 
 
-### Integrate into your package 
+### Developers
+
+#### Integrate into your package 
 
 `immundata` is created in mind with the mission of replacing typical data frame-based formats, usually not following the AIRR-C file standard.
+
+#### Extend with functions
+
+S3 methods etc.
 
 ### How `immundata` reads the data
 
@@ -538,9 +636,11 @@ TODO
 
 ### Commercial usage 
 
-`immundata` is free to use for commercial usage. However, corporate users will not get a prioritized support for `immundata`-related issues, immune repertoire analysis questions or data engineering questions, related to building scalable immune repertoire and other -omics pipelines. The priority of open-source tool `immundata` is open-source science.
+`immundata` is free to use for commercial usage. However, corporate users will not get a prioritized support for `immundata`- or AIRR-related issues. The priority of open-source tool `immundata` is open-source science.
 
 If you are looking for prioritized support and setting up your data pipelines, consider contacting Vadim Nazarov for commercial consulting and support options.
+
+Workshops / training sessions / designing data platforms and machine learning systems for multi-omic
 
 ---
 
@@ -634,3 +734,7 @@ If you are looking for prioritized support and setting up your data pipelines, c
     devtools::install_github("immunomind/immundata-rlang", ref = "dev")
     devtools::reload(pkgload::inst("immundata"))
     ```
+
+12. **Q: Why the counts for receptors are only available after all the aggregation?**
+
+    A: Because the counts and proportions are properties of specific receptors in specific repretoires. The number of chains is the number of reads for bulk sequencing or just one if the cell barcode information is available. When we aggregate data to receptors and repertoires, only then we can count the number of chains - per receptor - per repertoire.

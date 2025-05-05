@@ -44,6 +44,12 @@ ImmunData <- R6Class(
     initialize = function(schema,
                           annotations,
                           repertoires = NULL) {
+      checkmate::check_data_frame(annotations)
+
+      if (checkmate::test_character(schema)) {
+        schema <- make_receptor_schema(features = schema, chains = NULL)
+      }
+
       private$.annotations <- annotations
       self$schema_receptor <- schema
 
@@ -57,10 +63,36 @@ ImmunData <- R6Class(
 
     #' @field receptors Accessor for the dynamically-created table with receptors.
     receptors = function() {
-      receptor_id_col <- imd_schema()$receptor
-      private$.annotations |>
-        select({{ receptor_id_col }}, all_of(self$schema_receptor)) |>
-        distinct(!!rlang::sym(receptor_id_col), .keep_all = TRUE)
+      receptor_id_col <- imd_schema("receptor")
+      barcode_col <- imd_schema("barcode")
+      locus_col <- imd_schema("locus")
+      features <- imd_receptor_features(self$schema_receptor)
+      chains <- imd_receptor_chains(self$schema_receptor)
+
+      if (length(chains) == 2) {
+        receptor_data <- private$.annotations |>
+          select(all_of(c(
+            receptor_id_col,
+            barcode_col,
+            features,
+            locus_col
+          )))
+
+        locus_1 <- chains[1]
+        locus_2 <- chains[2]
+
+        receptor_data |>
+          filter(!!rlang::sym(locus_col) == locus_1) |>
+          full_join(
+            receptor_data |>
+              filter(!!rlang::sym(locus_col) == locus_2),
+            by = c(receptor_id_col, barcode_col)
+          )
+      } else {
+        private$.annotations |>
+          select({{ receptor_id_col }}, all_of(features)) |>
+          distinct(!!rlang::sym(receptor_id_col), .keep_all = TRUE)
+      }
     },
 
     #' @field annotations Accessor for the annotation-level table (`.annotations`).

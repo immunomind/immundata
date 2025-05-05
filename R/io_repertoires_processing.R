@@ -1,21 +1,35 @@
+#' @title Preprocessing and postprocessing of input immune repertoire files
+#'
+#' @concept Preprocessing and postprocessing
+#' @rdname preprocess_postprocess
 #' @export
 make_default_preprocessing <- function(format = c("airr", "10x")) {
   format <- match.arg(format)
 
   if (format == "airr") {
     list(
-      exclude_columns = make_exclude_columns("airr"),
+      exclude_columns = make_exclude_columns(imd_drop_cols("airr")),
       filter_nonproductive = make_productive_filter(truthy = TRUE)
     )
   } else if (format == "10x") {
     list(
-      exclude_columns = make_exclude_columns("10x"),
+      exclude_columns = make_exclude_columns(imd_drop_cols("10x")),
       filter_nonproductive = make_productive_filter(truthy = c("true", "TRUE", "True", "t", "T","1"))
     )
   }
 }
 
 
+#' @rdname preprocess_postprocess
+#' @export
+make_default_postprocessing <- function() {
+  list(
+    prefix_barcodes = make_barcode_prefix()
+  )
+}
+
+
+#' @rdname preprocess_postprocess
 #' @export
 make_exclude_columns <- function(cols = imd_drop_cols("airr")) {
 
@@ -31,6 +45,8 @@ make_exclude_columns <- function(cols = imd_drop_cols("airr")) {
   fun
 }
 
+
+#' @rdname preprocess_postprocess
 #' @export
 make_productive_filter <- function(col_name = c("productive"),
                                    truthy = TRUE) {
@@ -59,6 +75,8 @@ make_productive_filter <- function(col_name = c("productive"),
   fun
 }
 
+
+#' @rdname preprocess_postprocess
 #' @export
 make_barcode_prefix <- function(prefix_col = "Prefix") {
   checkmate::assert_character(prefix_col)

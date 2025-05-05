@@ -1,75 +1,200 @@
-#' @title Read Immune Receptor Repertoire Data and Create ImmunData
+#' @title Read and process immune repertoire files to immundata
 #'
 #' @description
-#' This function ingests a repertoire dataset (Parquet, CSV, or TSV), aggregates receptors
-#' based on a user-defined schema, and splits the result into receptor-level and annotation-level
-#' tables. The resulting data is saved to a designated output folder as two Parquet files
-#' (receptors and annotations) and then reloaded to create an `ImmunData` object.
+#' This is the main function for reading immune repertoire data into the
+#' `immundata` framework. It reads one or more repertoire files (AIRR TSV,
+#' 10X CSV, Parquet), performs optional preprocessing and column renaming,
+#' aggregates sequences into receptors based on a provided schema, optionally
+#' joins external metadata, performs optional postprocessing, and returns
+#' an `ImmunData` object.
 #'
-#' @param path
-#'   Path to an input file. This file may be Parquet, CSV, or TSV. The file extension is
-#'   automatically detected and handled. The files can be archived via GZIP, no need to unarchive them.
-#'   Pass `"<metadata>"` to read files from `"filename"` column from the input metadata table.
-#' @param schema
-#'   Character vector defining which columns in the input data should be used to
-#'   identify unique receptor signatures. For example, `c("cdr3_aa", "v_call")`.
-#' @param metadata
-#'   An optional data frame containing additional metadata to merge into the annotation table.
-#'   Default is `NULL`. See [read_metadata()] for more information.
-#' @param barcode_col
-#'   An optional character string specifying the column in the input data that represents
-#'   cell ids or barcodes or other unique identifiers. Default is `NULL`.
-#' @param count_col
-#'   An optional character string specifying the column in the input data that stores
-#'   bulk receptor counts. Default is `NULL`.
-#' @param output_folder
-#'   Character string specifying the directory to save the resulting Parquet files. If `NULL`,
-#'   a folder named `immundata-<basename_of_path>` is created in the same directory as `path`.
-#' @param enforce_schema
-#'   Logical. If `TRUE`, column names and types must strictly match between files. If `FALSE`,
-#'   columns are unioned
-#' @param exclude_columns
-#'   Character. Vector of columns to exclude from the data. Default is AIRR standard columns `*_cigar` and `*_alignment`.
-#' @param repertoire_schema
-#'   An optional character vector defining how annotations should be grouped into repertoires
-#'   (for example, `c("sample", "donor")`). Currently unused in this function, but reserved
-#'   for future expansions. Default is `NULL`.
-#' @param rename_columns
-#'   An optional character vector or a function that returns name of the columns to rename in the `dplyr`format:
-#'   `c(new_name = "old_name")`.
+#' The function handles different data types (bulk, single-cell) based on
+#' the presence of `barcode_col` and `count_col`. For efficiency with large
+#' datasets, it processes the data and saves intermediate results (annotations)
+#' as a Parquet file before loading them back into the final `ImmunData` object.
+#'
+#' @param path Character vector. Path(s) to input repertoire files (e.g.,
+#'   `"/path/to/data/*.tsv.gz"`). Supports glob patterns via [Sys.glob()].
+#'   Files can be Parquet, CSV, TSV, or gzipped versions thereof. All files
+#'   must be of the same type.
+#'   Alternatively, pass the special string `"<metadata>"` to read file paths
+#'   from the `metadata` table (see `metadata` and `metadata_file_col` params).
+#' @param schema Defines how unique receptors are identified. Can be:
+#'   - A character vector of column names (e.g., `c("v_call", "j_call", "junction_aa")`).
+#'   - A schema object created by [make_receptor_schema()], allowing specification
+#'     of chains for pairing (e.g., `make_receptor_schema(features = c("v_call", "junction_aa"), chains = c("TRA", "TRB"))`).
+#' @param metadata Optional. A data frame containing
+#'   metadata to be joined with the repertoire data, read by
+#'   [read_metadata()] function. If `path = "<metadata>"`, this table *must*
+#'   be provided and contain the file paths column specified by `metadata_file_col`.
+#'   Default: `NULL`.
+#' @param barcode_col Character(1). Name of the column containing cell barcodes
+#'   or other unique cell/clone identifiers for single-cell data. Triggers
+#'   single-cell processing logic in [agg_receptors()]. Default: `NULL`.
+#' @param count_col Character(1). Name of the column containing UMI counts or
+#'   frequency counts for bulk sequencing data. Triggers bulk processing logic
+#'   in [agg_receptors()]. Default: `NULL`. Cannot be specified if `barcode_col` is also
+#'   specified.
+#' @param locus_col Character(1). Name of the column specifying the receptor chain
+#'   locus (e.g., "TRA", "TRB", "IGH", "IGK", "IGL"). Required if `schema`
+#'   specifies chains for pairing. Default: `NULL`.
+#' @param umi_col Character(1). Name of the column containing UMI counts for
+#'   single-cell data. Used during paired-chain processing to select the most
+#'   abundant chain per barcode per locus. Default: `NULL`.
+#' @param preprocess List. A named list of functions to apply sequentially to the
+#'   raw data *before* receptor aggregation. Each function should accept a
+#'   data frame (or duckplyr_df) as its first argument. See
+#'   [make_default_preprocessing()] for examples.
+#'   Default: `make_default_preprocessing()`. Set to `NULL` or `list()` to disable.
+#' @param postprocess List. A named list of functions to apply sequentially to the
+#'   annotation data *after* receptor aggregation and metadata joining. Each
+#'   function should accept a data frame (or duckplyr_df) as its first argument.
+#'   See [make_default_postprocessing()] for examples.
+#'   Default: `make_default_postprocessing()`. Set to `NULL` or `list()` to disable.
+#' @param rename_columns Named character vector. Optional mapping to rename columns
+#'   in the input files using `dplyr::rename()` syntax (e.g.,
+#'   `c(new_name = "old_name", barcode = "cell_id")`). Renaming happens *before*
+#'   preprocessing and schema application. See [imd_rename_cols()] for presets.
+#'   Default: `imd_rename_cols("10x")`.
+#' @param enforce_schema Logical(1). If `TRUE` (default), reading multiple files
+#'   requires them to have the exact same columns and types. If `FALSE`, columns
+#'   are unioned across files (potentially slower, requires more memory).
+#'   Default: `TRUE`.
+#' @param metadata_file_col Character(1). The name of the column in the `metadata`
+#'   table that contains the full paths to the repertoire files. Only used when
+#'   `path = "<metadata>"`. Default: `"File"`.
+#' @param output_folder Character(1). Path to a directory where intermediate
+#'   processed annotation data will be saved as `annotations.parquet` and
+#'   `metadata.json`. If `NULL` (default), a folder named
+#'   `immundata-<basename_without_ext>` is created in the same directory as the
+#'   first input file specified in `path`. The final `ImmunData` object reads
+#'   from these saved files. Default: `NULL`.
+#' @param repertoire_schema Character vector or Function. Defines columns used to
+#'   group annotations into distinct repertoires (e.g., by sample or donor).
+#'   If provided, [agg_repertoires()] is called after loading to add repertoire-level
+#'   summaries and metrics. Default: `NULL`.
 #'
 #' @details
-#' 1. **Reading** – The function automatically detects whether `path` points
-#'    to a Parquet, CSV, or TSV file, using `read_parquet_duckdb` or `read_csv_duckdb`.
-#' 2. **Aggregation** – Receptor uniqueness is determined by the columns named in
-#'    `schema`, while barcodes or counts are handled depending on which parameters
-#'    (`barcode_col`, `count_col`) are provided.
-#' 3. **Saving** – The final receptor-level and annotation-level tables are written
-#'    to Parquet files in `output_folder`.
-#' 4. **Reloading** – The function calls [read_immundata()] on the newly
-#'    created folder to return a fully instantiated `ImmunData`.
+#' The function executes the following steps:
+#' 1.  Validates inputs.
+#' 2.  Determines the list of input files based on `path` and `metadata`. Checks file extensions.
+#' 3.  Reads data using `duckplyr` (`read_parquet_duckdb` or `read_csv_duckdb`). Handles `.gz`.
+#' 4.  Applies column renaming if `rename_columns` is provided.
+#' 5.  Applies preprocessing steps sequentially if `preprocess` is provided.
+#' 6.  Aggregates sequences into receptors using [agg_receptors()], based on `schema`, `barcode_col`, `count_col`, `locus_col`, and `umi_col`. This creates the core annotation table.
+#' 7.  Joins the `metadata` table if provided.
+#' 8.  Applies postprocessing steps sequentially if `postprocess` is provided.
+#' 9.  Creates a temporary `ImmunData` object in memory.
+#' 10. Determines the `output_folder` path.
+#' 11. Saves the processed annotation table and metadata using [write_immundata()] to the `output_folder`.
+#' 12. Loads the data back from the saved Parquet files using [read_immundata()] to create the final `ImmunData` object. This ensures the returned object is backed by efficient storage.
+#' 13. If `repertoire_schema` is provided, calls [agg_repertoires()] on the loaded object to define and summarize repertoires.
+#' 14. Returns the final `ImmunData` object.
 #'
-#' @seealso [read_metadata()], [read_immundata()], [ImmunData]
+#' @return An `ImmunData` object containing the processed receptor annotations.
+#'   If `repertoire_schema` was provided, the object will also contain repertoire
+#'   definitions and summaries calculated by [agg_repertoires()].
+#'
+#' @seealso [ImmunData], [read_immundata()], [write_immundata()], [read_metadata()],
+#'   [agg_receptors()], [agg_repertoires()], [make_receptor_schema()],
+#'   [make_default_preprocessing()], [make_default_postprocessing()]
 #'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' #
+#' # Example 1: single-chain, one file
+#' #
+#' # Read a single AIRR TSV file, defining receptors by V/J/CDR3_aa
+#' # Assume "my_sample.tsv" exists and follows AIRR format
+#'
+#' # Create a dummy file for illustration
+#' airr_data <- data.frame(
+#'   sequence_id = paste0("seq", 1:5),
+#'   v_call = c("TRBV1", "TRBV1", "TRBV2", "TRBV1", "TRBV3"),
+#'   j_call = c("TRBJ1", "TRBJ1", "TRBJ2", "TRBJ1", "TRBJ1"),
+#'   junction_aa = c("CASSL...", "CASSL...", "CASSD...", "CASSL...", "CASSF..."),
+#'   productive = c(TRUE, TRUE, TRUE, FALSE, TRUE),
+#'   locus = c("TRB", "TRB", "TRB", "TRB", "TRB")
+#' )
+#' readr::write_tsv(airr_data, "my_sample.tsv")
+#'
+#' # Define receptor schema
+#' receptor_def <- c("v_call", "j_call", "junction_aa")
+#'
+#' # Specify output folder
+#' out_dir <- tempfile("immundata_output_")
+#'
+#' # Read the data (disabling default preprocessing for this simple example)
+#' idata <- read_repertoires(
+#'   path = "my_sample.tsv",
+#'   schema = receptor_def,
+#'   output_folder = out_dir,
+#'   preprocess = NULL, # Disable default productive filter for demo
+#'   postprocess = NULL # Disable default barcode prefixing
+#' )
+#'
+#' print(idata)
+#' print(idata$annotations)
+#'
+#' #
+#' # Example 2: single-chain, multiple files
+#' #
+#' # Read multiple files using metadata
+#' # Create dummy files and metadata
+#' readr::write_tsv(airr_data[1:2, ], "sample1.tsv")
+#' readr::write_tsv(airr_data[3:5, ], "sample2.tsv")
+#' meta <- data.frame(
+#'   SampleID = c("S1", "S2"),
+#'   Tissue = c("PBMC", "Tumor"),
+#'   FilePath = c(normalizePath("sample1.tsv"), normalizePath("sample2.tsv"))
+#' )
+#' readr::write_tsv(meta, "metadata.tsv")
+#'
+#' idata_multi <- read_repertoires(
+#'   path = "<metadata>",
+#'   metadata = meta,
+#'   metadata_file_col = "FilePath",
+#'   schema = receptor_def,
+#'   repertoire_schema = "SampleID", # Aggregate by SampleID
+#'   output_folder = tempfile("immundata_multi_"),
+#'   preprocess = make_default_preprocessing("airr"), # Use default AIRR filters
+#'   postprocess = NULL
+#' )
+#'
+#' print(idata_multi)
+#' print(idata_multi$repertoires) # Check repertoire summary
+#'
+#' # Clean up dummy files
+#' file.remove("my_sample.tsv", "sample1.tsv", "sample2.tsv", "metadata.tsv")
+#' unlink(out_dir, recursive = TRUE)
+#' unlink(attr(idata_multi, "output_folder"), recursive = TRUE) # Get path used by function
+#' }
 read_repertoires <- function(path,
                              schema,
                              metadata = NULL,
                              barcode_col = NULL,
                              count_col = NULL,
+                             locus_col = NULL,
+                             umi_col = NULL,
+                             preprocess = make_default_preprocessing(),
+                             postprocess = make_default_postprocessing(),
+                             rename_columns = imd_rename_cols("10x"),
                              enforce_schema = TRUE,
                              metadata_file_col = "File",
                              output_folder = NULL,
-                             preprocess = make_default_preprocessing(),
-                             postprocess = list(
-                               prefix_barcodes = make_barcode_prefix()
-                             ),
-                             rename_columns = imd_rename_cols("10x"),
                              repertoire_schema = NULL) {
   start_time <- Sys.time()
 
   checkmate::assert_character(path)
-  checkmate::assert_character(schema)
+
+  if (checkmate::test_character(schema)) {
+    schema <- make_receptor_schema(features = schema, chains = NULL)
+  }
+
+  assert_receptor_schema(schema)
+
   checkmate::assert_data_frame(metadata, null.ok = T)
   checkmate::assert_character(metadata_file_col, null.ok = T)
   checkmate::assert_character(
@@ -79,6 +204,16 @@ read_repertoires <- function(path,
     null.ok = TRUE
   )
   checkmate::assert_character(count_col,
+    max.len = 1,
+    null.ok = TRUE
+  )
+  checkmate::assert_character(locus_col,
+    min.len = 1,
+    max.len = 1,
+    null.ok = TRUE
+  )
+  checkmate::assert_character(umi_col,
+    min.len = 1,
     max.len = 1,
     null.ok = TRUE
   )
@@ -92,7 +227,7 @@ read_repertoires <- function(path,
     ),
     checkmate::test_function(repertoire_schema)
   )
-  checkmate::test_character(rename_columns, null.ok = TRUE)
+  checkmate::assert_character(rename_columns, null.ok = TRUE)
   checkmate::assert_logical(enforce_schema)
   checkmate::assert_list(preprocess, null.ok = TRUE)
   if (!is.null(preprocess)) {
@@ -195,82 +330,22 @@ read_repertoires <- function(path,
     cli::cli_alert_success("Preprocessing is finished")
   }
 
-  # Check if we can aggregate receptors by the columns
-  receptor_cols_existence <- setdiff(schema, colnames(raw_dataset))
-  if (length(receptor_cols_existence) != 0) {
-    cli::cli_abort("Not all columns in the receptor schema present in the data: [{receptor_cols_existence}]. Please double check and run again.")
-  }
 
   #
   # Aggregate the data
   #
   cli::cli_h3("Aggregating the data to receptors")
 
-  immundata_barcode_col <- imd_schema("barcode")
-  immundata_receptor_id_col <- imd_schema("receptor")
-  immundata_count_col <- imd_schema("count")
-  immundata_chain_count <- imd_schema("chain_count")
+  annotation_data <- agg_receptors(
+    dataset = raw_dataset,
+    schema = schema,
+    barcode_col = barcode_col,
+    count_col = count_col,
+    locus_col = locus_col,
+    umi_col = umi_col
+  )
 
-  #
-  # 1) Case #1: simple receptor table - no barcodes, no count column
-  #
-  if (is.null(barcode_col) && is.null(count_col)) {
-    raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := row_number())
-
-    receptor_data <- raw_dataset |>
-      summarise(.by = all_of(schema)) |>
-      mutate(
-        {{ immundata_receptor_id_col }} := row_number()
-      )
-
-    annotation_data <- receptor_data |>
-      full_join(raw_dataset, by = schema) |>
-      mutate({{ immundata_chain_count }} := 1, {{ immundata_count_col }} := 0)
-  }
-
-  #
-  # 2) Case 2: bulk data - no barcodes, but with the count column
-  #
-  else if (is.null(barcode_col) && !is.null(count_col)) {
-    raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := row_number())
-
-    receptor_data <- raw_dataset |>
-      summarise(.by = all_of(schema)) |>
-      mutate(
-        {{ immundata_receptor_id_col }} := row_number()
-      )
-
-    annotation_data <- receptor_data |>
-      full_join(raw_dataset, by = schema) |>
-      mutate({{ immundata_chain_count }} := !!rlang::sym(count_col), {{ immundata_count_col }} := 0)
-  }
-
-  #
-  # 3) Case 3: single-cell data - barcodes, no counts
-  #
-  else if (!is.null(barcode_col) && is.null(count_col)) {
-    raw_dataset <- raw_dataset |>
-      mutate({{ immundata_barcode_col }} := !!rlang::sym(barcode_col))
-
-    receptor_data <- raw_dataset |>
-      summarise(.by = all_of(schema)) |>
-      mutate(
-        {{ immundata_receptor_id_col }} := row_number()
-      )
-
-    annotation_data <- receptor_data |>
-      full_join(raw_dataset, by = schema) |>
-      mutate({{ immundata_chain_count }} := 1, {{ immundata_count_col }} := 0)
-  } else {
-    #
-    #  4) Something weird is happening...
-    #
-    cli_abort("Undefined case: passed column names for both cell identifiers and receptor counts.")
-  }
-
-  cli::cli_alert_success("Receptor data is aggregated and the annotation table is ready")
+  cli::cli_alert_success("Execution plan for receptor data aggregation and annotation is ready")
 
   #
   # Joining with the metadata table
@@ -330,7 +405,7 @@ read_repertoires <- function(path,
   #
   # ... and load it again so the source will be fast Parquet files
   #
-  idata <- read_immundata(output_folder)
+  idata <- read_immundata(output_folder, verbose = FALSE)
 
   #
   # Create repertoires
@@ -347,10 +422,20 @@ read_repertoires <- function(path,
   final_time <- format(round(Sys.time() - start_time, 2))
   cli_alert_info("Time elapsed: {.emph {final_time}}")
 
+  idata_size <- idata |>
+    count() |>
+    pull("n")
+
   cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
 
   if (!is.null(repertoire_schema)) {
     cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
+  }
+
+  if (idata_size == 0) {
+    cli_alert_warning("Loaded ImmunData with zero (!) chains. Possible problems: wrong {.code 'chain'} specification to the receptor schema (e.g., {.code 'TCRB'} instead of {.code 'TRB'}), or preproces/postprocess filters")
+  } else {
+    cli_alert_success("Loaded ImmunData with [{idata_size}] chains")
   }
 
   idata

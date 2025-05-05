@@ -4,7 +4,7 @@
 \alias{filter_immundata}
 \alias{filter_barcodes}
 \alias{filter_receptors}
-\title{Filter ImmunData by Receptor Features or Annotations}
+\title{Filter ImmunData by receptor features, barcodes or any annotations}
 \usage{
 filter_immundata(idata, ..., seq_options = NULL, keep_repertoires = TRUE)
 
@@ -13,30 +13,158 @@ filter_barcodes(idata, barcodes, keep_repertoires = TRUE)
 filter_receptors(idata, receptors, keep_repertoires = TRUE)
 }
 \arguments{
-\item{idata}{ImmunData object}
+\item{idata}{An \code{ImmunData} object.}
 
-\item{...}{Regular dplyr‑style filtering expressions (applied first)}
+\item{...}{For \code{filter_immundata}, these are regular \code{dplyr}-style filtering
+expressions (e.g., \code{V_gene == "IGHV1-1"}, \code{chain == "IGH"}) applied to the
+\verb{$annotations} table \emph{before} sequence filtering. Ignored by \code{filter_barcodes}
+and \code{filter_receptors}.}
 
-\item{seq_options}{Optional named list with (any subset of)
+\item{seq_options}{For \code{filter_immundata}, an optional named list specifying sequence-based
+filtering options. Use \code{\link[=make_seq_options]{make_seq_options()}} for convenient creation.
+The list can contain:
 \itemize{
-\item \code{query_col} – column to compare (character, length 1)
-\item \code{patterns}  – character vector of sequences / regexes
-\item \code{method}    – \code{"exact"} | \code{"regex"} | \code{"lev"} | \code{"hamm"}
-\item \code{max_dist}  – numeric; for fuzzy methods, keep rows ≤ \code{max_dist}
-\item \code{name_type} – \code{"index"} | \code{"pattern"} (passed through)
-If \code{seq_options} is \code{NULL} no sequence filtering is done. Use \code{\link[=make_seq_options]{make_seq_options()}} for convenience.
+\item \code{query_col} (Character scalar): The name of the column in \verb{$annotations}
+containing sequences to compare (e.g., \code{"CDR3_aa"}, \code{"FR1_nt"}).
+\item \code{patterns} (Character vector): A vector of sequences or regular expressions
+to match against \code{query_col}.
+\item \code{method} (Character scalar): The matching method. One of \code{"exact"},
+\code{"regex"}, \code{"lev"} (Levenshtein distance), or \code{"hamm"} (Hamming distance).
+Defaults typically handled by \code{make_seq_options}.
+\item \code{max_dist} (Numeric scalar): For fuzzy methods (\code{"lev"}, \code{"hamm"}), the
+maximum allowed distance. Rows with distance <= \code{max_dist} are kept.
+Defaults typically handled by \code{make_seq_options}.
+\item \code{name_type} (Character scalar): Determines column names in intermediate distance
+calculations if applicable (\code{"index"} or \code{"pattern"}). Passed through to
+internal annotation functions. Defaults typically handled by \code{make_seq_options}.
+If \code{seq_options} is \code{NULL} (the default), no sequence-based filtering is performed.
 }}
 
-\item{receptors}{Vector of receptor identifiers to filter by.}
+\item{keep_repertoires}{Logical scalar. If \code{TRUE} (the default) and the input
+\code{idata} has repertoire information (\code{idata$schema_repertoire} is not \code{NULL}),
+the repertoire summaries will be recalculated based on the filtered data using
+\code{\link[=agg_repertoires]{agg_repertoires()}}. If \code{FALSE}, or if no repertoire schema exists, the
+returned \code{ImmunData} object will not contain repertoire summaries (\verb{$repertoires}
+will be \code{NULL}).}
 
-\item{cells}{Vector of cell identifiers or barcodes to filter by.}
+\item{barcodes}{For \code{filter_barcodes}, a vector of cell identifiers (barcodes)
+to keep. Can be character, integer, or numeric.}
+
+\item{receptors}{For \code{filter_receptors}, a vector of receptor identifiers
+to keep. Can be character, integer, or numeric.}
 }
 \value{
-New ImmunData object with both receptors and annotations filtered.
+A new \code{ImmunData} object containing only the filtered annotations
+(and potentially recalculated repertoire summaries). The schema remains the same.
 }
 \description{
-Filter an \code{ImmunData} object by receptor features or annotations, supporting exact, Levenshtein,
-Hamming, or regular-expression matching on a specified column with sequences, e.g., CDR3 or FR1. User-provided filters
-(\code{...}) are applied before any patterns-based matching.
+Provides flexible filtering options for an \code{ImmunData} object.
+
+\code{filter_immundata()} is the main function, allowing filtering based on receptor features
+(e.g., CDR3 sequence) using various matching methods (exact, regex, fuzzy) and/or
+standard \code{dplyr}-style filtering on annotation columns.
+
+\code{filter_barcodes()} is a convenience function to filter by specific cell barcodes.
+
+\code{filter_receptors()} is a convenience function to filter by specific receptor identifiers.
+}
+\details{
+For \code{filter_immundata}:
+\itemize{
+\item User-provided \code{dplyr}-style filters (\code{...}) are applied \emph{before} any sequence-based
+filtering defined in \code{seq_options}.
+\item Sequence filtering compares values in the \code{query_col} of the annotations table
+against the provided \code{patterns}.
+\item Supported sequence matching methods are:
+\itemize{
+\item \code{"exact"}: Keeps rows where \code{query_col} exactly matches any of the \code{patterns}.
+\item \code{"regex"}: Keeps rows where \code{query_col} matches any of the regular expressions
+in \code{patterns}.
+\item \code{"lev"} (Levenshtein distance): Keeps rows where the edit distance between
+\code{query_col} and any pattern is less than or equal to \code{max_dist}.
+\item \code{"hamm"} (Hamming distance): Keeps rows where the Hamming distance (for
+equal length strings) between \code{query_col} and any pattern is less than
+or equal to \code{max_dist}.
+}
+\item The filtering operations act on the \verb{$annotations} table. A new \code{ImmunData}
+object is created containing only the rows (and corresponding receptors)
+that pass the filter(s).
+\item If \code{keep_repertoires = TRUE} (and repertoire data exists in the input),
+the repertoire-level summaries (\verb{$repertoires} table) are recalculated based
+on the filtered annotations. Otherwise, the \verb{$repertoires} table in the
+output will be \code{NULL}.
+}
+
+For \code{filter_barcodes} and \code{filter_receptors}:
+\itemize{
+\item These functions provide a simpler interface for common filtering tasks based on
+cell barcodes or receptor IDs, respectively. They use efficient \code{semi_join}
+operations internally.
+}
+}
+\examples{
+# Basic setup (assuming idata_test is a valid ImmunData object)
+# print(idata_test)
+
+# --- filter_immundata examples ---
+\dontrun{
+# Example 1: dplyr-style filtering on annotations
+filtered_heavy <- filter_immundata(idata_test, chain == "IGH")
+print(filtered_heavy)
+
+# Example 2: Exact sequence matching on CDR3 amino acid sequence
+cdr3_patterns <- c("CARGLGLVFYGMDVW", "CARDNRGAVAGVFGEAFYW")
+seq_opts_exact <- make_seq_options(query_col = "CDR3_aa", patterns = cdr3_patterns)
+filtered_exact_cdr3 <- filter_immundata(idata_test, seq_options = seq_opts_exact)
+print(filtered_exact_cdr3)
+
+# Example 3: Combining dplyr-style and fuzzy sequence matching (Levenshtein)
+seq_opts_lev <- make_seq_options(
+  query_col = "CDR3_aa",
+  patterns = "CARGLGLVFYGMDVW",
+  method = "lev",
+  max_dist = 1
+)
+filtered_combined <- filter_immundata(idata_test,
+  chain == "IGH",
+  C_gene == "IGHG1",
+  seq_options = seq_opts_lev
+)
+print(filtered_combined)
+
+# Example 4: Regex matching on V gene
+v_gene_pattern <- "^IGHV[13]-" # Keep only IGHV1 or IGHV3 families
+seq_opts_regex <- make_seq_options(
+  query_col = "V_gene",
+  patterns = v_gene_pattern,
+  method = "regex"
+)
+filtered_regex_v <- filter_immundata(idata_test, seq_options = seq_opts_regex)
+print(filtered_regex_v)
+
+# Example 5: Filtering without recalculating repertoires
+filtered_no_rep <- filter_immundata(idata_test, chain == "IGK", keep_repertoires = FALSE)
+print(filtered_no_rep) # $repertoires should be NULL
+}
+
+# --- filter_barcodes example ---
+\dontrun{
+# Assuming 'cell1_barcode' and 'cell5_barcode' exist in idata_test$annotations$cell_id
+specific_barcodes <- c("cell1_barcode", "cell5_barcode")
+filtered_cells <- filter_barcodes(idata_test, barcodes = specific_barcodes)
+print(filtered_cells)
+}
+
+# --- filter_receptors example ---
+\dontrun{
+# Assuming receptor IDs 101 and 205 exist in idata_test$annotations$receptor_id
+specific_receptors <- c(101, 205) # Or character IDs if applicable
+filtered_recs <- filter_receptors(idata_test, receptors = specific_receptors)
+print(filtered_recs)
+}
+
+}
+\seealso{
+\code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[dplyr:filter]{dplyr::filter()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \linkS4class{ImmunData}
 }
 \concept{Filtering}

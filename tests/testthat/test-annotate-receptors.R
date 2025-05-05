@@ -1,5 +1,5 @@
-test_that("annotate_receptors adds receptor‑level annotations", {
-  idata <- get_test_idata()
+testthat::test_that("annotate_receptors adds receptor‑level annotations", {
+  idata <- get_test_idata_tsv_no_metadata()
   receptor_id_col <- imd_schema()$receptor
 
   recs <- idata$receptors %>%
@@ -7,10 +7,11 @@ test_that("annotate_receptors adds receptor‑level annotations", {
     collect() |> head(5)
 
   ann <- tibble(
-    sequence_id  = recs[[receptor_id_col]],
+    sequence_id = recs[[receptor_id_col]],
     receptor_seq = paste0("ANN_", recs$cdr3_aa),
     annot_field  = paste0("annotation", 1:nrow(recs))
   )
+  colnames(ann) <- c(receptor_id_col, colnames(ann)[2:ncol(ann)])
 
   out <- annotate_receptors(
     idata,
@@ -22,7 +23,7 @@ test_that("annotate_receptors adds receptor‑level annotations", {
     arrange(across(everything()))
   expected_annot <- idata$annotations |>
     collect() |>
-    left_join(ann, by = join_by(imd_receptor_id == sequence_id)) |>
+    left_join(ann, by = join_by(imd_receptor_id == imd_receptor_id)) |>
     arrange(across(everything()))
 
   expect_equal(

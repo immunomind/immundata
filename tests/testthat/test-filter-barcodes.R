@@ -1,7 +1,7 @@
 test_that("filter_barcodes() filters ImmunData by a set of cell barcodes", {
   outdir <- tempdir()
 
-  idata <- get_test_idata()
+  idata <- get_test_idata_tsv_no_metadata()
 
   barcode_col <- imd_schema_sym("barcode")
 
