@@ -1,5 +1,7 @@
 # TODO: Use rlang::.data
-utils::globalVariables(c("dd", "n_cells", "p", "tmp_receptor_cells"))
+utils::globalVariables(c("dd", "n_cells", "p", "tmp_receptor_cells", "temp__reads"))
+
+# TODO: move globals to config file to share between R and Python
 
 #' @title Internal Immundata Global Configuration
 #'
@@ -74,6 +76,18 @@ IMD_GLOBALS <- list(
       )
   ),
   drop_cols = list(
+    universal = c(
+      "v_score", "d_score", "j_score", "stop_codon", "vj_in_frame",
+      "v_sequence_alignment", "d_sequence_alignment", "j_sequence_alignment",
+      "rev_comp", "sequence_alignment", "germline_alignment",
+      "v_cigar", "d_cigar", "j_cigar", "full_length",
+      "is_cell",
+      "contig_id",
+      "raw_clonotype_id",
+      "raw_consensus_id",
+      "high_confidence",
+      "length"
+    ),
     airr = c(
       "v_score", "d_score", "j_score", "stop_codon", "vj_in_frame",
       "v_sequence_alignment", "d_sequence_alignment", "j_sequence_alignment",
@@ -85,7 +99,9 @@ IMD_GLOBALS <- list(
       "is_cell",
       "contig_id",
       "raw_clonotype_id",
-      "raw_consensus_id"
+      "raw_consensus_id",
+      "high_confidence",
+      "length"
     )
   ),
   agg_schema = list(
@@ -172,4 +188,16 @@ imd_repertoire_schema <- function(format = "airr") {
   checkmate::assert_choice(format, c("airr"))
 
   IMD_GLOBALS$agg_schema$repertoires[[format]]
+}
+
+#' @rdname imd_schema
+#' @export
+imd_receptor_features <- function(schema) {
+  schema[["features"]]
+}
+
+#' @rdname imd_schema
+#' @export
+imd_receptor_chains <- function(schema) {
+  schema[["chains"]]
 }
