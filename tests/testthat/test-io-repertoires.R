@@ -7,10 +7,10 @@ test_that("read_repertoires() fails if path doesn't exist", {
 
 test_that("read_repertoires() works with sample data and merges metadata", {
   # Load example data shipped with your package
-  md_path <- system.file("extdata", "metadata_samples.tsv", package = "immundata")
+  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
   sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
+    system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
+    system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
   )
 
   # This function presumably reads the metadata file
@@ -39,7 +39,7 @@ test_that("read_repertoires() works with sample data and merges metadata", {
 
 test_that("read_repertoires() works with <metadata>", {
   # Load example data shipped with your package
-  md_path <- system.file("extdata", "metadata_samples.tsv", package = "immundata")
+  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
 
   # This function presumably reads the metadata file
   # (If you have a 'read_metadata()' or 'load_metadata()' function.)
@@ -68,7 +68,7 @@ test_that("read_repertoires() works with <metadata>", {
 test_that("read_repertoires() case 1: no barcode_col and no count_col", {
   # Provide test data that doesn't have barcodes or counts
   # e.g. a minimal TSV with just 'cdr3_aa' and 'v_call'
-  small_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
+  small_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
   # Create a fresh temp folder
   outdir <- file.path(tempdir(), "test-no-barcodes")
@@ -93,7 +93,7 @@ test_that("read_repertoires() case 1: no barcode_col and no count_col", {
 
 test_that("read_repertoires() errors when both barcode_col and count_col are set", {
   # Provide minimal data but pass both arguments to see if it triggers the expected error
-  sample_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
   expect_error(
     read_repertoires(
@@ -107,7 +107,7 @@ test_that("read_repertoires() errors when both barcode_col and count_col are set
 })
 
 test_that("read_repertoires() excludes specified columns", {
-  sample_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
   exclude_cols <- c("sequence", "fwr1", "cdr1")
 
   imdata <- read_repertoires(
@@ -132,7 +132,7 @@ test_that("read_repertoires() excludes specified columns", {
 })
 
 test_that("read_repertoires() correctly renames columns (v_call -> v_gene)", {
-  sample_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
   # We assume the file actually contains 'v_call'
   # We'll rename 'v_call' to 'v_gene'
@@ -159,7 +159,7 @@ test_that("read_repertoires() correctly renames columns (v_call -> v_gene)", {
 })
 
 test_that("read_repertoires() excludes columns AND renames simultaneously", {
-  sample_file <- system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
+  sample_file <- system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
 
   # Suppose the data has columns "j_call" and we want to rename it to "j_gene"
   rename_map <- c("j_gene" = "j_call")
@@ -198,7 +198,7 @@ test_that("read_repertoires() excludes columns AND renames simultaneously", {
 
 test_that("read_repertoires() fails if missing columns in the receptor schema", {
   # Provide a sample input file known to have certain columns (like "cdr3_aa" and "v_call").
-  sample_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
   # We intentionally add a column ("some_missing_col") that doesn't exist in the file
   bad_schema <- c("cdr3_aa", "v_call", "some_missing_col")

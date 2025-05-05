@@ -1,20 +1,12 @@
 # 4. Hamming fuzzy matching
 test_that("Hamming fuzzy matching returns correct results", {
-  sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
-  )
-  idata <- read_repertoires(
-    path = sample_files,
-    schema = c("cdr3_aa", "v_call"),
-    output_folder = tempdir()
-  )
+  idata <- get_test_idata_tsv_no_metadata()
   all_receptors <- idata$receptors %>% collect()
 
   orig <- all_receptors$cdr3_aa[1]
   pat <- paste0("X", substring(orig, 2))
   maxd <- 1
-  out_receptors <- filter(
+  out_receptors <- filter_immundata(
     idata,
     seq_options = make_seq_options(
       query_col = "cdr3_aa",

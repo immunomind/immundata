@@ -1,24 +1,10 @@
 test_that("filter() filters ImmunData by receptor-level conditions", {
-  outdir <- tempdir()
-
-  md_path <- system.file("extdata", "metadata_samples.tsv", package = "immundata")
-  metadata_df <- read_metadata(md_path)
-
-  sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
-  )
-  idata <- read_repertoires(
-    path = sample_files,
-    schema = c("cdr3_aa", "v_call"),
-    metadata = metadata_df,
-    output_folder = outdir
-  )
+  idata <- get_test_idata_tsv_with_metadata()
 
   # Sanity check
   checkmate::expect_r6(idata, "ImmunData")
 
-  idata_filtered <- filter(idata, v_call == "TRBV7-9*01")
+  idata_filtered <- filter_immundata(idata, v_call == "TRBV7-9*01")
   checkmate::expect_r6(idata_filtered, "ImmunData")
 
   v_vals <- idata_filtered$receptors %>%
@@ -31,18 +17,11 @@ test_that("filter() filters ImmunData by receptor-level conditions", {
 })
 
 test_that("filter() filters ImmunData by annotation-level conditions (locus)", {
-  outdir <- tempdir()
-
-  sample_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
-  idata <- read_repertoires(
-    path = sample_file,
-    schema = c("cdr3_aa", "v_call"),
-    output_folder = outdir
-  )
+  idata <- get_test_idata_tsv_no_metadata()
 
   # Let's say the annotation table has a column "locus" (common in TCR/BCR data)
   # We'll filter to "TRB". Adjust to an actual locus present in your data
-  filtered <- filter(idata, locus == "TCRB")
+  filtered <- filter_immundata(idata, locus == "TCRB")
   checkmate::expect_r6(filtered, classes = "ImmunData")
 
   # Confirm all `locus` values in annotations are "TRB"

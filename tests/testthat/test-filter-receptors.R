@@ -1,12 +1,6 @@
 test_that("filter_receptors() filters ImmunData by a set of receptor identifiers", {
-  outdir <- tempdir()
 
-  sample_file <- system.file("extdata", "sample_0_1k.tsv", package = "immundata")
-  idata <- read_repertoires(
-    path = sample_file,
-    schema = c("cdr3_aa", "v_call"),
-    output_folder = outdir
-  )
+  idata <- get_test_idata_tsv_no_metadata()
 
   all_receptors <- idata$annotations %>%
     distinct(imd_receptor_id) %>%

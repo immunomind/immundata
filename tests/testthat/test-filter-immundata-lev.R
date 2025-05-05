@@ -1,19 +1,11 @@
 # 3. Levenshtein fuzzy matching
 testthat::test_that("Levenshtein fuzzy matching returns correct results", {
-  sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
-  )
-  idata <- read_repertoires(
-    path = sample_files,
-    schema = c("cdr3_aa", "v_call"),
-    output_folder = tempdir()
-  )
+  idata <- get_test_idata_tsv_no_metadata()
   all_receptors <- idata$receptors |> collect()
 
   pat <- substr(all_receptors$cdr3_aa[1:3], 1, nchar(all_receptors$cdr3_aa[1:3]) - 1)
   maxd <- 1
-  out <- filter(
+  out <- filter_immundata(
     idata,
     seq_options = make_seq_options(
       query_col = "cdr3_aa",
@@ -34,21 +26,13 @@ testthat::test_that("Levenshtein fuzzy matching returns correct results", {
 
 # 6. Combined pre-filter and fuzzy matching
 test_that("combined pre-filter and fuzzy matching works correctly", {
-  sample_files <- c(
-    system.file("extdata", "sample_0_1k.tsv", package = "immundata"),
-    system.file("extdata", "sample_1k_2k.tsv", package = "immundata")
-  )
-  idata <- read_repertoires(
-    path = sample_files,
-    schema = c("cdr3_aa", "v_call"),
-    output_folder = tempdir()
-  )
+  idata <- get_test_idata_tsv_no_metadata()
   all_receptors <- idata$receptors |> collect()
 
   vc <- all_receptors$v_call[5]
   pat <- substr(all_receptors$cdr3_aa[5], 1, nchar(all_receptors$cdr3_aa[5]) - 1)
   maxd <- 1
-  out <- filter(
+  out <- filter_immundata(
     idata,
     v_call == vc,
     seq_options = make_seq_options(
