@@ -28,6 +28,13 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 - ⚡ [Quick Start](#-quick-start)
 - 🧬 [Workflow Explained](#-workflow-explained)
 - 💾 [Ingestion](#-ingestion)
+  - [Load AIRR data](#load-airr-data)
+  - [Working with metadata table files](#working-with-metadata-table-files)
+  - [Receptor schema](#receptor-schema)
+  - [Repertoire schema](#repertoire-schema)
+  - [Pre‑ and post‑processing strategies](#pre--and-post‑processing-strategies)
+  - [Managing output & intermediate ImmunData files](#managing-output--intermediate-immundata-files)
+  - [Writing ImmunData objects to disk](#writing-immundata-objects-to-disk)
 - 🛠 [Analysis](#-analysis)
   - [Filtering](#filtering)
   - [Annotations](#annotations)
@@ -162,7 +169,15 @@ list.files("./immundata-quick-start")
 
 Before we go into more details for each of the phase, there are three simple yet essential `immundata` concepts we need to keep in mind, which distinguish `immundata` from all other data frame-based AIRR libraries, and, by extension, affect how you work and even *think* about the data analysis in other packages such as `immunarch` which use `immundata` as a backbone for computations.
 
+
 1. **Data units: chain -> barcode -> receptor**
+
+| Term               | In plain English                                                                                         | How **immundata** represents it                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Chain**          | A single V(D)J transcript (e.g. *TRA* or *IGH*) coming from one read or contig.                          | One row in the raw input; retains `locus`, `cdr3`, `umis`/`reads`. |
+| **Barcode / Cell** | The droplet (10x), spot (Visium) or well a chain was captured in.                                        | Column `imd_barcode`.                                              |
+| **Receptor**       | The biological receptor you analyse: a single chain **or** a paired set (αβ, Heavy‑Light) from one cell. | Table `idata$receptors`; unique ID `imd_receptor_id`.              |
+| **Repertoire**     | A set of receptors grouped by sample, donor, cluster, etc.                                               | Table `idata$repertoires`; unique ID `imd_repertoire_id`; grouping columns you choose.            |
 
   **Chain** One V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). (rearrangement, used "chain" for convenience) - minimally possible data unit, a building block of everything.
   In case of single-chain data, same as barcode. Never changes after ingest; you can always drill back to the exact sequence.
@@ -190,14 +205,16 @@ Before we go into more details for each of the phase, there are three simple yet
 
   Data lineage.
 
-  Data is stored on disk and materialized only if necessary. So your thinking should in pipelines. In other words, creating intermediate ImmunDatas is more than possible but you should cache important results and think like the data will be run as a whole pipeline each time. It may not sound very feasible, but this is almost an only existing solution to make sure we can process large-scale datasets fast. For this, I'm not only providing tutorials on how to do things, but the whole complex `immundata`-related computations are hidden behind the functions. In the ideal world, you don't even know that you work with `immundata` and databases and other immuntability stuff because the analysis functions are coveirng everything for you.
+  Data is stored on disk and materialized only if necessary. So your thinking should in pipelines. In other words, creating intermediate ImmunDatas is more than possible but you should cache important results and think like the data will be run as a whole pipeline each time. It may not sound very feasible, but this is almost an only existing solution to make sure we can process large-scale datasets fast. Imagine if you have 10 Gb of data. If it fits into RAM, then there is no issue with managing it. If it doesn't then you need to save the intermediate steps to disk, caching them for the future computations.
+  
+  For this, I'm not only providing tutorials on how to do things, but the whole complex `immundata`-related computations are and should be hidden behind the functions of the downstream analysis tools. In the ideal world, you don't even know that you work with `immundata` and databases and other immuntability stuff because the analysis functions are coveirng everything for you.
 
 And now, let's dive into how you work with `immundata`.
 
 ### Phase 1: Ingestion
 
 ```
-      --start--
+     -- files --
           │
           ▼
    read_metadata()    ──── Read metadata
@@ -211,14 +228,14 @@ And now, let's dive into how you work with `immundata`.
           │             │      ▼
           │             │  Postprocess
           │             │      ▼
-          │             │  Aggregate repertoires
+          │             │  Aggregate repertoires 1
           │             │      ▼
           │             └─ Write data on disk (*)
           ▼
-   agg_repertoires()  ──── Aggregate repertoires
+   agg_repertoires()  ──── Aggregate repertoires 2
           │
           ▼   
-    --ImmunData--
+   -- ImmunData --
 ```
 
 Steps marked with `(*)` are non-optional.
@@ -229,7 +246,7 @@ Steps marked with `(*)` are non-optional.
   
     This step is optional. You can safely skip it if you don't have per-sample pr per-donor metadata, such as therapy response, HLA, age, etc. But it is highly recommended. See an example of metadata file below in the "Ingestion" section.
 
-2) **Read repertoires:**
+2) **Read repertoire files:**
 
     Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
 
@@ -242,25 +259,59 @@ Steps marked with `(*)` are non-optional.
 4) **Aggregate receptors:**
 
     Collapse by CDR3/V/J (or your schema) by passing a receptor schema to `read_repertoires()`.
+    
+3) **Postprocess:**
 
-5) **Aggregate repertoires:**
+  ...
+
+5) **Aggregate repertoires 1:**
 
     Group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function.
 
     Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
+    
+3) **Write data on disk:**
+
+  ...
+  
+5) **Aggregate repertoires 2:**
+
+  ...
 
 ### Phase 2: Analysis
 
 ```
-Import annotations
-  → Aggregate repertoires
-    → Filter
-      → Compute
-        → Annotate
-          → Export annotations
+┌─ AnnData / Seurat / TCRdist ─┐
+└─ seur@meta.data / adata.obs ─┘
+            │
+            ▼
+   annotate_immundata()   ──── Import external annotations to ImmunData
+            │
+            ▼ 
+     agg_repertoires()    ──── Aggregate repertoires
+            │
+            ▼ 
+    filter_immundata()    ──── Filter receptors or repertoires
+            │
+            ▼ 
+    mutate_immundata()    ──── Compute statistics or transform ImmunData
+            │
+            ├───► save / plot 1
+            │
+            ▼ 
+   annotate_immundata()   ──── Annotate ImmunData with the computed statistics
+            │
+            ├───► save / plot 2
+            │
+            ▼
+ seur@meta.data[:] <- ... ──── Export ImmunData annotations
+     adata.obs = ...
+            │
+            ▼
+-- AnnData / Seurat / files --
 ```
 
-1) **Import annotations:**
+1) **Import external annotations to ImmunData:**
 
     `annotate_cells` from the single-cell data
 
@@ -268,11 +319,11 @@ Import annotations
 
     Optionally aggregate to repertoires, potentially using the newly annotate data.
 
-3) **Filter:**
+3) **Filter receptors or repertoires:**
 
     `filter_immundata` gets you identifiers of interest and their corresponding receptor features, potentially using the annotation from the previous step
 
-4) **Compute:**
+4) **Compute statistics or transform ImmunData:**
 
     On this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
 
@@ -281,12 +332,20 @@ Import annotations
     2)  simply mutate on the whole dataset using `dplyr` syntax, like compute the number of cells or whatever
 
     3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`. See the [🧠 Advanced Topics](#-advanced-topics) for more details.
+    
+4) **save / plot 1:**
 
-5)  **Annotate:**
+  ...
+
+5)  **Annotate ImmunData with the computed statistics:**
 
     `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
 
-6)  **Export:**
+4) **save / plot 2:**
+
+  ...
+
+6)  **Export ImmunData annotations:**
 
     `write_annotations` optionally, writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
 
@@ -294,7 +353,7 @@ Import annotations
 
 ## 💾 Ingestion
 
-### Load AIRR data into `immundata`
+### Load AIRR data
 
 `immundata` provides a flexible system for loading immune receptor repertoire files from different sources -- CSV, TSV and Parquet files, possibly gzipped, with some optionality. The main function for this is `read_repertoires()`. Below are four ways to pass your file paths and one for convering data from existing `immunarch pre-1.0` list objects with `$data` and `$meta`.
 
@@ -413,17 +472,105 @@ Import annotations
 
 ### Receptor schema
 
-#### Single-chain schema
+`immundata` lets you decide what a receptor means for your study by specifying:
 
+- Feature columns - which fields make a receptor unique. Usually it is "cdr3_aa" and "v_call" columns.
 
-#### Paired-chain schema
+- Chains to keep / pair - e.g. TRA only or a pair TRA + TRB.
 
+If you have only feature columns, you can usually pass the character vector with columns to functions. In a more advanced case with multiple chain data, `immundata` provides a helper function `make_receptor_schema` for building schemas:
 
- 
+```r
+schema <- make_receptor_schema(
+  features = c("cdr3_aa", "v_call"),
+  chains   = c("TRA", "TRB")
+)
+```
+
+#### Chain-agnostic
+
+Used for bulk or pre-filtered immune repertoire data. No filtering by chain data such as TRA or TRB. Each unique combination of features in the schema vector is assigned a unique receptor identifier and counts as a receptor. In the example below, the receptor features are "cdr3_aa" and "v_call" columns - CDR3 amino acid sequence and V gene segment columns respectively.
+
+```r
+library(immundata)
+      
+inp_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+
+schema <- c("cdr3_aa", "v_call")
+      
+idata <- read_repertoires(
+  path   = inp_file,
+  schema = schema
+)
+      
+print(idata)
+```
+
+#### Single-chain
+
+Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.
+
+```r
+library(immundata)
+      
+inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
+
+schema <- make_receptor_schema(
+  features = c("cdr3", "v_call"),
+  chains   = "TRA"
+)
+
+idata <- read_repertoires(
+  path        = inp_file,
+  schema      = schema,
+  barcode_col = "barcode",
+  locus_col   = "locus",
+  preprocess  = make_default_preprocessing("10x")
+)
+
+print(idata)
+```
+
+#### Paired-chain
+
+When you want full αβ (or heavy‑light) receptors, immundata can pair two chains that originate from the same barcode and keep, for each locus, the chain with the highest UMI/reads. A single unique receptor identifier is then assigned to the pair. The data is pre-filtered to loci in target chains. Within each barcode×locus the the chain with max umis or reads is selected. Barcodes lacking either chain are dropped from the receptor table.
+
+```r
+library(immundata)
+
+inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
+
+schema <- make_receptor_schema(
+  features = c("cdr3", "v_call"),
+  chains   = c("TRA", "TRB")
+)
+
+idata <- read_repertoires(
+  path        = inp_file,
+  schema      = schema,
+  barcode_col = "barcode",         # required for pairing
+  locus_col   = "locus",           # column that says “TRA” / “TRB”
+  umi_col     = "umis",            # choose chain with max UMIs per locus
+  preprocess  = make_default_preprocessing("10x")
+)
+
+print(idata)
+```
+
+### Cheat-sheet for arguments to `read_repertoires`
+
+| Situation                                | `barcode_col` | `locus_col` | `umi_col` | `chains`         |
+| ---------------------------------------- | ------------- | ----------- | --------- | ---------------- |
+| Bulk data, no locus filtering            | no            | no          | no        | omit / `NULL`    |
+| Analyse TRA only                         | optional¹     | **yes**     | no        | `"TRA"`          |
+| Pair TRA+TRB, pick best chain per cell   | **yes**       | **yes**     | **yes**   | `c("TRA","TRB")` |
+
+¹ If you pass barcodes, they’re stored but not used for pairing.
+
 ### Repertoire schema
 
  - [ ] TODO
- 
+
 ### Preprocessing and postprocessing strategies 
 
 -   filtering non productive
@@ -431,7 +578,7 @@ Import annotations
 -   double BCR chains
 -   locus
 
-### Managing the output and intermediate `immundata` files
+### Managing the output and intermediate ImmunData files
 
 By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` if you want to specify the output path.
 

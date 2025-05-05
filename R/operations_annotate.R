@@ -88,11 +88,11 @@
 #' }
 #'
 #' @export
-annotate <- function(idata,
-                     annotations,
-                     by,
-                     keep_repertoires = TRUE,
-                     remove_limit = FALSE) {
+annotate_immundata <- function(idata,
+                               annotations,
+                               by,
+                               keep_repertoires = TRUE,
+                               remove_limit = FALSE) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_data_frame(annotations)
   checkmate::assert_character(by, min.len = 1, names = "named")
@@ -146,7 +146,7 @@ annotate <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname annotate
+#' @rdname annotate_immundata
 #' @export
 annotate_receptors <- function(idata,
                                annotations,
@@ -169,7 +169,7 @@ annotate_receptors <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname annotate
+#' @rdname annotate_immundata
 #' @export
 annotate_barcodes <- function(idata,
                               annotations,
@@ -192,7 +192,7 @@ annotate_barcodes <- function(idata,
 }
 
 #' @concept Annotation
-#' @rdname annotate
+#' @rdname annotate_immundata
 #' @export
 annotate_chains <- function(idata,
                             annotations,
