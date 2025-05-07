@@ -7,7 +7,7 @@ test_that("read_repertoires() fails if path doesn't exist", {
 
 test_that("read_repertoires() works with sample data and merges metadata", {
   # Load example data shipped with your package
-  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
+  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
   sample_files <- c(
     system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
     system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
@@ -39,7 +39,7 @@ test_that("read_repertoires() works with sample data and merges metadata", {
 
 test_that("read_repertoires() works with <metadata>", {
   # Load example data shipped with your package
-  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
+  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
 
   # This function presumably reads the metadata file
   # (If you have a 'read_metadata()' or 'load_metadata()' function.)
