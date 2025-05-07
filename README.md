@@ -179,42 +179,44 @@ Before we go into more details for each of the phase, there are three simple yet
 | **Receptor**       | The biological receptor you analyse: a single chain **or** a paired set (αβ, Heavy‑Light) from one cell. | Table `idata$receptors`; unique ID `imd_receptor_id`.              |
 | **Repertoire**     | A set of receptors grouped by sample, donor, cluster, etc.                                               | Table `idata$repertoires`; unique ID `imd_repertoire_id`; grouping columns you choose.            |
 
-  **Chain** One V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). (rearrangement, used "chain" for convenience) - minimally possible data unit, a building block of everything.
-  In case of single-chain data, same as barcode. Never changes after ingest; you can always drill back to the exact sequence.
-  
-  **Barcode** A physical container that stores zero, one, or many chains.
-  In single‑cell it’s a droplet == cell; in bulk it’s an entire sample file; in spatial it’s a spot.
-  (sometimes equal to cell) - biological unit that "stores" relevant biological data. Inherits any per‑cell / per‑sample metadata you add.
-  
-  **Receptor** - logical unit. A logical grouping of chains that you want to treat as one biological “receptor signature”.
-  Can be: α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
-  Minimal data unit for AIRR statistics.
-  I decided not to use clonotype because it is too broad and hard to understand.
+    **Chain** One V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). (rearrangement, used "chain" for convenience) - minimally possible data unit, a building block of everything.
+    In case of single-chain data, same as barcode. Never changes after ingest; you can always drill back to the exact sequence.
+    
+    **Barcode** A physical container that stores zero, one, or many chains.
+    In single‑cell it’s a droplet == cell; in bulk it’s an entire sample file; in spatial it’s a spot.
+    (sometimes equal to cell) - biological unit that "stores" relevant biological data. Inherits any per‑cell / per‑sample metadata you add.
+    
+    **Receptor** - logical unit. A logical grouping of chains that you want to treat as one biological “receptor signature”.
+    Can be: α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
+    Minimal data unit for AIRR statistics.
+    I decided not to use clonotype because it is too broad and hard to understand.
 
 2. **Aggregation: defining receptors and repertoires**
 
-  The data stored as chains.
-  Biologically-relevant processes are consolidated by barcodes.
-  People think in receptors and repertoires.
-  
-  How do we make it convenient in practical sense?
-  
-  Data lineage is crucial for full reproducibility - and this is related to the next point.
+    The data stored as chains.
+    Biologically-relevant processes are consolidated by barcodes.
+    People think in receptors and repertoires.
+    
+    How do we make it convenient in practical sense?
+    
+    Data lineage is crucial for full reproducibility - and this is related to the next point.
   
 3. **Pipeline-based execution: immutability and materialization**
 
-  Data lineage.
-
-  Data is stored on disk and materialized only if necessary. So your thinking should in pipelines. In other words, creating intermediate ImmunDatas is more than possible but you should cache important results and think like the data will be run as a whole pipeline each time. It may not sound very feasible, but this is almost an only existing solution to make sure we can process large-scale datasets fast. Imagine if you have 10 Gb of data. If it fits into RAM, then there is no issue with managing it. If it doesn't then you need to save the intermediate steps to disk, caching them for the future computations.
+    Data lineage.
   
-  For this, I'm not only providing tutorials on how to do things, but the whole complex `immundata`-related computations are and should be hidden behind the functions of the downstream analysis tools. In the ideal world, you don't even know that you work with `immundata` and databases and other immuntability stuff because the analysis functions are coveirng everything for you.
+    Data is stored on disk and materialized only if necessary. So your thinking should in pipelines. In other words, creating intermediate ImmunDatas is more than possible but you should cache important results and think like the data will be run as a whole pipeline each time. It may not sound very feasible, but this is almost an only existing solution to make sure we can process large-scale datasets fast. Imagine if you have 10 Gb of data. If it fits into RAM, then there is no issue with managing it. If it doesn't then you need to save the intermediate steps to disk, caching them for the future computations.
+    
+    For this, I'm not only providing tutorials on how to do things, but the whole complex `immundata`-related computations are and should be hidden behind the functions of the downstream analysis tools. In the ideal world, you don't even know that you work with `immundata` and databases and other immuntability stuff because the analysis functions are coveirng everything for you.
 
 And now, let's dive into how you work with `immundata`.
 
 ### Phase 1: Ingestion
 
 ```
-     -- files --
+      ┌───────┐
+      │ files │
+      └───────┘
           │
           ▼
    read_metadata()    ──── Read metadata
@@ -234,8 +236,10 @@ And now, let's dive into how you work with `immundata`.
           ▼
    agg_repertoires()  ──── Aggregate repertoires 2
           │
-          ▼   
-   -- ImmunData --
+          ▼
+    ┌───────────┐
+    │ ImmunData │
+    └───────────┘
 ```
 
 Steps marked with `(*)` are non-optional.
@@ -281,34 +285,40 @@ Steps marked with `(*)` are non-optional.
 ### Phase 2: Analysis
 
 ```
-┌─ AnnData / Seurat / TCRdist ─┐
-└─ seur@meta.data / adata.obs ─┘
+      ┌───────────┐       ┌────────────────────────────┐
+      │ ImmunData │       │ AnnData / Seurat / TCRdist │
+      └───────────┘       │ seur@meta.data / adata.obs │
+            │             └────────────────────────────┘
+            │                             │
+            ├─────────────────────────────┘
             │
             ▼
-   annotate_immundata()   ──── Import external annotations to ImmunData
+   annotate_immundata()    ──── Import external annotations to ImmunData
             │
             ▼ 
-     agg_repertoires()    ──── Aggregate repertoires
+     agg_repertoires()     ──── Aggregate repertoires
             │
             ▼ 
-    filter_immundata()    ──── Filter receptors or repertoires
+    filter_immundata()     ──── Filter receptors or repertoires
             │
             ▼ 
-    mutate_immundata()    ──── Compute statistics or transform ImmunData
+    mutate_immundata()     ──── Compute statistics or transform ImmunData
             │
-            ├───► save / plot 1
-            │
+            │     ┌───────────────┐
+            ├────►│ save / plot 1 │
+            │     └───────────────┘
             ▼ 
-   annotate_immundata()   ──── Annotate ImmunData with the computed statistics
+   annotate_immundata()    ──── Annotate ImmunData with the computed statistics
             │
-            ├───► save / plot 2
+            │     ┌───────────────┐
+            ├────►│ save / plot 2 │
+            │     └───────────────┘
             │
             ▼
- seur@meta.data[:] <- ... ──── Export ImmunData annotations
-     adata.obs = ...
-            │
-            ▼
--- AnnData / Seurat / files --
+┌────────────────────────┐
+│seur@meta.data[:] <- ...│ ──── Export ImmunData annotations
+│    adata.obs = ...     │
+└────────────────────────┘
 ```
 
 1) **Import external annotations to ImmunData:**
@@ -347,7 +357,7 @@ Steps marked with `(*)` are non-optional.
 
 6)  **Export ImmunData annotations:**
 
-    `write_annotations` optionally, writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
+    Writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
 
 ---
 
@@ -440,9 +450,19 @@ Steps marked with `(*)` are non-optional.
       md_table <- read_metadata(md_path)
       
       print(md_table)
+      ```
+      
+      ```
       # The column "File" stores the file paths. If you have a different column name
       # for files, use the `metadata_file_col = "<your column name>"` argument.
+      # A tibble: 2 × 5
+        File                       Therapy Response Prefix filename
+        <chr>                      <chr>   <chr>    <chr>  <chr>   
+      1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
+      2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
+      ```
       
+      ```r
       idata <- read_repertoires(
         path     = "<metadata>",
         metadata = md_table,
@@ -462,21 +482,62 @@ Steps marked with `(*)` are non-optional.
   
       Pass `immunarch` data lists to `from_immunarch()` to create `ImmunData` objects.
   
-      - [ ] ToDo
+      ```r
+      library(immundata)
+      # Install old immunarch:
+      # pak::pkg_install("immunomind/immunarch@0.9.1")
+      data(immdata, package = "immunarch")
+      
+      idata <- from_immunarch(
+        imm = immdata, 
+        schema = c("CDR3.aa", "V.name"), 
+        output_folder = "./immdata-test")
+        
+      print(idata)
+      ```
 
 ### Working with metadata table files
 
- - [ ] `read_metadata`
- 
- Example of metadata
+    Metadata tables store the sample-level information. When `immundata` loads the metadata, it annotates every receptor from a given sample (or file) with the corresponding metadata fields. For example, if a sample has "Therapy" = "CAR‑T", all receptors from that sample receive the same "Therapy" value. You can then aggregate receptors by donor, tissue, or any other field and run your analysis on those repertoires (see the next sections for aggregations).
+
+    ```r
+    library(immundata)
+    
+    md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
+    md_table <- read_metadata(md_path)
+    ```
+    
+    ```
+    Rows: 2 Columns: 4
+    ── Column specification ─────────────────────────────────────────────────────────
+    Delimiter: "\t"
+    chr (4): File, Therapy, Response, Prefix
+    
+    ℹ Use `spec()` to retrieve the full column specification for this data.
+    ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ℹ Found 2/2 repertoire files from the metadata on the disk
+    ✔ Metadata parsed successfully
+    ```
+    
+    ```r
+    print(md_table)
+    ```
+    
+    ```
+    # A tibble: 2 × 5
+      File                       Therapy Response Prefix filename
+      <chr>                      <chr>   <chr>    <chr>  <chr>   
+    1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
+    2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
+    ```
 
 ### Receptor schema
 
 `immundata` lets you decide what a receptor means for your study by specifying:
 
-- Feature columns - which fields make a receptor unique. Usually it is "cdr3_aa" and "v_call" columns.
+ - Feature columns - which fields make a receptor unique. Usually it is "cdr3_aa" and "v_call" columns.
 
-- Chains to keep / pair - e.g. TRA only or a pair TRA + TRB.
+ - Chains to keep / pair - e.g. TRA only or a pair TRA + TRB.
 
 If you have only feature columns, you can usually pass the character vector with columns to functions. In a more advanced case with multiple chain data, `immundata` provides a helper function `make_receptor_schema` for building schemas:
 
@@ -557,7 +618,7 @@ idata <- read_repertoires(
 print(idata)
 ```
 
-### Cheat-sheet for arguments to `read_repertoires`
+#### Cheat-sheet for arguments to `read_repertoires`
 
 | Situation                                | `barcode_col` | `locus_col` | `umi_col` | `chains`         |
 | ---------------------------------------- | ------------- | ----------- | --------- | ---------------- |
@@ -569,7 +630,30 @@ print(idata)
 
 ### Repertoire schema
 
- - [ ] TODO
+To compute repertoire‑level statistics such as gene‑segment usage, the Jaccard coefficient, or the incidence of public receptors, you first need to define a repertoire. In `immundata` a repertoire is simply a group of receptors that share one or more values from annotation columns.
+
+Just like with receptors, you can pass a schema - a character vector of column names - to specify how receptors are grouped into repertoires.
+
+For the bulk data, usually, you rely on the metadata table. It could be useful when you want to aggregate together receptors from the same donor or tissue, and then analyse it. Or you may want to filter out non-responders to analyse the responders only.
+
+- [ ] TODO: get code with some filtering
+
+```r
+```
+
+> [!NOTE]
+> Don't confuse grouping of immune repertoires with grouping in plots.
+> When you define an immune repertoire, all the proportions are recomputed, and each receptor assigned
+> a unique repertoire identifier for faster computations.
+> You create virtual "tables" with immune receptors, and you can work with them separately
+> using filters or mutations, despite that the data is still stored as a huge table with all receptors.
+> When you plot data, you first compute statistics per defined immune repertoire, and then you
+> group it. You can later plot or re‑group the resulting statistics, but the order of operations matters.
+
+The true power of regrouping repertoires opens up when you work with single-cell data.
+
+```r
+```
 
 ### Preprocessing and postprocessing strategies 
 
@@ -580,13 +664,17 @@ print(idata)
 
 ### Managing the output and intermediate ImmunData files
 
-By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` if you want to specify the output path.
+- [ ] TODO
+
+By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` to `read_repertoires` if you want to specify the output path.
 
 ### Writing ImmunData objects on disk
 
-Why - to save intermediate files
+ - [ ] TODO
+ 
+Use `write_immundata` to save ImmunData objects.
 
- - [ ] TODO `write_immundata`
+Why you might need it - to save intermediate files, e.g., after computing levenshtein distance to specific receptors from the database. In that case, you wouldn't need to recompute the distances each time.
 
 ---
 
