@@ -2,12 +2,15 @@
 % Please edit documentation in R/operations_mutate.R
 \name{mutate_immundata}
 \alias{mutate_immundata}
+\alias{mutate.ImmunData}
 \title{Modify or Add Columns to ImmunData Annotations}
 \usage{
 mutate_immundata(idata, ..., seq_options = NULL)
+
+\method{mutate}{ImmunData}(.data, ..., seq_options = NULL)
 }
 \arguments{
-\item{idata}{An \code{ImmunData} object.}
+\item{idata, .data}{An \code{ImmunData} object.}
 
 \item{...}{\code{dplyr::mutate}-style named expressions (e.g., \code{new_col = existing_col * 2},
 \code{category = ifelse(value > 10, "high", "low")}). These are applied first.
@@ -73,12 +76,12 @@ table.
 
 \dontrun{
 # Example 1: Add a simple derived column
-idata_mut1 <- mutate_immundata(idata_test, V_family = substr(V_gene, 1, 5))
+idata_mut1 <- mutate(idata_test, V_family = substr(V_gene, 1, 5))
 print(idata_mut1$annotations)
 
 # Example 2: Add multiple columns and modify one (if 'custom_score' exists)
 # Note: Avoid modifying core schema columns like 'V_gene' itself.
-idata_mut2 <- mutate_immundata(idata_test,
+idata_mut2 <- mutate(idata_test,
   V_basic = gsub("-.*", "", V_gene),
   J_len = nchar(J_gene),
   custom_score = custom_score * 1.1
@@ -93,7 +96,7 @@ seq_opts_exact <- make_seq_options(
   method = "exact",
   name_type = "pattern"
 ) # Name cols by pattern
-idata_mut_exact <- mutate_immundata(idata_test, seq_options = seq_opts_exact)
+idata_mut_exact <- mutate(idata_test, seq_options = seq_opts_exact)
 # Look for new columns like 'sim_exact_CARGLGLVFYGMDVW'
 print(idata_mut_exact$annotations)
 
@@ -104,7 +107,7 @@ seq_opts_lev <- make_seq_options(
   method = "lev",
   name_type = "index"
 ) # Name col like 'dist_lev_1'
-idata_mut_lev <- mutate_immundata(idata_test, seq_options = seq_opts_lev)
+idata_mut_lev <- mutate(idata_test, seq_options = seq_opts_lev)
 # Look for new column 'dist_lev_1' (or similar based on schema)
 print(idata_mut_lev$annotations)
 
@@ -115,12 +118,12 @@ seq_opts_regex <- make_seq_options(
   method = "regex",
   name_type = "pattern"
 )
-idata_mut_combo <- mutate_immundata(idata_test,
+idata_mut_combo <- mutate(idata_test,
   chain_upper = toupper(chain),
   seq_options = seq_opts_regex
 )
 # Look for 'chain_upper' and regex match columns (e.g., 'sim_regex_ighv1')
-print(idata_mut_combo$annotations)
+print(idata_mut_combo)
 }
 
 }
@@ -128,6 +131,4 @@ print(idata_mut_combo$annotations)
 \code{\link[dplyr:mutate]{dplyr::mutate()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=filter_immundata]{filter_immundata()}}, \linkS4class{ImmunData},
 \code{vignette("immundata-classes", package = "immunarch")} (replace with actual package name if different)
 }
-\concept{Annotation}
-\concept{Data manipulation}
-\concept{Data manipulation functions}
+\concept{Mutation}

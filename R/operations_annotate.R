@@ -87,6 +87,7 @@
 #' )
 #' }
 #'
+#' @rdname annotate_immundata
 #' @export
 annotate_immundata <- function(idata,
                                annotations,
@@ -130,7 +131,7 @@ annotate_immundata <- function(idata,
   ann_tbl <- ann_tbl |>
     rename(all_of(by))
 
-  new_annotations <- idata$annotations %>%
+  new_annotations <- idata$annotations |>
     left_join(ann_tbl, by = names(by))
 
   new_idata <- ImmunData$new(
@@ -144,6 +145,11 @@ annotate_immundata <- function(idata,
     new_idata
   }
 }
+
+#' @concept Annotation
+#' @rdname annotate_immundata
+#' @export
+annotate <- annotate_immundata
 
 #' @concept Annotation
 #' @rdname annotate_immundata

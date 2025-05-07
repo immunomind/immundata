@@ -11,7 +11,7 @@ get_test_idata_tsv_no_metadata <- function(schema = c("cdr3_aa", "v_call")) {
 }
 
 get_test_idata_tsv_with_metadata <- function(schema = c("cdr3_aa", "v_call")) {
-  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
+  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
   md <- read_metadata(md_path)
 
   sample_files <- c(

@@ -1,10 +1,14 @@
 #' @title Count the number of chains in ImmunData
 #'
-#' @param idata ImmunData object.
+#' @param x ImmunData object.
+#' @param ... Not used.
+#' @param wt Not used.
+#' @param sort Not used.
+#' @param name Not used.
 #'
 #' @exportS3Method dplyr::count
-count.ImmunData <- function(idata) {
-  checkmate::check_r6(idata, "ImmunData")
+count.ImmunData <- function(x, ..., wt = NULL, sort = FALSE, name = NULL) {
+  checkmate::check_r6(x, "ImmunData")
 
-  idata$annotations |> count()
+  x$annotations |> count()
 }
