@@ -46,6 +46,7 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
   - [Pre‑ and post‑processing strategies](#pre--and-post‑processing-strategies)
   - [Managing output & intermediate ImmunData files](#managing-output--intermediate-immundata-files)
   - [Writing ImmunData objects to disk](#writing-immundata-objects-to-disk)
+- 🧿 [ImmunData Object](#-immundata-object)
 - 🛠 [Analysis](#-analysis)
   - [Filter](#filter)
   - [Annotate](#annotate)
@@ -653,7 +654,7 @@ Cheat-sheet for arguments to `read_repertoires`:
 
 To compute repertoire‑level statistics such as gene‑segment usage, the Jaccard coefficient, or the incidence of public receptors, you first need to define a repertoire. In `immundata` a repertoire is simply a group of receptors that share one or more values from annotation columns.
 
-Just like with receptors, you can pass a schema - a character vector of column names - to specify how receptors are grouped into repertoires.
+Just like with receptors, you can pass a schema – a character vector of column names – to specify how receptors are grouped into repertoires.
 
 For the bulk data, usually, you rely on the metadata table. It could be useful when you want to aggregate together receptors from the same donor or tissue, and then analyse it. Or you may want to filter out non-responders to analyse the responders only.
 
@@ -732,9 +733,115 @@ Why you might need it - to save intermediate files, e.g., after computing levens
 
 ---
 
+## 🧿 ImmunData Object
+
+`ImmunData` object is a self-describing container that holds your immune repertoire dataset. `ImmunData` objects has several slots accessible via `<object>$<slot>`:
+
+- `ImmunData$receptors` – a virtual table created on demand from `$annotations`. One row per receptor as defined by your `$schema_receptor`; guaranteed to have the stable key `imd_receptor_id`. This is the aggregated view into your dataset, meaning that all fields from receptor features (cdr3, v_call) are unique with respect to row, i.e., each row is unique.
+
+- `ImmunData$annotations` – the main table that holds all the data. One row per chain (or per cell barcode in case of single-chained data). Holds every AIRR field (cdr3, v_call, umis, etc.) plus any metadata you imported (sample_id, tissue, distances to patterns).
+
+- `ImmunData$repertoires` – a physical table produced by agg_repertoires(). Each row is a repertoire (sample, donor, cluster) and carries pre-computed counts: number of receptors, barcodes, chains.
+
+- `ImmunData$schema_receptor` – the recipe that says how to collapse chains into receptors: which features make them identical (e.g. cdr3_aa, v_call) and which loci must pair (e.g. α+β, heavy+light, single-chain).
+
+- `ImmunData$schema_repertoire` – the grouping keys used to bundle receptors into repertoires (e.g. sample_id, donor_id, time_point, etc.). Lets you define multiple biological layers inside one dataset (e.g. patient level vs. patient × cluster level) and switch between them.
+
+You should not and you can not change those slots directly. Being a self-describing container is a harsh life, full of dangers and unwanted adventures, and it requires a constant re-evaluation of what goes there and why. `immundata` functions do that internally.
+
+Every transformation returns a new `ImmunData`, so you can stash (not trash) intermediate versions on disk and reproduce any branch of the analysis.
+
+Example:
+
+```r
+library(immundata)
+      
+inp_files <- paste0(system.file("extdata/single_cell", "", package = "immundata"), "/*.csv.gz")
+md_file <- system.file("extdata/single_cell", "metadata.tsv", package = "immundata")
+md_table <- read_metadata(md_file)
+cells_file <- system.file("extdata/single_cell", "cells.tsv.gz", package = "immundata")
+cells <- readr::read_tsv(cells_file)
+
+schema <- make_receptor_schema(features = c("cdr3", "v_call"), chains = c("TRB"))
+
+idata <- read_repertoires(path = inp_files, schema = schema, metadata = md_table, barcode_col = "barcode", locus_col = "locus", umi_col = "umis", preprocess = make_default_preprocessing("10x"), repertoire_schema = "Tissue")
+
+print(idata)
+```
+
+Printed ImmunData `idata`:
+
+```
+── ImmunData ───────────────────────────────────────────────────────────────────────────────────────────
+
+── Receptors: ──
+
+# A duckplyr data frame: 3 variables
+   imd_receptor_id cdr3               v_call  
+             <int> <chr>              <chr>   
+ 1            2514 CASSVHPQYF         TRBV2   
+ 2            7687 CAWSGQGWGGSTDTQYF  TRBV30  
+ 3            2515 CASSPRPGSTGELFF    TRBV18  
+ 4            5111 CASSQGLGVSYEQYF    TRBV4-1 
+ 5            7688 CASSHGQGRTGELFF    TRBV7-2 
+ 6            7689 CASGLRRGRDSGANVLTF TRBV19  
+ 7            2516 CSAHRGLGNQPQHF     TRBV20-1
+ 8            5112 CASSPQGVSNQPQHF    TRBV7-2 
+ 9               1 CASSSVSGNSPLHF     TRBV7-9 
+10            5113 CASPLGALTDTQYF     TRBV2   
+# ℹ more rows
+# ℹ Use `print(n = ...)` to see more rows
+
+── Annotations: ──
+
+# A duckplyr data frame: 23 variables
+   barcode   locus v_call d_call j_call c_gene productive cdr3  cdr3_nt reads  umis filename imd_barcode
+   <chr>     <chr> <chr>  <chr>  <chr>  <chr>  <chr>      <chr> <chr>   <dbl> <dbl> <chr>    <chr>      
+ 1 AAACCTGA… TRB   TRBV2  None   TRBJ2… TRBC2  True       CASS… TGTGCC… 13736    11 /Users/… LB6_AAACCT…
+ 2 AAACCTGC… TRB   TRBV30 TRBD1  TRBJ2… TRBC2  True       CAWS… TGTGCC…  4062     5 /Users/… LB6_AAACCT…
+ 3 AAACCTGC… TRB   TRBV18 TRBD2  TRBJ2… TRBC2  True       CASS… TGTGCC…  8617    10 /Users/… LB6_AAACCT…
+ 4 AAACCTGG… TRB   TRBV4… TRBD1  TRBJ2… TRBC2  True       CASS… TGCGCC…  6811     5 /Users/… LB6_AAACCT…
+ 5 AAACCTGG… TRB   TRBV7… TRBD1  TRBJ2… TRBC2  True       CASS… TGTGCC… 16836    15 /Users/… LB6_AAACCT…
+ 6 AAACCTGT… TRB   TRBV19 TRBD2  TRBJ2… TRBC2  True       CASG… TGTGCC…  8805     9 /Users/… LB6_AAACCT…
+ 7 AAACCTGT… TRB   TRBV2… TRBD1  TRBJ1… TRBC1  True       CSAH… TGCAGT…  8311     6 /Users/… LB6_AAACCT…
+ 8 AAACGGGA… TRB   TRBV7… TRBD1  TRBJ1… TRBC1  True       CASS… TGTGCC…  3390     3 /Users/… LB6_AAACGG…
+ 9 AAACGGGA… TRB   TRBV7… TRBD2  TRBJ1… TRBC1  True       CASS… TGTGCC…  4956     4 /Users/… LB6_AAACGG…
+10 AAACGGGA… TRB   TRBV2  TRBD1  TRBJ2… TRBC2  True       CASP… TGTGCC…  5625     4 /Users/… LB6_AAACGG…
+# ℹ more rows
+# ℹ 10 more variables: imd_chain_id <int>, imd_receptor_id <int>, imd_n_chains <dbl>, File <chr>,
+#   Tissue <chr>, Prefix <chr>, imd_count <dbl>, imd_repertoire_id <int>, imd_proportion <dbl>,
+#   n_repertoires <int>
+# ℹ Use `print(n = ...)` to see more rows
+
+── Receptor schema: ──
+
+features:
+→ cdr3
+→ v_call
+chains:
+→ TRB
+
+
+── Repertoire schema: ──
+
+→ Tissue
+                     
+
+── List of repertoires: ──
+
+# A tibble: 3 × 4
+  imd_repertoire_id Tissue n_barcodes n_receptors
+              <int> <chr>       <dbl>       <int>
+1                 1 Blood        4085        3976
+2                 2 Normal       6797        2950
+3                 3 Tumor        7832        3962
+```
+
+---
+
 ## 🛠 Analysis
 
-Before running the code in the following section, execute the code below. Mind that for the example purposes, the data uses the TRB locus only. Change the input receptor schema and the column names to adapt it to the paired-chain case.
+Before running the code in the following subsections, execute the code below. Mind that for the example purposes, the data uses the TRB locus only. Change the input receptor schema and the column names to adapt it to the paired-chain case.
 
 ```r
 library(immundata)
@@ -825,19 +932,30 @@ The key functions for this are `mutate` (`dplyr`-compatible) / `mutate_immundata
 
   1. **Add or transform one or several annotation columns**
   
-      ???
+      ```r
+      ```
       
   2. **Add columns with sequence distance to patterns**
   
-      ???
+      ```r
+      ```
 
   3. **Basic repertoire statistics using `immundata`**
-
-      Find receptors from several repertoires or groups which have >2 abundance
+  
+      ```r
+      # Find receptors from several repertoires which have >2 abundance
+      ```
 
   4. **Basic analysis using `immunarch`**
 
-      ???
+      ```r
+      # Install the latest pre-1.0 version of immunarch
+      # pak::pkg_install(immunomind/immunarch)
+      
+      library(immunarch)
+      
+      
+      ```
 
 ---
 
@@ -923,9 +1041,15 @@ For more information see the vignette tutorial:
 
 #### Integrate into your package 
 
+> [!CAUTION]
+> 🚧 Under construction. 🚧
+
 `immundata` is created in mind with the mission of replacing typical data frame-based formats, usually not following the AIRR-C file standard.
 
 #### Extend with functions
+
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 S3 methods etc.
 
@@ -936,13 +1060,12 @@ By design, **`immundata`** data-loading pipeline is **three** steps, rather than
 1.  **(Optionally) Load the metadata** via `read_metadata()`.
     -   This ensures your metadata has the correct file paths, absolute or relative.
 2.  **Load the repertoire files** from disk via `read_repertoires()`.
-    -   This function unifies your data (be it 1 file or 100 files) and **outputs** two Parquet files:
-        -   **`receptors.parquet`** (receptor-level aggregation)
+    -   This function unifies your data (be it 1 file or 100 files) and **outputs** a Parquet file:
         -   **`annotations.parquet`** (cell-level data, sample metadata, etc.)
     -   It then calls `read_immundata()` to return a fully instantiated `ImmunData` object that uses the newly created files on the disk as a source. The helps two-fold: you don't lose your data, and it allows `immundata` to run an optimized code when necessary.
 3.  **(Optionally) Load the same `ImmunData` files later** with `read_immundata()`.
     -   If you need to reopen the data in a future R session, you don't have to redo the entire pipeline.
-    -   Just call `read_immundata(path_to_immundata_folder)` where the folder contains `receptors.parquet` and `annotations.parquet`.
+    -   Just call `read_immundata(path_to_immundata_folder)` where the folder contains `annotations.parquet`.
     -   With this approach, you **never** need to re-parse your raw AIRR files once you've generated the Parquet-based `immundata` format.
 
 Why split it up?
@@ -953,6 +1076,9 @@ Why split it up?
 
 ### Custom functions for analysis
 
+> [!CAUTION]
+> 🚧 Under construction. 🚧
+
 1) Function is supported by `duckdb` - then use `dd$<function_name>`
 
 2) Use SQL
@@ -961,15 +1087,15 @@ Why split it up?
 
 ### Change RAM limits to accelerate the backend computations 
 
-TODO
+You can change the [RAM limits in duckplyr](https://duckplyr.tidyverse.org/articles/large.html#memory-usage).
 
 ### Make `immundata` even faster with data engineering tricks
 
-TODO - resave the data to use hive partitioning + show benchmarks
+You can use [hive partitioning](https://duckdb.org/docs/stable/data/partitioning/hive_partitioning.html) to accelerate analysis. Recommended columns are locus, V gene segment, and sequence length.
 
 ### Save your intermediate data for faster computations and reproducibility 
 
-TODO
+Consider caching your data to disk after heavy operations, such as distance computations.
 
 ---
 
@@ -977,86 +1103,93 @@ TODO
 
 ### Citation 
 
-TODO
+*... coming soon ...*
 
 ### License 
 
-TODO
+[Apache-2.0](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)
 
 ### Author and contributors 
 
-TODO
+**Vadim I. Nazarov – main author and developer**
+
+Vasily Tsvetkov
+
+*... more to come ...*
 
 ### Commercial usage 
 
-`immundata` is free to use for commercial usage. However, corporate users will not get a prioritized support for `immundata`- or AIRR-related issues. The priority of open-source tool `immundata` is open-source science.
+`immundata` is free to use for commercial usage as per Apache-2.0 license. However, corporate users will not get a prioritized support for `immundata`- or AIRR-related issues. The priority of open-source tool `immundata` is open-source science.
 
-If you are looking for prioritized support and setting up your data pipelines, consider contacting Vadim Nazarov for commercial consulting and support options.
-
-Workshops / training sessions / designing data platforms and machine learning systems for multi-omic
+If you are looking for prioritized support and setting up your data pipelines, consider contacting [Vadim Nazarov](https://www.linkedin.com/in/vdnaz/) for commercial consulting / support options / workshops and training sessions / designing data platforms and machine learning systems for multi-omics / or anything related.
 
 ---
 
-## 🤔 FAQ 
+## 🤔 FAQ
 
-1.  **Q: Why all the function names or ImmunData fields are so long? I want to write `imdata$rec` instead of `imdata$receptors`.**
+1.  **Q: Why all the function names or ImmunData fields are so long? I want to write `idata$rec` instead of `idata$receptors`.**
 
-    A: Two major reasons - improving the code readability and motivation to leverage the autocomplete tools.
-
-    Please consider using `tab` for leveraging autocomplete. It accelerates things x10-20.
+    A: Two major reasons – improving the code readability and motivation to leverage the autocomplete tools. Please consider using `tab` for leveraging autocomplete. It accelerates things x10-20.
 
 2.  **Q: How does `immundata` works under the hood, in simpler terms?**
 
-    A: `immundata` uses the fantastic `duckplyr` package
+    A: Picture a three-layer sandwich:
+    
+        - `Arrow` files on disk hold the raw tables in column-compressed Parquet.
 
-    References:
+        - `DuckDB` is an in-process SQL engine that can query those files without loading them fully into RAM.
 
-    -   [duckplyr](https://duckplyr.tidyverse.org/index.html)
+        - `duckplyr` glues `dplyr` verbs (filter, mutate, summarise, …) to DuckDB SQL, so your R code looks exactly like a tidyverse pipeline while the heavy lifting happens in C++.
+
+    When you call `read_repertoires()`, immundata writes `Arrow` parts, registers them with `DuckDB`, and returns a `duckplyr` table. Every later verb is lazily translated into SQL; nothing is materialised until a step truly needs physical data (e.g. a plot or an algorithm that exists only in R).
+
+    References
+    1. [Arrow for R – columnar file format](https://arrow.apache.org/docs/r/)
+    2. [DuckDB – embedded analytical database](https://duckdb.org/)
+    3. [duckplyr – API/implementation details](https://duckplyr.tidyverse.org/index.html)
 
 3.  **Q: Why do you need to create Parquet files with receptors and annotations?**
 
-    A: First of all, you can turn it off. Second, those are intermediate files, optimized for future data operations, and working with them significantly accelerates `immundata`. Take a look at our benchmark page to learn more: `link`
+    A: Those are intermediate files, optimized for future data operations, and working with them significantly accelerates `immundata`. I will post a benchmark soon.
 
 4.  **Q: Why does `immundata` support only the AIRR standard?!**
 
-    A: The practical answer is that `immundata` allows some level of optionality - you can provide column names for barcodes, etc.
+    A: The short answer is because a single, stable schema beats a zoo of drifting ones.
     
-    The short answer is that we have our own standards already.
+    The practical answer is that `immundata` allows some optionality – you can provide column names for barcodes, etc.
     
-    The long answer is that the amount of investments required not only for the devlopment, but also for continued support of parsers for different formats is astounishing. I delopved parsers for 10 formats for tcR / immunarch packages, and I would much prefer for upstream tool developers to not change their format each minor versions, breaking pretty much all downstream pipelines and causing all sorts of pain to end users and tools developers - mind you, without bearing a responsibility to at least notify, but ideally fix the broken formats they introduced. The time of Wild West is over - the AIRR community did an outstanding job creating it's standard. Please urge the creators of your favorite tools or your fellow developers to use this format or a superset of it, like immundata does.
-    
-    Immundata is not and will not support other formats explicitly. This is both a practical stance and communication of crucial values, put into immundata as a part of a broader ecosystem of AIRR tools. The domains is already too complex, and we need to work together to make this complexity manageable.
+    The long answer is that the amount of investments required not only for the development, but also for the continued support of parsers for different formats, is astonishing. I developed parsers for 10+ formats for `tcR` / `immunarch` packages. I would much prefer for upstream tool developers not to change their format each minor version, breaking pretty much all downstream pipelines and causing all sorts of pain to end users and tools developers – mind you, without bearing a responsibility to at least notify, but ideally fix the broken formats they introduced. The time of the Wild West is over. The AIRR community did an outstanding job creating its standard. Please urge the creators of your favourite tools or fellow developers to use this format or a superset, like `immundata` does.
+
+    `immundata` does not and will not explicitly support other formats. This is both a practical stance and communication of crucial values, put into `immundata` as part of a broader ecosystem of AIRR tools. The domain is already too complex, and we need to work together to make this complexity manageable. A healthy ecosystem is not the same as a complex ecosystem.
 
 5.  **Q: Why is it so complex? Why do we need to use `dplyr` instead of plain R?**
 
     A: The short answer is:
 
-    -   faster computations,
-    -   code, that is easy to maintain and support by other humans,
-    -   and better data skills,
-    -   in most cases you don't really need a complexity, so we can optimize the 95% of all AIRR data operations
+    -   faster computations;
+    -   code, that is easy to maintain and support by other humans;
+    -   better data skills thanks to thinking in immutable transformations,
+    -   in most cases you don't really need complex transformations, so we can optimize 95% of all AIRR data operations behind the scenes.
 
-    For the long answer, let me give you more details on each of the bullepoint.
-
-6.  **Q: How do I get to use all operations from `dplyr`? `duckplyr` doesn't support some operations, which I need.**
+6.  **Q: How do I use `dplyr` operations that `duckplyr` doesn't support yet?**
 
     A: Let's consider several use cases.
 
-    **Case 0.** You are missing `group_by` from `dplyr`.
+    **Case 0.** You are missing `group_by` from `dplyr`. Use `summarise(.by = ???, ...)`.
 
-    **Case 1.** Your data can fit into RAM.
+    **Case 1.** Your data can fit into RAM. Call `collect` and use `dplyr`.
 
-    **Case 2.** Your data won't fit into RAM, and you really need to work on all of this data.
+    **Case 2.** Your data won't fit into RAM but you must run a heavy operation on all rows. You can rewrite functions in SQL. You can break it into supported pieces (e.g. pre-filter, pre-aggregate) that DuckDB can stream, write an intermediate Parquet with `compute_parquet()`, then loop over chunks, collect them, and run the analysis.
 
-    **Case 3.** Your data won't fit into RAM, but before running intensive computations, you are open to working with smaller dataset first.
+    **Case 3.** Your data won't fit into RAM, but before running intensive computations, you are open to working with smaller dataset first. Filter down via `slice_head(n=...)`, iterate until the code works, then run the same pipeline on the full dataset.
 
 7.  **Q: You filter out non-productive receptors. How do I explore them?**
 
-    A: option for saving non-productive chains to a separate file
+    A: Do not filter out non-productive receptors in `preprocess` in `read_repertoires()`.
 
 8.  **Q: Why does `immundata` have its own column names for receptors and repertoires? Could you just use the AIRR format - repertoire_id etc.?**
 
-    A: The power of `immundata` lies in the fast re-aggregation of the data, that allows to work with whatever you define as a repertoire on the fly via `ImmunData$build_repertoires(schema = ...)`
+    A: The power of `immundata` lies in the fast re-aggregation of the data, that allows to work with whatever you define as a repertoire on the fly via `agg_repertoires`. Hence I use a superset of the AIRR format, which is totally acceptable as per their documentation.
 
 9.  **Q: What do I do with following error: "Error in `compute_parquet()` at [...]: ! ?***
 
@@ -1090,4 +1223,4 @@ Workshops / training sessions / designing data platforms and machine learning sy
 
 12. **Q: Why the counts for receptors are only available after all the aggregation?**
 
-    A: Because the counts and proportions are properties of specific receptors in specific repretoires. The number of chains is the number of reads for bulk sequencing or just one if the cell barcode information is available. When we aggregate data to receptors and repertoires, only then we can count the number of chains - per receptor - per repertoire.
+    A: Counts and proportions are properties of a receptor inside a specific repertoire. A receptor seen in two samples will be counted twice – once per repertoire. Until receptors and repertoires are defined, any "count" would be ambiguous. That's why the numbers appear only after `agg_receptors()` and `agg_repertoires()` have locked those definitions in.
