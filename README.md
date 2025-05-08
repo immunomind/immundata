@@ -130,7 +130,7 @@ pak::pkg_install("immunomind/immundata-rlang@dev")
 > Interested in specific use cases, e.g., 
 > analyse cell clusters from single-cell data,
 > work with paired-chain data,
-> search for matches in databases with disease-associated TCR and BCR data?
+> search for matches in databases with condition-associated TCR and BCR data?
 > 
 > Take a look at the [🧩 Use Cases section](#-use-cases) below.
 
@@ -196,7 +196,7 @@ Before we go into more details for each of the phase, there are three straightfo
     
     **Barcode** is a physical container that stores zero, one, or many chains. In single‑cell it's a droplet == cell; in bulk it's the same as assembled "clonotype"; in spatial it's a spot. Barcode sometimes equals to cell. It is a biological unit that "stores" relevant biological data and uses for aggregation of same chains and computing counts of same receptors coming from different barcodes. Inherits any per‑cell / per‑sample metadata you add.
     
-    **Receptor** is a logical unit. A logical grouping of chains that you want to treat as one biological receptor. This is a minimal unit for AIRR statistics. There are two components to it: receptor features and receptor chains, alltogether comprising a receptor schema that you define in order to do downstream analysis. Receptor feautres are usually CDR3 amino acid sequences or CDR3 amino acid sequences plus Variable gene segment. Receptor chains can be: single chain, α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
+    **Receptor** is a logical unit. A logical grouping of chains that you want to treat as one biological receptor. This is a minimal unit for AIRR statistics. There are two components to it: receptor features and receptor chains, alltogether comprising a receptor schema that you define in order to do downstream analysis. Receptor features are usually CDR3 amino acid sequences or CDR3 amino acid sequences plus Variable gene segment. Receptor chains can be: single chain, α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
     
     To summarise: chains are how `immundata` stores the information, barcodes bundle chains together, and receptors are the minimal units on which repertoire statistics are computed.
 
@@ -228,7 +228,7 @@ Before we go into more details for each of the phase, there are three straightfo
     
     All of this engineering should stay behind the curtain. Downstream packages that adopt `immundata` as their backbone should expose high-level verbs such as `compute_diversity()` or `plot_overlap()`; the user need not touch `ImmunData`, DuckDB, or Parquet. In the ideal scenario they never learn that an on-disk database powers their workflow – and they never have to.
     
-    Leave the data engineering to the data engineers (and, sadly, bioinformaticins – I feel your pain); keep your focus or the focus of your users on the biology. It is sophisticated enough already.
+    Leave the data engineering to the data engineers (and, sadly, bioinformaticians – I feel your pain); keep your focus or the focus of your users on the biology. It is sophisticated enough already.
 
 And now, let's dive into how you work with `immundata`.
 
@@ -251,11 +251,11 @@ And now, let's dive into how you work with `immundata`.
           │             │      ▼
           │             │  Postprocess
           │             │      ▼
-          │             │  Aggregate repertoires 1
+          │             │  Aggregate repertoires #1
           │             │      ▼
           │             └─ Write data on disk (!)
           ▼
-   agg_repertoires()  ──── Aggregate repertoires 2
+   agg_repertoires()  ──── Aggregate repertoires #2
           │
           ▼
     ┌───────────┐
@@ -265,43 +265,41 @@ And now, let's dive into how you work with `immundata`.
 
 Steps marked with `(!)` are non-optional.
 
+The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into an immutable on-disk `ImmunData` dataset.
+
   1) **Read metadata:**
   
-      This step loads any sample‑ or donor‑level info to your environment using `read_metadata()` function.
-    
-      This step is optional. You can safely skip it if you don't have per-sample pr per-donor metadata, such as therapy response, HLA, age, etc. But it is highly recommended. See an example of metadata file below in the "Ingestion" section.
+      `read_metadata()` pulls in any sample- or donor-level information, such as therapy arm, HLA type, age, etc., and stores it in a data frame that we can pass to the main reading functions `read_repertoires`. Attaching this context early means every chain you read later already "knows" which patient or time-point it belongs to.
+  
+      You can safely skip it if you don't have per-sample pr per-donor metadata.
   
   2) **Read repertoire files:**
   
-      Parquet/CSV/TSV → DuckDB tables via `read_repertoires()`.
+      `read_repertoires()` streams Parquet/CSV/TSV files straight into DuckDB that powers `ImmunData` objects.
   
   3) **Preprocess:**
   
-      Drop unwanted cols, drop nonproductive sequences, rename to AIRR schema, remove duplicate contigs by passing the preprocessing strategy to `read_repertoires()`.
-  
-      Optional yet recommended step, turned on by default.
+      During the read step you may pass a `preproc = recipe` argument to `read_repertoires` to preprocess data before aggregating receptors: drop unused columns, strip non-productive sequences, translate field names to the AIRR schema, de-duplicate contigs, etc. Because this logic is declarative, re-runs produce identical results.
   
   4) **Aggregate receptors:**
   
-      Collapse by CDR3/V/J (or your schema) by passing a receptor schema to `read_repertoires()`.
+      Receptor schema is how you define a receptor – a logical unit of analysis. The `read_repertoires` collapses chains into receptors accordingly and assigns each a stable unique identifier.
       
   3) **Postprocess:**
   
-    ...
+    A mirror step to **preprocess**: a convenient hook to run QC checks, add derived fields, attach reference-gene annotations, or compute per-chain quality metrics **after** the dataset is ready. You can pass any number of steps which will be executed in a sequential order.
   
-  5) **Aggregate repertoires 1:**
+  5) **Aggregate repertoires #1:**
   
-      Group per sample/donor/time to define set of receptors or repertoires - either inside `read_repertoires()` if you pass a repertoire schema to it, or separately by calling `agg_repertoires()` function.
-  
-      Optional step, you can define repertoires later using more information, e.g., in the single-cell case, first, you import cell cluster information, and second, you define repertoires using the donor + cluster information.
+      If you already know how to group chains into receptors, perhaps by `"Sample"` or `"Donor"` columns from the metadata, you can pass `repertoire_schema = c("Sample")` to `read_repertoires()`. Otherwise, skip and define repertoires later (common in single-cell workflows where you need cluster labels first).
       
   3) **Write data on disk:**
   
-    ...
+    `read_repertoires` always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.
     
-  5) **Aggregate repertoires 2:**
+  5) **Aggregate repertoires #2:**
   
-    ...
+    Call `agg_repertoires()` later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.
 
 ### Phase 2: Analysis
 
@@ -325,15 +323,15 @@ Steps marked with `(!)` are non-optional.
             ▼ 
     mutate_immundata()     ──── Compute statistics or transform ImmunData
             │
-            │     ┌───────────────┐
-            ├────►│ save / plot 1 │
-            │     └───────────────┘
+            │     ┌────────────────┐
+            ├────►│ save / plot #1 │
+            │     └────────────────┘
             ▼ 
    annotate_immundata()    ──── Annotate ImmunData with the computed statistics
             │
-            │     ┌───────────────┐
-            ├────►│ save / plot 2 │
-            │     └───────────────┘
+            │     ┌────────────────┐
+            ├────►│ save / plot #2 │
+            │     └────────────────┘
             │
             ▼
 ┌────────────────────────┐
@@ -364,7 +362,7 @@ Steps marked with `(!)` are non-optional.
   
       3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`. See the [🧠 Advanced Topics](#-advanced-topics) for more details.
       
-  4) **save / plot 1:**
+  4) **save / plot #1:**
   
     ...
   
@@ -372,7 +370,7 @@ Steps marked with `(!)` are non-optional.
   
       `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
   
-  4) **save / plot 2:**
+  4) **save / plot #2:**
   
     ...
   
@@ -651,17 +649,11 @@ Cheat-sheet for arguments to `read_repertoires`:
 
 ### Repertoire schema
 
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
 To compute repertoire‑level statistics such as gene‑segment usage, the Jaccard coefficient, or the incidence of public receptors, you first need to define a repertoire. In `immundata` a repertoire is simply a group of receptors that share one or more values from annotation columns.
 
 Just like with receptors, you can pass a schema - a character vector of column names - to specify how receptors are grouped into repertoires.
 
 For the bulk data, usually, you rely on the metadata table. It could be useful when you want to aggregate together receptors from the same donor or tissue, and then analyse it. Or you may want to filter out non-responders to analyse the responders only.
-
-```r
-```
 
 > [!NOTE]
 > Don't confuse grouping of immune repertoires with grouping in plots.
@@ -675,6 +667,42 @@ For the bulk data, usually, you rely on the metadata table. It could be useful w
 The true power of regrouping repertoires opens up when you work with single-cell data.
 
 ```r
+library(immundata)
+      
+inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
+md_file <- system.file("extdata/single_cell", "metadata.tsv", package = "immundata")
+md_table <- read_metadata(md_file)
+schema <- make_receptor_schema(features = c("cdr3", "v_call"), chains   = c("TRA", "TRB"))
+
+idata <- read_repertoires(
+  path        = inp_file,
+  schema      = schema,
+  metadata    = md_table,
+  barcode_col = "barcode",         # required for pairing
+  locus_col   = "locus",           # column that says "TRA" / "TRB"
+  umi_col     = "umis",            # choose chain with max UMIs per locus
+  preprocess  = make_default_preprocessing("10x")
+)
+
+cells_file <- system.file("extdata/single_cell", "cells.tsv.gz", package = "immundata")
+cells <- readr::read_tsv(cells_file)
+
+# External cell annotations
+print(cells)
+
+# Annotate data with cell clusters
+idata <- annotate_barcodes(
+  idata = idata,
+  annotations = cells[c("cell_id", "ident")], 
+  annot_col = "cell_id", 
+  keep_repertoires = FALSE
+)
+
+# Aggregate repertoires to make cluster-specific repertoires
+idata <- idata |> agg_repertoires(schema = "ident")
+
+# Take a look at the $repertoires table
+print(idata)
 ```
 
 ### Preprocessing and postprocessing strategies 
@@ -695,9 +723,6 @@ The true power of regrouping repertoires opens up when you work with single-cell
 By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` to `read_repertoires` if you want to specify the output path.
 
 ### Writing ImmunData objects on disk
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
  
 Use `write_immundata` to save ImmunData objects.
 
@@ -718,37 +743,17 @@ The key function for this is `filter` (`dplyr`-compatible) or `filter_immundata`
   
       ???
       
-  2. **Filter by receptor features or their identifiers**
+  2. **Filter by sequence distance**
   
       ???
       
-  3. **Filter by barcodes**
+  3. **Filter by receptor features or their identifiers**
   
       ???
-
-receptor features or their identifiers 
-
-`filter_receptors`
-
-one, several, regex, edit distance
-
-#### Filter by annotation 
-
-`filter_annotations`
-
-one, several values, several columns
-
-#### Filter by cells identifiers or barcodes 
-
-`filter_cells`
-
-list of barcodes
-
-#### Filter by repertoire 
-
-`filter_repertoires`
-
-TODO
+      
+  4. **Filter by barcodes**
+  
+      ???
 
 ### Annotate
 
@@ -757,7 +762,7 @@ TODO
 
 The key function for this is `annotate` and `annotate_immundata`.
       
-  1. **Annotate by any metadata**
+  1. **Annotate by any annotation**
   
       ???
       
@@ -771,17 +776,24 @@ The key function for this is `annotate` and `annotate_immundata`.
 
 ### Compute
 
+> [!CAUTION]
+> 🚧 Under construction. 🚧
+
 The key functions for this is `mutate` (`dplyr`-compatible) / `mutate_immundata` and the functions from the downstream analysis tools.
 
   1. **Add or transform one or several annotation columns**
   
       ???
+      
+  2. **Add sequence distance to specific patterns**
+  
+      ???
 
-  2. **Basic repertoire statistics using `immundata`**
+  3. **Basic repertoire statistics using `immundata`**
 
       Find receptors from several repertoires or groups which have >2 abundance
 
-  3. **Basic analysis using `immunarch`**
+  4. **Basic analysis using `immunarch`**
 
       ???
 
