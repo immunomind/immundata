@@ -3,9 +3,17 @@
 [![Downloads_week](http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
 [![Issues](https://img.shields.io/github/issues/immunomind/immundata-rlang?style=flat-square)](https://github.com/immunomind/immundata-rlang/issues)
 
-# 🦋 `immundata` --- A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics in R
+# 🦋 `immundata` – A unified data layer for large-scale single-cell, spatial and bulk immunomics in R
 
-`immundata` gives the immune repertoire world what AnnData brought to the single‑cell multi-omics --- only tuned for unique properties of AIRR‑seq data, V(D)J pairing and repertoire‑level statistics, and powered by Arrow + DuckDB so you can stay on a laptop or move to the server or cloud without changing a line of code.
+`immundata` introduces the `ImmunData` data structure – think [AnnData](https://github.com/scverse/anndata) or [SeuratObject](https://github.com/satijalab/seurat-object/) but for immune repertoires – so you can:
+
+- store tens of millions of immune receptors plus metadata in one place;
+
+- compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;
+
+- work seamlessly with datasets that don't fit in memory;
+
+- run the same workflow on a laptop, server, or cloud instance.
 
 ---
 
@@ -13,13 +21,13 @@
 
 Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 
-- We now blend bulk AIRR-seq, single-cell V(D)J + GEX, spatial transcriptomics, clinical metadata and public databases --- often inside the same analysis notebook.
+- We now blend bulk AIRR-seq, single-cell V(D)J + GEX, spatial transcriptomics, clinical metadata and public databases – often inside the same analysis notebook;
 
-- Pipelines that handle gigabytes today face decagigabytes after the next experiment.
+- Pipelines that handle gigabytes today face deca-gigabytes after the next experiment;
 
-- The same immune repertoire dataset must drive multiple plots, dashboards, deep‑learning models and be reproducible months (or even years) later.
+- The same immune repertoire dataset must power multiple plots, dashboards, deep‑learning models and be reproducible months (years, ideally) later.
 
-`immundata` is the data-engineering backbone that lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
+`immundata` is the data-engineering backbone powered by [Arrow](https://arrow.apache.org/docs/r/), [DuckDB](https://duckdb.org/), and [duckplyr](https://duckplyr.tidyverse.org/). It lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
 
 ---
 
@@ -63,13 +71,13 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 
 > [!WARNING]
 > `immundata` is still in the **0.x** series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0).  
-> When you attach the package you’ll see startup messages summarising
-> the most important changes—please read them.  
+> When you attach the package you'll see startup messages summarising
+> the most important changes – please read them.  
 > If something that used to work suddenly fails, check the updated
 > documentation (`?function_name`) first.
 >   
 > **Tip:** if your analysis depends on a specific behaviour, pin the
-> exact version with `renv` or  
+> exact version with `renv` or use `pak` for installation:
 > ```r
 > pak::pkg_install("immunomind/immundata@0.2.1")
 > ```  
@@ -498,38 +506,38 @@ Steps marked with `(*)` are non-optional.
 
 ### Working with metadata table files
 
-    Metadata tables store the sample-level information. When `immundata` loads the metadata, it annotates every receptor from a given sample (or file) with the corresponding metadata fields. For example, if a sample has "Therapy" = "CAR‑T", all receptors from that sample receive the same "Therapy" value. You can then aggregate receptors by donor, tissue, or any other field and run your analysis on those repertoires (see the next sections for aggregations).
+Metadata tables store the sample-level information. When `immundata` loads the metadata, it annotates every receptor from a given sample (or file) with the corresponding metadata fields. For example, if a sample has "Therapy" = "CAR‑T", all receptors from that sample receive the same "Therapy" value. You can then aggregate receptors by donor, tissue, or any other field and run your analysis on those repertoires (see the next sections for aggregations).
 
-    ```r
-    library(immundata)
-    
-    md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
-    md_table <- read_metadata(md_path)
-    ```
-    
-    ```
-    Rows: 2 Columns: 4
-    ── Column specification ─────────────────────────────────────────────────────────
-    Delimiter: "\t"
-    chr (4): File, Therapy, Response, Prefix
-    
-    ℹ Use `spec()` to retrieve the full column specification for this data.
-    ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ℹ Found 2/2 repertoire files from the metadata on the disk
-    ✔ Metadata parsed successfully
-    ```
-    
-    ```r
-    print(md_table)
-    ```
-    
-    ```
-    # A tibble: 2 × 5
-      File                       Therapy Response Prefix filename
-      <chr>                      <chr>   <chr>    <chr>  <chr>   
-    1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
-    2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
-    ```
+```r
+library(immundata)
+
+md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
+md_table <- read_metadata(md_path)
+```
+
+```
+Rows: 2 Columns: 4
+── Column specification ─────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (4): File, Therapy, Response, Prefix
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+ℹ Found 2/2 repertoire files from the metadata on the disk
+✔ Metadata parsed successfully
+```
+
+```r
+print(md_table)
+```
+
+```
+# A tibble: 2 × 5
+  File                       Therapy Response Prefix filename
+  <chr>                      <chr>   <chr>    <chr>  <chr>   
+1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
+2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
+```
 
 ### Receptor schema
 
