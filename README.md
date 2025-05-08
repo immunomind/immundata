@@ -340,43 +340,45 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
 └────────────────────────┘
 ```
 
+Analysis is a loop of annotation → transformation → visualisation, always producing a new `ImmunData` while leaving the parent intact. That immutability is what turns every notebook into a reproducible pipeline.
+
   1) **Import external annotations to ImmunData:**
   
-      `annotate_cells` from the single-cell data
+      `annotate_immundata()` (or its thin wrappers `annotate_barcodes()` / `annotate_receptors()`) merges labels from Seurat/AnnData/TCRdist/anything that can be expressed as a keyed data frame to the main table, so each chain has a corresponding annotation.
   
   2) **Aggregate repertoires:**
   
-      Optionally aggregate to repertoires, potentially using the newly annotate data.
+      Now that extra labels are present, you might regroup receptors, for example, by donor × cell-state.
   
   3) **Filter receptors or repertoires:**
   
-      `filter_immundata` gets you identifiers of interest and their corresponding receptor features, potentially using the annotation from the previous step
+      `filter_immundata()` accepts tidy-verse predicates on chains, receptors, or repertoires.
   
   4) **Compute statistics or transform ImmunData:**
   
       On this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
   
-      1) use `immunarch` for the most common analysis functions. The package will automatically annotate both *receptors/cells* (!) and *repertoires* (!!) if it is possible.
+      1) use `immunarch` for the most common analysis functions. The package will automatically annotate both **receptors/barcodes/chains** (!) and **repertoires** (!!) if it is possible;
   
-      2)  simply mutate on the whole dataset using `dplyr` syntax, like compute the number of cells or whatever
+      2) simply mutate on the whole dataset using `dplyr` syntax, like compute edit distance to a specific pattern using `mutate_immundata`;
   
       3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`. See the [🧠 Advanced Topics](#-advanced-topics) for more details.
       
-  4) **save / plot #1:**
+  4) **Save / plot #1:**
   
-    ...
+    Cache the `ImmunData`. Use `ggplot2` to visualise the statistics, computed from `ImmunData`.
   
   5)  **Annotate ImmunData with the computed statistics:**
   
-      `annotate_immundata` joins the computed values back to the initial dataset using the identifiers. If you already have identifiers, you can simply use `annotate_cells` or `annotate_receptors`.
+     `annotate_immundata()` (again) joins the freshly minted statistics back to the canonical dataset.
   
-  4) **save / plot #2:**
+  4) **Save / plot #2:**
   
-    ...
+    Save the `ImmunData` with new annotations to disk. Plot the results of analysis.
   
   6)  **Export ImmunData annotations:**
   
-      Writes the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the immundata itself to disk if needed.
+      Write the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the `ImmunData` itself to disk if needed.
 
 ---
 
@@ -558,7 +560,7 @@ print(md_table)
 
  - Chains to keep / pair - e.g. TRA only or a pair TRA + TRB.
 
-If you have only feature columns, you can usually pass the character vector with columns to functions. In a more advanced case with multiple chain data, `immundata` provides a helper function `make_receptor_schema` for building schemas:
+If you have only feature columns, you can usually pass the character vector with columns to functions. In a more advanced case with multiple chain data, `immundata` provides a helper function `make_receptor_schema()` for building schemas:
 
 ```r
 schema <- make_receptor_schema(
@@ -720,7 +722,7 @@ print(idata)
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
-By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` to `read_repertoires` if you want to specify the output path.
+By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` to `read_repertoires()` if you want to specify the output path.
 
 ### Writing ImmunData objects on disk
  
@@ -732,60 +734,100 @@ Why you might need it - to save intermediate files, e.g., after computing levens
 
 ## 🛠 Analysis
 
+Before running the code in the following section, execute the code below. Mind that for the example purposes, the data uses the TRB locus only. Change the input receptor schema and the column names to adapt it to the paired-chain case.
+
+```r
+library(immundata)
+      
+inp_files <- paste0(system.file("extdata/single_cell", "", package = "immundata"), "/*.csv.gz")
+md_file <- system.file("extdata/single_cell", "metadata.tsv", package = "immundata")
+md_table <- read_metadata(md_file)
+cells_file <- system.file("extdata/single_cell", "cells.tsv.gz", package = "immundata")
+cells <- readr::read_tsv(cells_file)
+
+schema <- make_receptor_schema(features = c("cdr3", "v_call"), chains = c("TRB"))
+
+idata <- read_repertoires(path = inp_files, schema = schema, metadata = md_table, barcode_col = "barcode", locus_col = "locus", umi_col = "umis", preprocess = make_default_preprocessing("10x"), repertoire_schema = "Tissue")
+```
+
 ### Filter
 
-> [!CAUTION]
-> 🚧 Under construction. 🚧
+The key functions for filtering are `filter()` (`dplyr`-compatible) and `filter_immundata()`, which as the same function with a slightly different arguments due to the necessity to comply with `dplyr` interface. Repertoires are reaggregated automatically. Functions `filter_receptors()` and `filter_barcodes` are used for filter receptor and barcode identifiers, correspondingly.
 
-The key function for this is `filter` (`dplyr`-compatible) or `filter_immundata`.
+To filter data, you simply pass predicates like in `dplyr`. Optionally, you can pass `seq_options` that allow you to filter by exact sequence match, regex pattern, or sequence distances using hamming or edit/levenshtein distances. You can pass multiple patterns via `patterns = c("pattern_1", "pattern_2")`.
 
   1. **Filter by any annotation**
   
-      ???
+      ```r
+      idata |> filter(v_call == "TRBV2")
+      
+      idata |> filter(Tissue == "Blood")
+      
+      idata |> filter(v_call == "TRBV2", imd_proportion >= 0.0002)
+      ```
       
   2. **Filter by sequence distance**
   
-      ???
+      ```r
+      idata |> filter(seq_options = make_seq_options(patterns = "CASSELAGYRGEQYF", query_col = "cdr3", method = "lev", max_dist = 3))
       
-  3. **Filter by receptor features or their identifiers**
+      idata |> filter(v_call == "TRBV2", seq_options = make_seq_options(patterns = "CASSELAGYRGEQYF", query_col = "cdr3", method = "lev", max_dist = 3))
+      ```
+      
+  3. **Filter by receptor identifiers**
   
-      ???
+      ```r
+      idata |> filter_receptors(c(1,2,3))
+      ```
       
   4. **Filter by barcodes**
   
-      ???
+      ```r
+      target_bc <- cells$cell_id[1:3]
+      idata |> filter_barcodes(target_bc)
+      ```
 
 ### Annotate
 
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-The key function for this is `annotate` and `annotate_immundata`.
+The key function for annotations are `annotate` and `annotate_immundata`. Functions `annotate_receptors()`, `annotate_barcodes()` and `annotate_chains()` are light-weight wrappers around `annotate_immundata()`.
       
-  1. **Annotate by any annotation**
+  1. **Annotate by any column**
   
-      ???
+      ```r
+      idata2 <- annotate(idata = idata, annotations = cells[c("cell_id", "ident")], by = c(imd_barcode = "cell_id"), keep_repertoires = FALSE) |> agg_repertoires(schema = "ident")
       
-  2. **Annotate by receptor features or identifiers**
+      print(idata2)
+      ```
+      
+  2. **Annotate by receptor identifiers**
   
-      ???
+      ```r
+      idata2 <- annotate_receptors(idata = idata, annotations = tibble::tibble(receptor = c(1,2,3), important_data = c("A", "B", "C")), annot_col = "receptor")
+      idata2 |> filter(important_data %in% c("A", "B"))
+      ```
       
   3. **Annotate by barcodes**
   
-      ???
+      ```r
+      idata2 <- annotate_barcodes(idata = idata, annotations = cells[c("cell_id", "ident")],  annot_col = "cell_id", keep_repertoires = FALSE)
+
+      idata2 <- idata |> agg_repertoires(schema = "ident")
+      
+      print(idata2)
+      ```
 
 ### Compute
 
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
-The key functions for this is `mutate` (`dplyr`-compatible) / `mutate_immundata` and the functions from the downstream analysis tools.
+The key functions for this are `mutate` (`dplyr`-compatible) / `mutate_immundata` and the functions from the downstream analysis tools.
 
   1. **Add or transform one or several annotation columns**
   
       ???
       
-  2. **Add sequence distance to specific patterns**
+  2. **Add columns with sequence distance to patterns**
   
       ???
 
