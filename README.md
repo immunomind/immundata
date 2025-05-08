@@ -7,13 +7,13 @@
 
 `immundata` introduces the `ImmunData` data structure – think [AnnData](https://github.com/scverse/anndata) or [SeuratObject](https://github.com/satijalab/seurat-object/) but for immune repertoires – so you can:
 
-- store tens of millions of immune receptors plus metadata in one place;
+- Store tens of millions of immune receptors plus metadata in one place;
 
-- compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;
+- Compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;
 
-- work seamlessly with datasets that don't fit in memory;
+- Work seamlessly with datasets that don't fit in memory;
 
-- run the same workflow on a laptop, server, or cloud instance.
+- Run the same workflow on a laptop, server, or cloud instance.
 
 ---
 
@@ -25,11 +25,14 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 
 - Pipelines that handle gigabytes today face deca-gigabytes after the next experiment;
 
-- The same immune repertoire dataset must power multiple plots, dashboards, deep‑learning models and be reproducible months (years, ideally) later.
+- The same immune repertoire dataset must power multiple plots, dashboards, deep learning models and be reproducible months (years, ideally) later.
 
 `immundata` is the data-engineering backbone powered by [Arrow](https://arrow.apache.org/docs/r/), [DuckDB](https://duckdb.org/), and [duckplyr](https://duckplyr.tidyverse.org/). It lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
 
 ---
+
+> [!IMPORTANT]
+> This README is huge. Please consider using navigation.
 
 - 🤔 [Why `immundata`?](#-why--immundata)
 - 📦 [Installation](#-installation)
@@ -44,9 +47,9 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
   - [Managing output & intermediate ImmunData files](#managing-output--intermediate-immundata-files)
   - [Writing ImmunData objects to disk](#writing-immundata-objects-to-disk)
 - 🛠 [Analysis](#-analysis)
-  - [Filtering](#filtering)
-  - [Annotations](#annotations)
-  - [Compute statistics](#compute-statistics)
+  - [Filter](#filter)
+  - [Annotate](#annotate)
+  - [Compute](#compute)
 - 🧩 [Use Cases](#-use-cases)
   - [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
   - [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
@@ -70,10 +73,8 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 ---
 
 > [!WARNING]
-> `immundata` is still in the **0.x** series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0).  
-> When you attach the package, sometimes you'll see startup messages summarising
-> the most important changes – please read them.  
-> If something that used to work suddenly fails, check the updated
+> `immundata` is still in the **0.x** series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0). When you attach the package, sometimes you'll see startup messages summarising
+> the most important changes – please read them. If something that used to work suddenly fails, check the updated
 > documentation (`?function_name`) first.
 >   
 > **Tip:** if your analysis depends on a specific behaviour, pin the
@@ -179,65 +180,55 @@ list.files("./immundata-quick-start")
 
 Before we go into more details for each of the phase, there are three straightforward yet essential `immundata` concepts to keep in mind. These concepts set it apart from data-frame-based AIRR libraries. By extension, the concepts affect how you would work with and even *think* about the data analysis in other packages such as `immunarch` which use `immundata` as a backbone for computations.
 
+### Concepts
 
-  1. **Units: chain -> barcode -> receptor**
+1. **Units: chain -> barcode -> receptor**
 
-      | Term               | In plain English                                                                                         | How **immundata** represents it                                                                                                             | **Role**                                                              |
-      | ------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-      | **Chain**          | A single V(D)J transcript (e.g. *TRA* or *IGH*) coming from one read or contig.                          | One row in the physical table `idata$annotations`; retains `locus`, `cdr3`, `umis`/`reads` and other crucial rearrangement characteristics. | **Raw data unit** – atomic building block.                            |
-      | **Barcode / Cell** | The droplet (10x), spot (Visium) or well a chain was captured in.                                        | Column `imd_barcode`.                                                                                                                       | **Physical bundle** – groups chains that share a capture compartment. |
-      | **Receptor**       | The biological receptor you analyse: a single chain **or** a paired set (αβ, Heavy-Light) from one cell. | Virtual table `idata$receptors`; unique ID `imd_receptor_id`.                                                                               | **Logical unit** – minimal object for AIRR statistics.                |
-      | **Repertoire**     | A set of receptors grouped by sample, donor, cluster, etc.                                               | Physical table `idata$repertoires`; unique ID `imd_repertoire_id`; grouping columns you choose.                                             | **Aggregate unit** – higher-level grouping for comparative analysis.  |
+    | Term               | In plain English                                                                                         | How **immundata** represents it                                                                                                             | **Role**                                                              |
+    | ------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+    | **Chain**          | A single V(D)J transcript (e.g. *TRA* or *IGH*) coming from one read or contig.                          | One row in the physical table `idata$annotations`; retains `locus`, `cdr3`, `umis`/`reads` and other crucial rearrangement characteristics. | **Raw data unit** – atomic building block.                            |
+    | **Barcode / Cell** | The droplet (10x), spot (Visium) or well a chain was captured in.                                        | Column `imd_barcode`.                                                                                                                       | **Physical bundle** – groups chains that share a capture compartment. |
+    | **Receptor**       | The biological receptor you analyse: a single chain **or** a paired set (αβ, Heavy-Light) from one cell. | Virtual table `idata$receptors`; unique ID `imd_receptor_id`.                                                                               | **Logical unit** – minimal object for AIRR statistics.                |
+    | **Repertoire**     | A set of receptors grouped by sample, donor, cluster, etc.                                               | Physical table `idata$repertoires`; unique ID `imd_repertoire_id`; grouping columns you choose.                                             | **Aggregate unit** – higher-level grouping for comparative analysis.  |
 
-      **Chain** is one V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). This is a minimally possible data unit, a building block of everything.
-      In case of single-chain data, chain is the same as barcode. Never changes after ingest; you can always drill back to the exact sequence.
-      
-      **Barcode** is a physical container that stores zero, one, or many chains. In single‑cell it's a droplet == cell; in bulk it's the same as assembled "clonotype"; in spatial it's a spot. Barcode sometimes equals to cell. It is a biological unit that "stores" relevant biological data and uses for aggregation of same chains and computing counts of same receptors coming from different barcodes. Inherits any per‑cell / per‑sample metadata you add.
-      
-      **Receptor** is a logical unit. A logical grouping of chains that you want to treat as one biological receptor. This is a minimal unit for AIRR statistics. There are two components to it: receptor features and receptor chains, alltogether comprising a receptor schema that you define in order to do downstream analysis. Receptor feautres are usually CDR3 amino acid sequences or CDR3 amino acid sequences plus Variable gene segment. Receptor chains can be: single chain, α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
-      
-      To summarise: chains are how `immundata` stores the information, barcodes bundle chains together, and receptors are the minimal units on which repertoire statistics are computed.
-
-  2. **Aggregation: defining receptors and repertoires**
-
-      The moment data leave an AIRR-assembly tool such as **Cell Ranger**, you are handed an ocean of individual V(D)J chains, yet every biological question you care about is phrased in terms of receptors ("this αβ TCR") or repertoires ("all receptors from donor A on day 30"). As with "receptors as logical units", the underlying assumption the second concept is based upon is *researchers work with rearrangements but think in receptors*. `immundata` formalises the climb from raw chains to those higher-order concepts through **controlled aggregation** – explicit, user-defined rules that transform data without obscuring their origin.
-
-      The function `agg_receptors()` lets you declare what *one receptor* means in your study. You choose a schema—perhaps "pair chains that share a barcode and have complementary α and β loci" or "group every IGH with whatever IGL shares the same CDR3 amino-acid sequence." The function re-aggregates the data and returns a new `ImmunData` object, so you keep the previous receptor definition intact; every receptor now has a stable identifier and can be traced back to its constituent chains and barcode. There is no need to touch the downstream pipeline – just change the input.
-
-      The function `agg_repertoires()` states how receptors should be bundled into biologically meaningful cohorts: all receptors from a biopsy, from a therapy responder, from a single-cell-defined cluster, or any combination of metadata columns. The result is a physical `idata$repertoires` table with basic statistics (numbers of chains, barcodes, and unique receptors), again preserving direct links to the receptors it aggregates.
-
-      Because these aggregation steps live in your pipeline rather than being buried inside helper functions, they deliver two major pay-offs:
-
-      - **Convenience with rigour:** you can run high-level computations – Jaccard coefficients, diversity indices – knowing that the exact receptor definition is stored alongside the result, so you never mis-specify parameters such as `"cdr3+v"`;
-      
-      - **Provenance and data lineage by design:** every receptor records every chain it contains, every repertoire records every receptor, and the full recipe is stored in the object's metadata. Six months later – or six reviewers later – you can trace any summary statistic back to the precise chains that produced it, enabling fully reproducible pipelines with no hidden transformations.
-
-  
-  3. **Pipeline-based execution: immutability and materialization**
-
-      Link to the Data lineage and that is it crucial for both science and industry-grade pipelines
+    **Chain** is one V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). This is a minimally possible data unit, a building block of everything.
+    In case of single-chain data, chain is the same as barcode. Never changes after ingest; you can always drill back to the exact sequence.
     
-      The key difference is that because data could be extremely large, it is stored on disk in Parquet files and "materialized" – loaded into RAM – only if necessary, usually for computin specific subsets of the data and generating the final statistics such as overlap indices. So your thinking should in pipelines. In other words, creating intermediate ImmunDatas is more than possible but you should cache important results and think like the data will be run as a whole pipeline each time. It may not sound very feasible, but this is almost an only existing solution to make sure we can process large-scale datasets fast. Imagine if you have 10 Gb of data. If it fits into RAM, then there is no issue with managing it. If it doesn't then you need to save the intermediate steps to disk, caching them for the future computations.
-      
-      For this, I'm not only providing tutorials on how to do things, but the whole complex `immundata`-related computations are and should be hidden behind the functions of the downstream analysis tools if you choose to use `immundata` as a data engineering backbone. In the ideal world, you or your tool's user don't even know that you work with `immundata` and databases and other immuntability stuff because the analysis functions are coveirng everything for you, and no direct interationcs with `ImmunData` is needed.
-      
-      Leave data engineering for data engineers (and, sadly, bioinformaticins - I feel your pain).
+    **Barcode** is a physical container that stores zero, one, or many chains. In single‑cell it's a droplet == cell; in bulk it's the same as assembled "clonotype"; in spatial it's a spot. Barcode sometimes equals to cell. It is a biological unit that "stores" relevant biological data and uses for aggregation of same chains and computing counts of same receptors coming from different barcodes. Inherits any per‑cell / per‑sample metadata you add.
+    
+    **Receptor** is a logical unit. A logical grouping of chains that you want to treat as one biological receptor. This is a minimal unit for AIRR statistics. There are two components to it: receptor features and receptor chains, alltogether comprising a receptor schema that you define in order to do downstream analysis. Receptor feautres are usually CDR3 amino acid sequences or CDR3 amino acid sequences plus Variable gene segment. Receptor chains can be: single chain, α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.
+    
+    To summarise: chains are how `immundata` stores the information, barcodes bundle chains together, and receptors are the minimal units on which repertoire statistics are computed.
 
-  3. **Pipeline-based execution — immutability and materialisation**
-  
-      The explicit data lineage we talked about in concepts 1 & 2 pays its dividend only if every step is re-playable. That is why `immundata` treats an analysis as a *pipeline of immutable transformations*. Each function returns a fresh `ImmunData` object, leaving the parent untouched; the full chain of objects records how the data travelled from raw chains to final statistics.
-  
-      Because immunomics datasets started to regularly outgrow RAM, those objects do **not** live in memory by default. Their tables are persisted as column-compressed Parquet files and "materialised" — pulled into RAM — only when a computation truly needs them, typically to crunch a subset or to emit the final numbers such as repertoire-overlap indices. For a 10 GB dataset that fits in memory, this behaviour is invisible: DuckDB streams the file, you get an in-memory frame, and life goes on. For a 100 GB experiment, the same code still runs; the heavy joins spill to disk, and the intermediate results are cached so downstream steps can reuse them without recomputation.
-      
-      Thinking in pipelines therefore means two things:
-      
-      - **Cache what matters:** create intermediate `ImmunData` objects when you hit an expensive step, and write them to disk; the next run can pick up from there. A prime example of this a computing edit distances to some patterns or sequences.
-      
-      - **Assume re-execution:** any colleague (or future-you on a bigger cluster) should be able to rerun `pipeline.R` end-to-end without interactive tinkering and arrive at the same result byte-for-byte.
-      
-      All of this engineering stays behind the curtain. Downstream packages that adopt `immundata` as their backbone expose high-level verbs such as `compute_diversity()` or `plot_overlap()`; the user need not touch `ImmunData`, DuckDB, or Parquet. In the ideal scenario they never learn that an on-disk database powers their workflow — and they never have to.
-      
-      Leave the data engineering to the data engineers (and, sadly, bioinformaticins — I feel your pain); keep your focus or the focus of your users on the biology. It is sophisticated enough already.
+2. **Aggregation: defining receptors and repertoires**
+
+    The moment data leave an AIRR-assembly tool such as **Cell Ranger**, you are handed an ocean of individual V(D)J chains, yet every biological question you care about is phrased in terms of receptors ("this αβ TCR") or repertoires ("all receptors from donor A on day 30"). As with "receptors as logical units", the underlying assumption the second concept is based upon is *researchers work with rearrangements but think in receptors*. `immundata` formalises the climb from raw chains to those higher-order concepts through **controlled aggregation** – explicit, user-defined rules that transform data without obscuring their origin.
+
+    The function `agg_receptors()` lets you declare what *one receptor* means in your study. You choose a schema – perhaps "pair chains that share a barcode and have complementary α and β loci" or "group every IGH with whatever IGL shares the same CDR3 amino-acid sequence." The function re-aggregates the data and returns a new `ImmunData` object, so you keep the previous receptor definition intact; every receptor now has a stable identifier and can be traced back to its constituent chains and barcode. There is no need to touch the downstream pipeline – just change the input.
+
+    The function `agg_repertoires()` states how receptors should be bundled into biologically meaningful cohorts: all receptors from a biopsy, from a therapy responder, from a single-cell-defined cluster, or any combination of metadata columns. The result is a physical `idata$repertoires` table with basic statistics (numbers of chains, barcodes, and unique receptors), again preserving direct links to the receptors it aggregates.
+
+    Because these aggregation steps live in your pipeline rather than being buried inside helper functions, they deliver two major pay-offs:
+
+    - **Convenience with rigour:** you can run high-level computations – Jaccard coefficients, diversity indices – knowing that the exact receptor definition is stored alongside the result, so you never mis-specify parameters such as `"cdr3+v"`;
+    
+    - **Provenance and data lineage by design:** every receptor records every chain it contains, every repertoire records every receptor, and the full recipe is stored in the object's metadata. Six months later – or six reviewers later – you can trace any summary statistic back to the precise chains that produced it, enabling fully reproducible pipelines with no hidden transformations.
+
+3. **Pipeline-based execution: immutability and materialisation**
+
+    The explicit data lineage we talked about in concepts 1 & 2 pays its dividend only if every step is re-playable. That is why `immundata` treats an analysis as a *pipeline of immutable transformations*. Each function returns a fresh `ImmunData` object, leaving the parent untouched; the full chain of objects records how the data travelled from raw chains to final statistics.
+
+    Because immunomics datasets started to regularly outgrow RAM, those objects do **not** live in memory by default. Their tables are persisted as column-compressed Parquet files and "materialised" – pulled into RAM – only when a computation truly needs them, typically to crunch a subset or to emit the final numbers such as repertoire-overlap indices. For a 10 GB dataset that fits in memory, this behaviour is invisible: DuckDB streams the file, you get an in-memory frame, and life goes on. For a 100 GB experiment, the same code still runs; the heavy joins spill to disk, and the intermediate results are cached so downstream steps can reuse them without recomputation.
+    
+    Thinking in pipelines therefore means two things:
+    
+    - **Cache what matters:** create intermediate `ImmunData` objects when you hit an expensive step, and write them to disk; the next run can pick up from there. A prime example of this a computing edit distances to some patterns or sequences.
+    
+    - **Assume re-execution:** any colleague (or future-you on a bigger cluster) should be able to rerun `pipeline.R` end-to-end without interactive tinkering and arrive at the same result byte-for-byte.
+    
+    All of this engineering should stay behind the curtain. Downstream packages that adopt `immundata` as their backbone should expose high-level verbs such as `compute_diversity()` or `plot_overlap()`; the user need not touch `ImmunData`, DuckDB, or Parquet. In the ideal scenario they never learn that an on-disk database powers their workflow – and they never have to.
+    
+    Leave the data engineering to the data engineers (and, sadly, bioinformaticins – I feel your pain); keep your focus or the focus of your users on the biology. It is sophisticated enough already.
 
 And now, let's dive into how you work with `immundata`.
 
@@ -565,7 +556,7 @@ print(md_table)
 
 `immundata` lets you decide what a receptor means for your study by specifying:
 
- - Feature columns - which fields make a receptor unique. Usually it is "cdr3_aa" and "v_call" columns.
+ - Feature columns - which fields make a receptor unique. Usually it is `"cdr3_aa"` and `"v_call"` columns.
 
  - Chains to keep / pair - e.g. TRA only or a pair TRA + TRB.
 
@@ -578,77 +569,77 @@ schema <- make_receptor_schema(
 )
 ```
 
-#### Chain-agnostic
+  1. **Chain-agnostic**
 
-Used for bulk or pre-filtered immune repertoire data. No filtering by chain data such as TRA or TRB. Each unique combination of features in the schema vector is assigned a unique receptor identifier and counts as a receptor. In the example below, the receptor features are "cdr3_aa" and "v_call" columns - CDR3 amino acid sequence and V gene segment columns respectively.
-
-```r
-library(immundata)
+      Used for bulk or pre-filtered immune repertoire data. No filtering by chain data such as TRA or TRB. Each unique combination of features in the schema vector is assigned a unique receptor identifier and counts as a receptor. In the example below, the receptor features are "cdr3_aa" and "v_call" columns - CDR3 amino acid sequence and V gene segment columns respectively.
       
-inp_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
-
-schema <- c("cdr3_aa", "v_call")
+      ```r
+      library(immundata)
+            
+      inp_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
       
-idata <- read_repertoires(
-  path   = inp_file,
-  schema = schema
-)
+      schema <- c("cdr3_aa", "v_call")
+            
+      idata <- read_repertoires(
+        path   = inp_file,
+        schema = schema
+      )
+            
+      print(idata)
+      ```
+
+  2. **Single-chain**
+
+      Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.
       
-print(idata)
-```
-
-#### Single-chain
-
-Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.
-
-```r
-library(immundata)
+      ```r
+      library(immundata)
+            
+      inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
       
-inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
+      schema <- make_receptor_schema(
+        features = c("cdr3", "v_call"),
+        chains   = "TRA"
+      )
+      
+      idata <- read_repertoires(
+        path        = inp_file,
+        schema      = schema,
+        barcode_col = "barcode",
+        locus_col   = "locus",
+        preprocess  = make_default_preprocessing("10x")
+      )
+      
+      print(idata)
+      ```
 
-schema <- make_receptor_schema(
-  features = c("cdr3", "v_call"),
-  chains   = "TRA"
-)
+  3. **Paired-chain**
 
-idata <- read_repertoires(
-  path        = inp_file,
-  schema      = schema,
-  barcode_col = "barcode",
-  locus_col   = "locus",
-  preprocess  = make_default_preprocessing("10x")
-)
+      When you want full αβ (or heavy‑light) receptors, immundata can pair two chains that originate from the same barcode and keep, for each locus, the chain with the highest UMI/reads. A single unique receptor identifier is then assigned to the pair. The data is pre-filtered to loci in target chains. Within each barcode×locus the the chain with max umis or reads is selected. Barcodes lacking either chain are dropped from the receptor table.
+      
+      ```r
+      library(immundata)
+      
+      inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
+      
+      schema <- make_receptor_schema(
+        features = c("cdr3", "v_call"),
+        chains   = c("TRA", "TRB")
+      )
+      
+      idata <- read_repertoires(
+        path        = inp_file,
+        schema      = schema,
+        barcode_col = "barcode",         # required for pairing
+        locus_col   = "locus",           # column that says "TRA" / "TRB"
+        umi_col     = "umis",            # choose chain with max UMIs per locus
+        preprocess  = make_default_preprocessing("10x")
+      )
+      
+      print(idata)
+      ```
 
-print(idata)
-```
-
-#### Paired-chain
-
-When you want full αβ (or heavy‑light) receptors, immundata can pair two chains that originate from the same barcode and keep, for each locus, the chain with the highest UMI/reads. A single unique receptor identifier is then assigned to the pair. The data is pre-filtered to loci in target chains. Within each barcode×locus the the chain with max umis or reads is selected. Barcodes lacking either chain are dropped from the receptor table.
-
-```r
-library(immundata)
-
-inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
-
-schema <- make_receptor_schema(
-  features = c("cdr3", "v_call"),
-  chains   = c("TRA", "TRB")
-)
-
-idata <- read_repertoires(
-  path        = inp_file,
-  schema      = schema,
-  barcode_col = "barcode",         # required for pairing
-  locus_col   = "locus",           # column that says "TRA" / "TRB"
-  umi_col     = "umis",            # choose chain with max UMIs per locus
-  preprocess  = make_default_preprocessing("10x")
-)
-
-print(idata)
-```
-
-#### Cheat-sheet for arguments to `read_repertoires`
+Cheat-sheet for arguments to `read_repertoires`:
 
 | Situation                                | `barcode_col` | `locus_col` | `umi_col` | `chains`         |
 | ---------------------------------------- | ------------- | ----------- | --------- | ---------------- |
@@ -660,13 +651,14 @@ print(idata)
 
 ### Repertoire schema
 
+> [!CAUTION]
+> 🚧 Under construction. 🚧
+
 To compute repertoire‑level statistics such as gene‑segment usage, the Jaccard coefficient, or the incidence of public receptors, you first need to define a repertoire. In `immundata` a repertoire is simply a group of receptors that share one or more values from annotation columns.
 
 Just like with receptors, you can pass a schema - a character vector of column names - to specify how receptors are grouped into repertoires.
 
 For the bulk data, usually, you rely on the metadata table. It could be useful when you want to aggregate together receptors from the same donor or tissue, and then analyse it. Or you may want to filter out non-responders to analyse the responders only.
-
-- [ ] TODO: get code with some filtering
 
 ```r
 ```
@@ -687,6 +679,9 @@ The true power of regrouping repertoires opens up when you work with single-cell
 
 ### Preprocessing and postprocessing strategies 
 
+> [!CAUTION]
+> 🚧 Under construction. 🚧
+
 -   filtering non productive
 -   double contigs
 -   double BCR chains
@@ -694,13 +689,15 @@ The true power of regrouping repertoires opens up when you work with single-cell
 
 ### Managing the output and intermediate ImmunData files
 
-- [ ] TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` to `read_repertoires` if you want to specify the output path.
 
 ### Writing ImmunData objects on disk
 
- - [ ] TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
  
 Use `write_immundata` to save ImmunData objects.
 
@@ -710,9 +707,26 @@ Why you might need it - to save intermediate files, e.g., after computing levens
 
 ## 🛠 Analysis
 
-### Filtering 
+### Filter
 
-#### Filter by receptor features or their identifiers 
+> [!CAUTION]
+> 🚧 Under construction. 🚧
+
+The key function for this is `filter` (`dplyr`-compatible) or `filter_immundata`.
+
+  1. **Filter by any annotation**
+  
+      ???
+      
+  2. **Filter by receptor features or their identifiers**
+  
+      ???
+      
+  3. **Filter by barcodes**
+  
+      ???
+
+receptor features or their identifiers 
 
 `filter_receptors`
 
@@ -736,29 +750,40 @@ list of barcodes
 
 TODO
 
-### Annotations 
+### Annotate
 
-#### Annotate by receptor feature 
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
-`annotate_receptors`
-
-#### Annotate by receptor ID 
-
-`annotate_receptors`
-
-#### Annotate by barcode a.k.a. cell ID
-
-`annotate_cells`
+The key function for this is `annotate` and `annotate_immundata`.
+      
+  1. **Annotate by any metadata**
+  
+      ???
+      
+  2. **Annotate by receptor features or identifiers**
+  
+      ???
+      
+  3. **Annotate by barcodes**
+  
+      ???
 
 ### Compute
 
-#### Basic analysis in `immundata` 
+The key functions for this is `mutate` (`dplyr`-compatible) / `mutate_immundata` and the functions from the downstream analysis tools.
 
-Find receptors from several repertoires or groups which have >2 abundance
+  1. **Add or transform one or several annotation columns**
+  
+      ???
 
-#### Exporatory and statistical analysis in `immunarch` 
+  2. **Basic repertoire statistics using `immundata`**
 
-TODO
+      Find receptors from several repertoires or groups which have >2 abundance
+
+  3. **Basic analysis using `immunarch`**
+
+      ???
 
 ---
 
@@ -766,17 +791,22 @@ TODO
 
 ### Bulk -- RepSeq, AIRRSeq
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 if you use immunarch or so, you probably already have a metadata. If you don't better create it
 
 ### Paired-chain -- scVDJseq or other technologies
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 It works the same for any data, including bulk and single-cell - just pass a schema
 
 ### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
+
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 -   load annotation data
 -   do something
@@ -791,41 +821,45 @@ For more information see the vignette tutorial:
 
 ### Spatial -- spatial transcriptomics and cell coordinates
 
--   load annotation data
--   do something
--   write the annotation data back
--   visualize AIRR with annotations data
--   visualize SC with annotation data
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 ### Annotate immune receptors using external AIRR databases 
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 ### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData 
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 ### Hybrid datasets 
 
 #### Multi-locus data
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 #### Multiple contigs for TCR
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 #### BCR-heavy chains with multiple light chains
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 #### Bulk and single-cell data integration
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 ### Receptor clusters and motifs
 
-TODO
+> [!CAUTION]
+> 🚧 Under construction. 🚧
 
 ---
 
