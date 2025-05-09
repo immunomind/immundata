@@ -34,7 +34,7 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 > [!IMPORTANT]
 > This README is huge. Please consider using navigation.
 
-- 🤔 [Why `immundata`?](#-why--immundata)
+- 🤔 [Why `immundata`?](#-why--immundata-)
 - 📦 [Installation](#-installation)
 - ⚡ [Quick Start](#-quick-start)
 - 🧬 [Workflow Explained](#-workflow-explained)
@@ -47,10 +47,13 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
   - [Managing output & intermediate ImmunData files](#managing-output--intermediate-immundata-files)
   - [Writing ImmunData objects to disk](#writing-immundata-objects-to-disk)
 - 🧿 [ImmunData Object](#-immundata-object)
-- 🛠 [Analysis](#-analysis)
+- 🛠 [Transformation](#-transformation)
   - [Filter](#filter)
   - [Annotate](#annotate)
-  - [Compute](#compute)
+  - [Modify](#modify)
+- 📈 [Analysis](#-analysis)
+  - [Basic analysis using `immundata`](#basic-analysis-using--immundata-)
+  - [Advanced analysis using `immunarch`](#advanced-analysis-using--immunarch-)
 - 🧩 [Use Cases](#-use-cases)
   - [Bulk -- RepSeq, AIRRSeq](#bulk---repseq-airrseq)
   - [Paired-chain -- scVDJseq or other technologies](#paired-chain---scvdjseq-or-other-technologies)
@@ -177,7 +180,7 @@ list.files("./immundata-quick-start")
 
 1. **Ingestion** – convert your AIRR files into a special format saved on disk, and then read them to a tidy `immundata::ImmunData` object  
 
-2. **Analysis**  – explore, annotate, filter and compute on that object
+2. **Transformation**  – explore, annotate, filter and compute on that object
 
 Before we go into more details for each of the phase, there are three straightforward yet essential `immundata` concepts to keep in mind. These concepts set it apart from data-frame-based AIRR libraries. By extension, the concepts affect how you would work with and even *think* about the data analysis in other packages such as `immunarch` which use `immundata` as a backbone for computations.
 
@@ -302,7 +305,7 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
   
     Call `agg_repertoires()` later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.
 
-### Phase 2: Analysis
+### Phase 2: Transformation
 
 ```
       ┌───────────┐       ┌────────────────────────────┐
@@ -322,7 +325,7 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
     filter_immundata()     ──── Filter receptors or repertoires
             │
             ▼ 
-    mutate_immundata()     ──── Compute statistics or transform ImmunData
+    mutate_immundata()     ──── Create or modify columns, compute statistics
             │
             │     ┌────────────────┐
             ├────►│ save / plot #1 │
@@ -341,7 +344,7 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
 └────────────────────────┘
 ```
 
-Analysis is a loop of annotation → transformation → visualisation, always producing a new `ImmunData` while leaving the parent intact. That immutability is what turns every notebook into a reproducible pipeline.
+Transformation is a loop of annotation → modification and computation → visualisation, always producing a new `ImmunData` while leaving the parent intact. That immutability is what turns every notebook into a reproducible pipeline.
 
   1) **Import external annotations to ImmunData:**
   
@@ -355,7 +358,7 @@ Analysis is a loop of annotation → transformation → visualisation, always pr
   
       `filter_immundata()` accepts tidy-verse predicates on chains, receptors, or repertoires.
   
-  4) **Compute statistics or transform ImmunData:**
+  4) **Create or modify columns, compute statistics:**
   
       On this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
   
@@ -367,15 +370,15 @@ Analysis is a loop of annotation → transformation → visualisation, always pr
       
   4) **Save / plot #1:**
   
-    Cache the `ImmunData`. Use `ggplot2` to visualise the statistics, computed from `ImmunData`.
+      Cache the `ImmunData`. Use `ggplot2` to visualise the statistics, computed from `ImmunData`.
   
   5)  **Annotate ImmunData with the computed statistics:**
   
-     `annotate_immundata()` (again) joins the freshly minted statistics back to the canonical dataset.
+      `annotate_immundata()` (again) joins the freshly minted statistics back to the canonical dataset.
   
   4) **Save / plot #2:**
   
-    Save the `ImmunData` with new annotations to disk. Plot the results of analysis.
+      Save the `ImmunData` with new annotations to disk. Plot the results of analysis.
   
   6)  **Export ImmunData annotations:**
   
@@ -521,6 +524,13 @@ Analysis is a loop of annotation → transformation → visualisation, always pr
 ### Working with metadata table files
 
 Metadata tables store the sample-level information. When `immundata` loads the metadata, it annotates every receptor from a given sample (or file) with the corresponding metadata fields. For example, if a sample has "Therapy" = "CAR‑T", all receptors from that sample receive the same "Therapy" value. You can then aggregate receptors by donor, tissue, or any other field and run your analysis on those repertoires (see the next sections for aggregations).
+
+> [!WARNING]
+> In the current version, "metadata" and "repertoire schema" is the same, meaning you can't get
+> a metadata field to `idata$repertoires` if you haven't define repertoires using that field.
+> I will implement it in the next versions; for now, please consider using `dplyr::left_join` to
+> merge metadata and the repertoires table together.
+
 
 ```r
 library(immundata)
@@ -839,7 +849,7 @@ chains:
 
 ---
 
-## 🛠 Analysis
+## 🛠 Transformation
 
 Before running the code in the following subsections, execute the code below. Mind that for the example purposes, the data uses the TRB locus only. Change the input receptor schema and the column names to adapt it to the paired-chain case.
 
@@ -869,11 +879,19 @@ To filter data, you simply pass predicates like in `dplyr`. Optionally, you can 
       idata |> filter(v_call == "TRBV2")
       
       idata |> filter(Tissue == "Blood")
-      
-      idata |> filter(v_call == "TRBV2", imd_proportion >= 0.0002)
       ```
       
-  2. **Filter by sequence distance**
+  2. **Chain filters together**
+  
+      ```r
+      # this expression:
+      idata |> filter(v_call == "TRBV2", imd_proportion >= 0.0002)
+      
+      # is the same as this one:
+      idata |> filter(v_call == "TRBV2") |> filter(imd_proportion >= 0.0002)
+      ```
+      
+  3. **Filter by sequence distance**
   
       ```r
       idata |> filter(seq_options = make_seq_options(patterns = "CASSELAGYRGEQYF", query_col = "cdr3", method = "lev", max_dist = 3))
@@ -881,17 +899,25 @@ To filter data, you simply pass predicates like in `dplyr`. Optionally, you can 
       idata |> filter(v_call == "TRBV2", seq_options = make_seq_options(patterns = "CASSELAGYRGEQYF", query_col = "cdr3", method = "lev", max_dist = 3))
       ```
       
-  3. **Filter by receptor identifiers**
+  4. **Filter by receptor identifiers**
   
       ```r
       idata |> filter_receptors(c(1,2,3))
       ```
       
-  4. **Filter by barcodes**
+  5. **Filter by barcodes**
   
       ```r
       target_bc <- cells$cell_id[1:3]
       idata |> filter_barcodes(target_bc)
+      ```
+      
+  6. **Filter by repertoire**
+  
+      ```r
+      idata |> filter(imd_repertoire_id == 1)
+      
+      idata |> filter(Tissue %in% c("Blood", "Tumor"))
       ```
 
 ### Annotate
@@ -910,6 +936,7 @@ The key function for annotations are `annotate` and `annotate_immundata`. Functi
   
       ```r
       idata2 <- annotate_receptors(idata = idata, annotations = tibble::tibble(receptor = c(1,2,3), important_data = c("A", "B", "C")), annot_col = "receptor")
+      
       idata2 |> filter(important_data %in% c("A", "B"))
       ```
       
@@ -923,73 +950,86 @@ The key function for annotations are `annotate` and `annotate_immundata`. Functi
       print(idata2)
       ```
 
-### Compute
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
+### Modify
 
 The key functions for this are `mutate` (`dplyr`-compatible) / `mutate_immundata` and the functions from the downstream analysis tools.
 
   1. **Add or transform one or several annotation columns**
   
       ```r
+      idata |> mutate(new_column = "value")
+      
+      idata |> mutate(big_chains = umis >= 10)
+      
+      # You can use duckdb functions via `dd$<function>`
+      idata |> mutate(dist_to_pattern = dd$levenshtein(cdr3, "CASSSVSGNSPLHF"))
       ```
       
   2. **Add columns with sequence distance to patterns**
   
       ```r
-      ```
-
-  3. **Basic repertoire statistics using `immundata`**
-  
-      ```r
-      # Find receptors from several repertoires which have >2 abundance
-      ```
-
-  4. **Basic analysis using `immunarch`**
-
-      ```r
-      # Install the latest pre-1.0 version of immunarch
-      # pak::pkg_install(immunomind/immunarch)
+      patterns <- c("CASSVHPQYF", "CAWSGQGWGGSTDTQYF", "CASSPRPGSTGELFF")
+      idata |> mutate(seq_options = make_seq_options(query_col = "cdr3", patterns = patterns, method = "lev"))
       
-      library(immunarch)
-      
-      
+      idata |> mutate(seq_options = make_seq_options(query_col = "cdr3", patterns = patterns, method = "lev", name_type = "pattern"))
       ```
+---
+
+## 📈 Analysis
+
+### Basic analysis using `immundata`
+
+```r
+# Find receptors from several repertoires which have >60 abundance
+# and get their barcodes
+idata2 <- idata |> filter(imd_count >= 60)
+target_chains <- idata2$annotations |> select(imd_barcode, imd_count, cdr3, v_call, Tissue) |> collect()
+target_chains
+
+# You can then annotate those receptors in your single-cell data using
+# the `imd_barcode` column as a key.
+```
+
+### Advanced analysis using `immundata`
+
+```r
+# Install the latest pre-1.0 version of immunarch
+# pak::pkg_install(immunomind/immunarch)
+
+library(immunarch)
+
+ov_heatmap <- airr_public_index(idata, "jaccard")
+pheatmap::pheatmap(ov_heatmap)
+
+clonal_space_homeo <- airr_clonality(idata, "prop")
+ggplot2::ggplot(data = clonal_space_homeo) + geom_col(aes(x = Tissue, y = occupied_prop, fill = clonal_prop_bin)) + ggplot2::theme_bw()
+```
 
 ---
 
 ## 🧩 Use Cases
+
+> [!TIP]
+> Tutorial on `immundata` + `immunarch` is available [on `immunarch` website]().
+>
+> Read the previous section about the analysis.
+>
+> This section is still under construction.
 
 ### Bulk -- RepSeq, AIRRSeq
 
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
-if you use immunarch or so, you probably already have a metadata. If you don't better create it
-
 ### Paired-chain -- scVDJseq or other technologies
 
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
-It works the same for any data, including bulk and single-cell - just pass a schema
-
 ### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
 
 > [!CAUTION]
 > 🚧 Under construction. 🚧
-
--   load annotation data
--   do something
--   write the annotation data back
--   visualize AIRR with annotations data
--   visualize SC with annotation data
-
-For more information see the vignette tutorial: 
-
-- run `vignette("single_cell")` from R, or
-- follow the link to read it online: [link](link).
 
 ### Spatial -- spatial transcriptomics and cell coordinates
 
@@ -1135,11 +1175,11 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
     A: Picture a three-layer sandwich:
     
-        - `Arrow` files on disk hold the raw tables in column-compressed Parquet.
+    - `Arrow` files on disk hold the raw tables in column-compressed Parquet.
 
-        - `DuckDB` is an in-process SQL engine that can query those files without loading them fully into RAM.
+    - `DuckDB` is an in-process SQL engine that can query those files without loading them fully into RAM.
 
-        - `duckplyr` glues `dplyr` verbs (filter, mutate, summarise, …) to DuckDB SQL, so your R code looks exactly like a tidyverse pipeline while the heavy lifting happens in C++.
+    - `duckplyr` glues `dplyr` verbs (filter, mutate, summarise, …) to DuckDB SQL, so your R code looks exactly like a tidyverse pipeline while the heavy lifting happens in C++.
 
     When you call `read_repertoires()`, immundata writes `Arrow` parts, registers them with `DuckDB`, and returns a `duckplyr` table. Every later verb is lazily translated into SQL; nothing is materialised until a step truly needs physical data (e.g. a plot or an algorithm that exists only in R).
 
