@@ -327,7 +327,7 @@ read_repertoires <- function(path,
     cli::cli_end()
     cli::cli_end(ol)
 
-    cli::cli_alert_success("Preprocessing is finished")
+    cli::cli_alert_success("Preprocessing plan is ready")
   }
 
 
@@ -362,7 +362,7 @@ read_repertoires <- function(path,
     annotation_data <- annotation_data |>
       left_join(metadata_duckdb, by = immundata_filename_col)
 
-    cli::cli_alert_success("Joining is finished")
+    cli::cli_alert_success("Joining plan is ready")
   }
 
   #
@@ -380,7 +380,7 @@ read_repertoires <- function(path,
     cli::cli_end()
     cli::cli_end(ol)
 
-    cli::cli_alert_success("Postprocessing is finished")
+    cli::cli_alert_success("Postprocessing plan is ready")
   }
 
   idata <- ImmunData$new(

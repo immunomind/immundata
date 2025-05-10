@@ -179,6 +179,6 @@ print(filtered_recs)
 
 }
 \seealso{
-\code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[dplyr:filter]{dplyr::filter()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \linkS4class{ImmunData}
+\code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[dplyr:filter]{dplyr::filter()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \link{ImmunData}
 }
 \concept{Filtering}
