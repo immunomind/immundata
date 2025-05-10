@@ -13,6 +13,7 @@ Useful links:
 \itemize{
   \item \url{https://immunomind.com/}
   \item \url{https://github.com/immunomind/immundata}
+  \item \url{https://immunomind.github.io/immundata/}
   \item Report bugs at \url{https://github.com/immunomind/immundata/issues}
 }
 
