@@ -21,6 +21,6 @@ body:
   id: info
   attributes:
     label: Additional information
-    description: Any additional information you want to share with us: your R version and OS, how you want the result look like, etc.
+    description: "Any additional information you want to share with us: your R version and OS, how you want the result look like, etc."
   validations:
     required: false

@@ -2,7 +2,7 @@
 % Please edit documentation in R/operations_agg.R
 \name{agg_repertoires}
 \alias{agg_repertoires}
-\title{Aggregate AIRR data into repertoires and calculate summary statistics}
+\title{Aggregate AIRR data into repertoires}
 \usage{
 agg_repertoires(idata, schema = "repertoire_id")
 }

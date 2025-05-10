@@ -38,7 +38,7 @@
 #' output object without modification. This function only affects the `$annotations`
 #' table.
 #'
-#' @param idata An `ImmunData` object.
+#' @param idata,.data An `ImmunData` object.
 #' @param ... `dplyr::mutate`-style named expressions (e.g., `new_col = existing_col * 2`,
 #'   `category = ifelse(value > 10, "high", "low")`). These are applied first.
 #'   **Important**: You cannot use names for new or modified columns that conflict
@@ -53,12 +53,8 @@
 #'   to the provided expressions and `seq_options`. The `$repertoires` table (if present)
 #'   is carried over unchanged from the input `idata`.
 #'
-#' @seealso [dplyr::mutate()], [make_seq_options()], [filter_immundata()], [ImmunData-class],
+#' @seealso [dplyr::mutate()], [make_seq_options()], [filter_immundata()], [ImmunData],
 #'   `vignette("immundata-classes", package = "immunarch")` (replace with actual package name if different)
-#'
-#' @family Data manipulation functions
-#' @concept Data manipulation
-#' @concept Annotation
 #'
 #' @examples
 #' # Basic setup (assuming idata_test is a valid ImmunData object)
@@ -66,12 +62,12 @@
 #'
 #' \dontrun{
 #' # Example 1: Add a simple derived column
-#' idata_mut1 <- mutate_immundata(idata_test, V_family = substr(V_gene, 1, 5))
+#' idata_mut1 <- mutate(idata_test, V_family = substr(V_gene, 1, 5))
 #' print(idata_mut1$annotations)
 #'
 #' # Example 2: Add multiple columns and modify one (if 'custom_score' exists)
 #' # Note: Avoid modifying core schema columns like 'V_gene' itself.
-#' idata_mut2 <- mutate_immundata(idata_test,
+#' idata_mut2 <- mutate(idata_test,
 #'   V_basic = gsub("-.*", "", V_gene),
 #'   J_len = nchar(J_gene),
 #'   custom_score = custom_score * 1.1
@@ -86,7 +82,7 @@
 #'   method = "exact",
 #'   name_type = "pattern"
 #' ) # Name cols by pattern
-#' idata_mut_exact <- mutate_immundata(idata_test, seq_options = seq_opts_exact)
+#' idata_mut_exact <- mutate(idata_test, seq_options = seq_opts_exact)
 #' # Look for new columns like 'sim_exact_CARGLGLVFYGMDVW'
 #' print(idata_mut_exact$annotations)
 #'
@@ -97,7 +93,7 @@
 #'   method = "lev",
 #'   name_type = "index"
 #' ) # Name col like 'dist_lev_1'
-#' idata_mut_lev <- mutate_immundata(idata_test, seq_options = seq_opts_lev)
+#' idata_mut_lev <- mutate(idata_test, seq_options = seq_opts_lev)
 #' # Look for new column 'dist_lev_1' (or similar based on schema)
 #' print(idata_mut_lev$annotations)
 #'
@@ -108,14 +104,15 @@
 #'   method = "regex",
 #'   name_type = "pattern"
 #' )
-#' idata_mut_combo <- mutate_immundata(idata_test,
+#' idata_mut_combo <- mutate(idata_test,
 #'   chain_upper = toupper(chain),
 #'   seq_options = seq_opts_regex
 #' )
 #' # Look for 'chain_upper' and regex match columns (e.g., 'sim_regex_ighv1')
-#' print(idata_mut_combo$annotations)
+#' print(idata_mut_combo)
 #' }
 #'
+#' @concept Mutation
 #' @export
 mutate_immundata <- function(idata,
                              ...,
@@ -204,4 +201,11 @@ mutate_immundata <- function(idata,
   )
 
   new_idata
+}
+
+
+#' @rdname mutate_immundata
+#' @exportS3Method dplyr::mutate
+mutate.ImmunData <- function(.data, ..., seq_options = NULL) {
+  mutate_immundata(idata = .data, ..., seq_options = seq_options)
 }

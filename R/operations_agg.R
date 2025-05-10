@@ -1,4 +1,4 @@
-#' @title Aggregate AIRR data into repertoires and calculate summary statistics
+#' @title Aggregate AIRR data into repertoires
 #'
 #' @description
 #' Groups the annotation table of an `ImmunData` object by user-specified
@@ -177,7 +177,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
 #'
 #' @param dataset A data frame or `duckplyr_df` containing sequence/clonotype data.
 #'   Must include columns specified in `schema` and potentially `barcode_col`,
-#'   `count_col`, `locus_col`, `umi_col`.
+#'   `count_col`, `locus_col`, `umi_col`. Could be `idata$annotations`.
 #' @param schema Defines how a unique receptor is identified. Can be:
 #'   * A character vector of column names representing receptor features
 #'       (e.g., `c("v_call", "j_call", "junction_aa")`).
@@ -237,7 +237,6 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
 #'
 #' @seealso [read_repertoires()], [make_receptor_schema()], [ImmunData]
 #'
-#' @name agg_receptors
 #' @export
 agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL, locus_col = NULL, umi_col = NULL) {
   checkmate::assert_data_frame(dataset)
@@ -372,11 +371,9 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
       )
 
     #
-    # 3.1) Case 3.1: ingle chain
+    # 3.1) Case 3.1: single chain
     #
     if (length(receptor_chains) <= 1) {
-      cli::cli_alert_info(">> Single locus")
-
       receptor_data <- dataset |>
         summarise(.by = all_of(receptor_features)) |>
         mutate(
@@ -392,43 +389,45 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
     # 3.2) Case 3.2: paired chain
     #
     else if (length(receptor_chains) == 2) {
-      cli::cli_alert_info(">> Paired loci")
+      locus_1 <- receptor_chains[1]
+      locus_2 <- receptor_chains[2]
 
       # Step 1: filter out bad chains, i.e., find the most abundance pairs of chains per barcode per locus
       receptor_data <- dataset |>
-        select(all_of(c(immundata_barcode_col, umi_col, locus_col, receptor_features))) |>
+        select(all_of(c(immundata_barcode_col, umi_col, locus_col))) |>
         mutate(
           .by = c(immundata_barcode_col, locus_col),
           temp__reads = max(!!rlang::sym(umi_col), na.rm = TRUE)
         ) |>
         filter(!!rlang::sym(umi_col) == temp__reads)
+      # distinct(!!rlang::sym(immundata_barcode_col), !!rlang::sym(locus_col), .keep_all = TRUE)
 
       # TODO: what if temp_reads == max with several receptors?
 
       # Step 2: create receptors by self-join
       # TODO: optimize plz
 
-      locus_1 <- receptor_chains[1]
-      locus_2 <- receptor_chains[2]
+      r1 <- receptor_data |>
+        filter(!!rlang::sym(locus_col) == locus_1)
+      r2 <- receptor_data |>
+        filter(!!rlang::sym(locus_col) == locus_2)
 
-      receptor_data <- receptor_data |>
-        filter(!!rlang::sym(locus_col) == locus_1) |>
-        left_join(
-          receptor_data |>
-            filter(!!rlang::sym(locus_col) == locus_2),
+      receptor_data <- r1 |>
+        semi_join(
+          r2,
           by = immundata_barcode_col
         ) |>
         mutate(
           {{ immundata_receptor_id_col }} := row_number()
-        )
+        ) |>
+        select(all_of(c(
+          immundata_receptor_id_col,
+          immundata_barcode_col
+        )))
 
-      annotation_data <- dataset |>
+      annotation_data <- receptor_data |>
         left_join(
-          receptor_data |>
-            select(all_of(c(
-              immundata_receptor_id_col,
-              immundata_barcode_col
-            ))),
+          dataset,
           by = immundata_barcode_col
         ) |>
         mutate(
@@ -496,9 +495,11 @@ make_receptor_schema <- function(features, chains = NULL) {
 assert_receptor_schema <- function(schema) {
   # TODO: globals.R with schema list
 
-  checkmate::assert(test_receptor_schema(schema))
-
-  TRUE
+  checkmate::assert(
+    checkmate::test_character(schema, min.len = 1),
+    checkmate::test_list(schema, len = 2, null.ok = FALSE) &&
+      checkmate::test_names(names(schema), must.include = c("features", "chains"))
+  )
 }
 
 

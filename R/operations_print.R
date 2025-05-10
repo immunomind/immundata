@@ -25,10 +25,14 @@ print.ImmunData <- function(x, ...) {
       }
     }
     cli::cli_text("chains:")
-    for (val in imd_receptor_chains(x$schema_receptor)) {
-      if (!(val %in% imd_schema())) {
-        cli::cli_bullets(c(">" = val))
+    if (length(imd_receptor_chains(x$schema_receptor))) {
+      for (val in imd_receptor_chains(x$schema_receptor)) {
+        if (!(val %in% imd_schema())) {
+          cli::cli_bullets(c(">" = val))
+        }
       }
+    } else {
+      cli::cli_text("~")
     }
   }
 

@@ -10,7 +10,7 @@
 \alias{imd_repertoire_schema}
 \alias{imd_receptor_features}
 \alias{imd_receptor_chains}
-\title{Get Immundata Internal Schema Field Names}
+\title{Get Immundata internal schema field names}
 \usage{
 imd_schema(key = NULL)
 
@@ -30,8 +30,12 @@ imd_receptor_features(schema)
 
 imd_receptor_chains(schema)
 }
-\value{
-A named list of schema field names.
+\arguments{
+\item{key}{Character which field to return.}
+
+\item{format}{Character what format to load - "airr" or "10x".}
+
+\item{schema}{Receptor schema from \code{\link[=make_receptor_schema]{make_receptor_schema()}}.}
 }
 \description{
 Returns the standardized field names used across Immundata objects and processing functions,

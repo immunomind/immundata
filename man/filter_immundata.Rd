@@ -2,25 +2,35 @@
 % Please edit documentation in R/operations_filter.R
 \name{filter_immundata}
 \alias{filter_immundata}
+\alias{filter.ImmunData}
 \alias{filter_barcodes}
 \alias{filter_receptors}
 \title{Filter ImmunData by receptor features, barcodes or any annotations}
 \usage{
 filter_immundata(idata, ..., seq_options = NULL, keep_repertoires = TRUE)
 
+\method{filter}{ImmunData}(
+  .data,
+  ...,
+  .by = NULL,
+  .preserve = FALSE,
+  seq_options = NULL,
+  keep_repertoires = TRUE
+)
+
 filter_barcodes(idata, barcodes, keep_repertoires = TRUE)
 
 filter_receptors(idata, receptors, keep_repertoires = TRUE)
 }
 \arguments{
-\item{idata}{An \code{ImmunData} object.}
+\item{idata, .data}{An \code{ImmunData} object.}
 
-\item{...}{For \code{filter_immundata}, these are regular \code{dplyr}-style filtering
+\item{...}{For \code{filter}, these are regular \code{dplyr}-style filtering
 expressions (e.g., \code{V_gene == "IGHV1-1"}, \code{chain == "IGH"}) applied to the
 \verb{$annotations} table \emph{before} sequence filtering. Ignored by \code{filter_barcodes}
 and \code{filter_receptors}.}
 
-\item{seq_options}{For \code{filter_immundata}, an optional named list specifying sequence-based
+\item{seq_options}{For \code{filter}, an optional named list specifying sequence-based
 filtering options. Use \code{\link[=make_seq_options]{make_seq_options()}} for convenient creation.
 The list can contain:
 \itemize{
@@ -47,6 +57,10 @@ the repertoire summaries will be recalculated based on the filtered data using
 returned \code{ImmunData} object will not contain repertoire summaries (\verb{$repertoires}
 will be \code{NULL}).}
 
+\item{.by}{Not used.}
+
+\item{.preserve}{Not used.}
+
 \item{barcodes}{For \code{filter_barcodes}, a vector of cell identifiers (barcodes)
 to keep. Can be character, integer, or numeric.}
 
@@ -60,7 +74,7 @@ A new \code{ImmunData} object containing only the filtered annotations
 \description{
 Provides flexible filtering options for an \code{ImmunData} object.
 
-\code{filter_immundata()} is the main function, allowing filtering based on receptor features
+\code{filter()} is the main function, allowing filtering based on receptor features
 (e.g., CDR3 sequence) using various matching methods (exact, regex, fuzzy) and/or
 standard \code{dplyr}-style filtering on annotation columns.
 
@@ -69,7 +83,7 @@ standard \code{dplyr}-style filtering on annotation columns.
 \code{filter_receptors()} is a convenience function to filter by specific receptor identifiers.
 }
 \details{
-For \code{filter_immundata}:
+For \code{filter}:
 \itemize{
 \item User-provided \code{dplyr}-style filters (\code{...}) are applied \emph{before} any sequence-based
 filtering defined in \code{seq_options}.
@@ -106,16 +120,16 @@ operations internally.
 # Basic setup (assuming idata_test is a valid ImmunData object)
 # print(idata_test)
 
-# --- filter_immundata examples ---
+# --- filter examples ---
 \dontrun{
 # Example 1: dplyr-style filtering on annotations
-filtered_heavy <- filter_immundata(idata_test, chain == "IGH")
+filtered_heavy <- filter(idata_test, chain == "IGH")
 print(filtered_heavy)
 
 # Example 2: Exact sequence matching on CDR3 amino acid sequence
 cdr3_patterns <- c("CARGLGLVFYGMDVW", "CARDNRGAVAGVFGEAFYW")
 seq_opts_exact <- make_seq_options(query_col = "CDR3_aa", patterns = cdr3_patterns)
-filtered_exact_cdr3 <- filter_immundata(idata_test, seq_options = seq_opts_exact)
+filtered_exact_cdr3 <- filter(idata_test, seq_options = seq_opts_exact)
 print(filtered_exact_cdr3)
 
 # Example 3: Combining dplyr-style and fuzzy sequence matching (Levenshtein)
@@ -125,7 +139,7 @@ seq_opts_lev <- make_seq_options(
   method = "lev",
   max_dist = 1
 )
-filtered_combined <- filter_immundata(idata_test,
+filtered_combined <- filter(idata_test,
   chain == "IGH",
   C_gene == "IGHG1",
   seq_options = seq_opts_lev
@@ -139,11 +153,11 @@ seq_opts_regex <- make_seq_options(
   patterns = v_gene_pattern,
   method = "regex"
 )
-filtered_regex_v <- filter_immundata(idata_test, seq_options = seq_opts_regex)
+filtered_regex_v <- filter(idata_test, seq_options = seq_opts_regex)
 print(filtered_regex_v)
 
 # Example 5: Filtering without recalculating repertoires
-filtered_no_rep <- filter_immundata(idata_test, chain == "IGK", keep_repertoires = FALSE)
+filtered_no_rep <- filter(idata_test, chain == "IGK", keep_repertoires = FALSE)
 print(filtered_no_rep) # $repertoires should be NULL
 }
 
@@ -165,6 +179,6 @@ print(filtered_recs)
 
 }
 \seealso{
-\code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[dplyr:filter]{dplyr::filter()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \linkS4class{ImmunData}
+\code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[dplyr:filter]{dplyr::filter()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \link{ImmunData}
 }
 \concept{Filtering}
