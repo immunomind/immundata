@@ -11,3 +11,5 @@
 .venv_altdoc
 ^docs$
 ^altdoc$
+^_pkgdown\.yml$
+^pkgdown$
