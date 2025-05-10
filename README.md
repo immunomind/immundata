@@ -1,7 +1,7 @@
 [![CRAN](http://www.r-pkg.org/badges/version-ago/immundata?style=flat-square)](https://cran.r-project.org/package=immundata)
 [![Downloads_all](http://cranlogs.r-pkg.org/badges/grand-total/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
 [![Downloads_week](http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
-[![Issues](https://img.shields.io/github/issues/immunomind/immundata-rlang?style=flat-square)](https://github.com/immunomind/immundata-rlang/issues)
+[![Issues](https://img.shields.io/github/issues/immunomind/immundata?style=flat-square)](https://github.com/immunomind/immundata/issues)
 
 # 🦋 `immundata` – A unified data layer for large-scale single-cell, spatial and bulk immunomics in R
 
@@ -32,7 +32,7 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 ---
 
 > [!IMPORTANT]
-> This README is huge. Please consider using navigation.
+> This README is huge. I'm not kidding. Please consider using navigation.
 
 - 🤔 [Why `immundata`?](#-why--immundata-)
 - 📦 [Installation](#-installation)
@@ -107,7 +107,7 @@ More info if needed is available on [pak website](https://pak.r-lib.org/#arrow_d
 To install the latest release of `immundata`, simply run:
 
 ```r
-pak::pkg_install("immunomind/immundata-rlang")
+pak::pkg_install("immunomind/immundata")
 ```
 
 Mind that this will install the package from our GitHub instead of CRAN. This method is much preferred due to limitations of CRAN and reliance on other packages, which are distributed via `pak` as well.
@@ -123,7 +123,7 @@ pak::pkg_install("immundata")
 If you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version:
 
 ```r
-pak::pkg_install("immunomind/immundata-rlang@dev")
+pak::pkg_install("immunomind/immundata@dev")
 ```
 
 ---
@@ -600,6 +600,12 @@ schema <- make_receptor_schema(
       ```
 
   2. **Single-chain**
+  
+  >[!NOTE]
+  > Please note that single-chain option does not (!) remove multiple chains per cell - yet.
+  > In other words, you will get multiple receptors per barcode. The paired chain option filter out
+  > chains which don't have the max number of reads or umis per barcode. So receptor numbers and sequences
+  > could differ significantly.
 
       Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.
       
@@ -723,10 +729,14 @@ print(idata)
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
--   filtering non productive
--   double contigs
--   double BCR chains
--   locus
+1. *... in progress ...*
+
+  - removing columns ("on" by default)
+  - filtering non productive ("on" by default)
+
+2. **Barcode prefix**
+
+    Provide a column named "Prefix" to the metadata so `make_default_postprocessing()` can automatically add this prefix to barcodes to make barcodes unique in your resultant dataset.
 
 ### Managing the output and intermediate ImmunData files
 
@@ -869,7 +879,7 @@ idata <- read_repertoires(path = inp_files, schema = schema, metadata = md_table
 
 ### Filter
 
-The key functions for filtering are `filter()` (`dplyr`-compatible) and `filter_immundata()`, which as the same function with a slightly different arguments due to the necessity to comply with `dplyr` interface. Repertoires are reaggregated automatically. Functions `filter_receptors()` and `filter_barcodes` are used for filter receptor and barcode identifiers, correspondingly.
+The key functions for filtering are `filter()` (`dplyr`-compatible) and `filter_immundata()`, which are the same function with a slightly different arguments due to the necessity to comply with `dplyr` interface. Repertoires are reaggregated automatically. Functions `filter_receptors()` and `filter_barcodes()` are used for filter receptor and barcode identifiers, correspondingly.
 
 To filter data, you simply pass predicates like in `dplyr`. Optionally, you can pass `seq_options` that allow you to filter by exact sequence match, regex pattern, or sequence distances using hamming or edit/levenshtein distances. You can pass multiple patterns via `patterns = c("pattern_1", "pattern_2")`.
 
@@ -927,7 +937,9 @@ The key function for annotations are `annotate` and `annotate_immundata`. Functi
   1. **Annotate by any column**
   
       ```r
-      idata2 <- annotate(idata = idata, annotations = cells[c("cell_id", "ident")], by = c(imd_barcode = "cell_id"), keep_repertoires = FALSE) |> agg_repertoires(schema = "ident")
+      idata2 <- annotate(idata = idata, annotations = cells[c("cell_id", "ident")], by = c(imd_barcode = "cell_id"), keep_repertoires = FALSE)
+      idata2 <- idata2 |> filter(!is.na(ident))
+      idata2 <- idata2 |> agg_repertoires(schema = "ident")
       
       print(idata2)
       ```
@@ -944,8 +956,8 @@ The key function for annotations are `annotate` and `annotate_immundata`. Functi
   
       ```r
       idata2 <- annotate_barcodes(idata = idata, annotations = cells[c("cell_id", "ident")],  annot_col = "cell_id", keep_repertoires = FALSE)
-
-      idata2 <- idata |> agg_repertoires(schema = "ident")
+      idata2 <- idata2 |> filter(!is.na(ident))
+      idata2 <- idata2 |> agg_repertoires(schema = "ident")
       
       print(idata2)
       ```
@@ -972,6 +984,12 @@ The key functions for this are `mutate` (`dplyr`-compatible) / `mutate_immundata
       idata |> mutate(seq_options = make_seq_options(query_col = "cdr3", patterns = patterns, method = "lev"))
       
       idata |> mutate(seq_options = make_seq_options(query_col = "cdr3", patterns = patterns, method = "lev", name_type = "pattern"))
+      ```
+      
+  3. **Modify a subset of column values**
+  
+      ```r
+      idata |> mutate(found_pattern = if_else(cdr3 == "CASSVHPQYF", 1, 0))
       ```
 ---
 
@@ -1021,15 +1039,49 @@ ggplot2::ggplot(data = clonal_space_homeo) + geom_col(aes(x = Tissue, y = occupi
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
-### Paired-chain -- scVDJseq or other technologies
+Pretty much the whole README is either about single-chain or paired-chain data.
+
+Consider passing `make_default_preprocessing("airr")` or `make_default_preprocessing("10x")` to `read_repertoires(..., preproc = <here>, ...)` to have convenient processing of the corresponding formats.
+
+Pass `count_col` to `read_repertoires(..., count_col = "Counts", ...)` to assign counts to chains.
+
+### Single-cell and paired-chain -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
 
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
-### Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
+Make sure to pass `make_default_preprocessing("10x")`, `locus_col` and `barcode_col` to read paired-chain data. Drop the `locus_col` if you want to read single-chain data only.
 
-> [!CAUTION]
-> 🚧 Under construction. 🚧
+```r
+library(Seurat) 
+
+sdata <- ...  # Load the Seurat data
+idata <- ...  # Load the corresponding AIRR data
+
+# Get both GEX and metadata
+smeta <- data.frame(
+  barcode      = colnames(sdata),
+  cluster      = Idents(sdata),
+  gene_MS4A1   = FetchData(sdata, "MS4A1")[,1]
+)
+
+idata <- annotate_barcodes(idata, smeta, annot_col = "barcode")
+```
+
+```r
+library(AnnDataR)
+
+adata <- ...  # Load the AnndataR data
+idata <- ...  # Load the corresponding AIRR data
+
+ameta <- data.frame(
+  barcode  = adata$obs_names,
+  cluster  = adata$obs$cell_type,
+  gene_GCG = adata$X[, "GCG"]
+)
+
+idata <- annotate_barcodes(idata, ameta, annot_col = "barcode")
+```
 
 ### Spatial -- spatial transcriptomics and cell coordinates
 
@@ -1041,10 +1093,27 @@ ggplot2::ggplot(data = clonal_space_homeo) + geom_col(aes(x = Tissue, y = occupi
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
+`annotate()`
+
 ### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData 
 
 > [!CAUTION]
 > 🚧 Under construction. 🚧
+
+TCRdist: https://github.com/kmayerb/tcrdist3
+
+Save receptors to file and read it via TCRdist. If you need to rename columns, use `dplyr`.
+
+```
+receptors_mater <- idata$receptors |> rename(cdr3_b_aa = cdr3) |> collect()
+
+readr::write_csv(receptors_mater, "receptors.csv")
+
+# Read it via TCRdist
+# Run TCRdist and get neighbours
+# Write neightbours to disk
+# Read neighbours to R and annotate `idata` using `annotate()`
+```
 
 ### Hybrid datasets 
 
@@ -1068,10 +1137,14 @@ ggplot2::ggplot(data = clonal_space_homeo) + geom_col(aes(x = Tissue, y = occupi
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
+Artificial barcodes for bulk data
+
 ### Receptor clusters and motifs
 
 > [!CAUTION]
 > 🚧 Under construction. 🚧
+
+Run external clustering, assign identifiers to resultant clusters, annotate the data, create new receptors using the assigned identifiers. More convenient alternative to identifiers - cluster motifs.
 
 ---
 
@@ -1253,14 +1326,14 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
     # GitHub release
     install.packages(c("devtools", "pkgload"))
-    devtools::install_github("immunomind/immundata-rlang")
+    devtools::install_github("immunomind/immundata")
     devtools::reload(pkgload::inst("immundata"))
 
     # Development version
-    devtools::install_github("immunomind/immundata-rlang", ref = "dev")
+    devtools::install_github("immunomind/immundata", ref = "dev")
     devtools::reload(pkgload::inst("immundata"))
     ```
 
-12. **Q: Why the counts for receptors are only available after all the aggregation?**
+12. **Q: Why are the counts for receptors available only after all the aggregation?**
 
     A: Counts and proportions are properties of a receptor inside a specific repertoire. A receptor seen in two samples will be counted twice – once per repertoire. Until receptors and repertoires are defined, any "count" would be ambiguous. That's why the numbers appear only after `agg_receptors()` and `agg_repertoires()` have locked those definitions in.
