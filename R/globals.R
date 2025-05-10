@@ -1,5 +1,5 @@
 # TODO: Use rlang::.data
-utils::globalVariables(c("dd", "n_cells", "p", "tmp_receptor_cells", "temp__reads"))
+utils::globalVariables(c("dd", "meta", "n_cells", "n_barcodes", "p", "tmp_receptor_cells", "temp__reads"))
 
 # TODO: move globals to config file to share between R and Python
 
@@ -121,14 +121,17 @@ IMD_GLOBALS <- list(
   )
 )
 
-#' @title Get Immundata Internal Schema Field Names
+#' @title Get Immundata internal schema field names
 #'
 #' @description
 #' Returns the standardized field names used across Immundata objects and processing functions,
 #' as defined in `IMD_GLOBALS$schema`. These include column names for cell ids or barcodes, receptors,
 #' repertoires, and related metadata.
 #'
-#' @return A named list of schema field names.
+#' @param key Character which field to return.
+#' @param format Character what format to load - "airr" or "10x".
+#' @param schema Receptor schema from [make_receptor_schema()].
+#'
 #' @export
 imd_schema <- function(key = NULL) {
   if (is.null(key)) {
