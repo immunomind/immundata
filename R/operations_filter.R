@@ -140,7 +140,7 @@
 #' print(filtered_recs)
 #' }
 #'
-#' @concept Filtering
+#' @concept filtering
 #' @export
 filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = TRUE) {
   checkmate::assert_r6(idata, "ImmunData")
@@ -237,14 +237,12 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
   }
 }
 
-#' @concept Filtering
 #' @rdname filter_immundata
 #' @exportS3Method dplyr::filter
 filter.ImmunData <- function(.data, ..., .by = NULL, .preserve = FALSE, seq_options = NULL, keep_repertoires = TRUE) {
   filter_immundata(idata = .data, ..., seq_options = seq_options, keep_repertoires = keep_repertoires)
 }
 
-#' @concept Filtering
 #' @rdname filter_immundata
 #' @export
 filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
@@ -275,7 +273,6 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
 }
 
 
-#' @concept Filtering
 #' @rdname filter_immundata
 #' @export
 filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {

@@ -7,6 +7,7 @@
 #'
 #' @seealso [read_repertoires()], [read_immundata()]
 #'
+#' @concept core_immundata
 #' @export
 ImmunData <- R6Class(
   "ImmunData",

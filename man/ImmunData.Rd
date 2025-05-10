@@ -11,6 +11,7 @@ and provides tools for filtering, aggregation, and receptor-to-repertoire mappin
 \seealso{
 \code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=read_immundata]{read_immundata()}}
 }
+\concept{core_immundata}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{

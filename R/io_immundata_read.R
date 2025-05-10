@@ -42,6 +42,7 @@
 #'   [read_repertoires()] for the primary data loading pipeline, [ImmunData] class,
 #'   [agg_repertoires()] for repertoire definition.
 #'
+#' @concept ingestion
 #' @export
 #'
 #' @examples

@@ -211,3 +211,4 @@ unlink(attr(idata_multi, "output_folder"), recursive = TRUE) # Get path used by 
 \code{\link[=agg_receptors]{agg_receptors()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=make_receptor_schema]{make_receptor_schema()}},
 \code{\link[=make_default_preprocessing]{make_default_preprocessing()}}, \code{\link[=make_default_postprocessing]{make_default_postprocessing()}}
 }
+\concept{ingestion}

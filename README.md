@@ -299,11 +299,11 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
       
   3) **Write data on disk:**
   
-    `read_repertoires` always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.
+      `read_repertoires` always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.
     
   5) **Aggregate repertoires #2:**
   
-    Call `agg_repertoires()` later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.
+      Call `agg_repertoires()` later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.
 
 ### Phase 2: Transformation
 

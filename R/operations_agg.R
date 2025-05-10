@@ -65,6 +65,8 @@
 #'   to `imd_repertoire_id`, `n_barcodes`, and `n_receptors`.
 #'
 #' @seealso [read_repertoires()] (which can call this function), [ImmunData] class.
+#'
+#' @concept aggregation
 #' @export
 #'
 #' @examples
@@ -237,6 +239,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
 #'
 #' @seealso [read_repertoires()], [make_receptor_schema()], [ImmunData]
 #'
+#' @concept aggregation
 #' @export
 agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL, locus_col = NULL, umi_col = NULL) {
   checkmate::assert_data_frame(dataset)
@@ -481,6 +484,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
 #' `test_receptor_schema` returns `TRUE` or `FALSE`.
 #'
 #' @rdname make_receptor_schema
+#' @concept utils
 #' @export
 make_receptor_schema <- function(features, chains = NULL) {
   checkmate::check_character(features, min.len = 1)

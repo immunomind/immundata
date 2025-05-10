@@ -87,6 +87,7 @@
 #' )
 #' }
 #'
+#' @concept annotation
 #' @rdname annotate_immundata
 #' @export
 annotate_immundata <- function(idata,

@@ -19,6 +19,8 @@
 #'   [filter_receptors()].
 #'
 #' @seealso [filter_receptors()], [annotate_receptors()]
+#'
+#' @concept utils
 #' @export
 make_seq_options <- function(query_col,
                              patterns,
@@ -88,6 +90,7 @@ make_pattern_columns <- function(patterns,
 }
 
 
+#' @keywords internal
 annotate_tbl_distance <- function(tbl_data,
                                   query_col,
                                   patterns,
@@ -200,24 +203,7 @@ annotate_tbl_distance <- function(tbl_data,
 }
 
 
-#' @title Annotate a Duckplyr Table with Regex Match Flags
-#'
-#' @description
-#' Adds one logical “does this sequence match this regex?” column per pattern,
-#' using DuckDB’s `regexp_matches()` via the `dd` escape hatch.
-#'
-#' @param tbl_data   A duckplyr table (e.g. `idata$receptors`).
-#' @param query_col  Character(1). Name of the sequence column to search.
-#' @param patterns   Character vector of regular expressions.
-#' @param filter_out Logical(1). If TRUE, filter out sequences which don't match the pattern.
-#' @param name_type  One of `"pattern"` or `"index"`:
-#'                   - `"pattern"`: column names `match_regex_<sanitized_pattern>`
-#'                   - `"index"`:   column names `match_regex_<i>
-#'
-#' @return The input table with new logical match columns added.
-#' @importFrom dplyr distinct mutate left_join
-#' @importFrom checkmate assert_character
-#' @importFrom rlang sym
+#' @keywords internal
 annotate_tbl_regex <- function(tbl_data,
                                query_col,
                                patterns,
@@ -264,7 +250,7 @@ annotate_tbl_regex <- function(tbl_data,
   }
 }
 
-#' @importFrom rlang sym
+
 to_sym <- function(val) {
   if (length(val) == 1) {
     rlang::sym(val)

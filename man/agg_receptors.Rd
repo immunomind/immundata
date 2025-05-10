@@ -110,3 +110,4 @@ Internal column names are typically managed by \code{immundata:::imd_schema()}.
 \seealso{
 \code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=make_receptor_schema]{make_receptor_schema()}}, \link{ImmunData}
 }
+\concept{aggregation}

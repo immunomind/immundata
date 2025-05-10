@@ -32,6 +32,7 @@
 #' )
 #' }
 #'
+#' @concept ingestion
 #' @export
 from_immunarch <- function(
     imm,

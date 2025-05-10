@@ -131,4 +131,4 @@ print(idata_mut_combo)
 \code{\link[dplyr:mutate]{dplyr::mutate()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=filter_immundata]{filter_immundata()}}, \link{ImmunData},
 \code{vignette("immundata-classes", package = "immunarch")} (replace with actual package name if different)
 }
-\concept{Mutation}
+\concept{mutation}

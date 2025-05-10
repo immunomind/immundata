@@ -99,6 +99,7 @@
 #'   [agg_receptors()], [agg_repertoires()], [make_receptor_schema()],
 #'   [make_default_preprocessing()], [make_default_postprocessing()]
 #'
+#' @concept ingestion
 #' @export
 #'
 #' @examples

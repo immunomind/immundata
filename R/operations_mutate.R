@@ -112,7 +112,7 @@
 #' print(idata_mut_combo)
 #' }
 #'
-#' @concept Mutation
+#' @concept mutation
 #' @export
 mutate_immundata <- function(idata,
                              ...,

@@ -40,6 +40,7 @@
 #' @seealso [read_immundata()] for loading the saved data, [read_repertoires()]
 #'   which uses this function internally, [ImmunData] class definition.
 #'
+#' @concept ingestion
 #' @export
 #'
 #' @examples

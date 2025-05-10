@@ -40,3 +40,4 @@ an error if not.
 character vector (which \code{agg_receptors} can also accept) and returns \code{TRUE}
 or \code{FALSE}.
 }
+\concept{utils}

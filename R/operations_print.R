@@ -1,3 +1,4 @@
+#' @concept operations
 #' @export
 print.ImmunData <- function(x, ...) {
   cli::cli_h1("{cli::col_blue('ImmunData')}")

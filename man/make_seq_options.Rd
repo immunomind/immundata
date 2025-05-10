@@ -39,3 +39,4 @@ A convenience wrapper that validates the common arguments for
 \seealso{
 \code{\link[=filter_receptors]{filter_receptors()}}, \code{\link[=annotate_receptors]{annotate_receptors()}}
 }
+\concept{utils}
