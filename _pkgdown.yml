@@ -1,0 +1,25 @@
+url: https://immunomind.github.io/immundata/
+
+template:
+  params:
+    bootswatch: flatly
+
+authors:
+  Vadim I. Nazarov:
+    href: https://www.linkedin.com/in/vdnaz
+
+navbar:
+  structure:
+    left: [reference]
+    right: [im_link, github]
+  components:
+    twitter:
+      icon: fa-lg fa-twitter
+      href: http://twitter.com/immunomind
+    im_link:
+      text: ImmunoMind
+      href: https://immunomind.com
+    github:
+      icon: fa-github
+      href: https://github.com/immunomind/immunarch
+

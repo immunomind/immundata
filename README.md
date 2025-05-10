@@ -291,7 +291,7 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
       
   3) **Postprocess:**
   
-    A mirror step to **preprocess**: a convenient hook to run QC checks, add derived fields, attach reference-gene annotations, or compute per-chain quality metrics **after** the dataset is ready. You can pass any number of steps which will be executed in a sequential order.
+      A mirror step to **preprocess**: a convenient hook to run QC checks, add derived fields, attach reference-gene annotations, or compute per-chain quality metrics **after** the dataset is ready. You can pass any number of steps which will be executed in a sequential order.
   
   5) **Aggregate repertoires #1:**
   
@@ -601,11 +601,11 @@ schema <- make_receptor_schema(
 
   2. **Single-chain**
   
-  >[!NOTE]
-  > Please note that single-chain option does not (!) remove multiple chains per cell - yet.
-  > In other words, you will get multiple receptors per barcode. The paired chain option filter out
-  > chains which don't have the max number of reads or umis per barcode. So receptor numbers and sequences
-  > could differ significantly.
+      >[!NOTE]
+      > Please note that single-chain option does not (!) remove multiple chains per cell - yet.
+      > In other words, you will get multiple receptors per barcode. The paired chain option filter out
+      > chains which don't have the max number of reads or umis per barcode. So receptor numbers and sequences
+      > could differ significantly.
 
       Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.
       
@@ -661,10 +661,10 @@ Cheat-sheet for arguments to `read_repertoires`:
 | Situation                                | `barcode_col` | `locus_col` | `umi_col` | `chains`         |
 | ---------------------------------------- | ------------- | ----------- | --------- | ---------------- |
 | Bulk data, no locus filtering            | no            | no          | no        | omit / `NULL`    |
-| Analyse TRA only                         | optional¹     | **yes**     | no        | `"TRA"`          |
+| Analyse TRA only                         | **yes**¹      | **yes**     | no        | `"TRA"`          |
 | Pair TRA+TRB, pick best chain per cell   | **yes**       | **yes**     | **yes**   | `c("TRA","TRB")` |
 
-¹ If you pass barcodes, they're stored but not used for pairing.
+¹ If you pass barcodes, they're stored but used for counting only.
 
 ### Repertoire schema
 
