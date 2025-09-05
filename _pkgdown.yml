@@ -3,6 +3,7 @@ url: https://immunomind.github.io/immundata/
 template:
   params:
     bootswatch: flatly
+  bootstrap: 5
 
 authors:
   Vadim I. Nazarov:
@@ -10,15 +11,22 @@ authors:
 
 navbar:
   structure:
-    left: [reference]
-    right: [im_link, github]
+    left: [tutorial, migration, reference]
+    right: [search, lightswitch, im_link, github]
   components:
+    tutorial:
+      text: ""
+      href: ...
+    migration:
+      text: ""
+      href: ...
     im_link:
       text: ImmunoMind
       href: https://immunomind.com
     github:
       icon: fa-github
       href: https://github.com/immunomind/immundata
+      aria-label: GitHub
 
 reference:
 - title: "Ingestion"
