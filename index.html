@@ -4,69 +4,51 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics • immundata</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
-<script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics">
+<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics">
+<meta name="description" content="Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data.">
 <meta property="og:description" content="Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data.">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-home">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">immundata</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.3.9002</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="reference/index.html">Reference</a>
-</li>
+    <a class="navbar-brand me-2" href="index.html">immundata</a>
+
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="..."></a></li>
+<li class="nav-item"><a class="nav-link" href="..."></a></li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://immunomind.com" class="external-link">ImmunoMind</a>
-</li>
-<li>
-  <a href="https://github.com/immunomind/immunarch" class="external-link">
-    <span class="fa fa-github"></span>
-
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://immunomind.com">ImmunoMind</a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/immunomind/immundata" aria-label="GitHub"><span class="fa fa-github"></span></a></li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
-
-
-
-      </header><div class="row">
-  <div class="contents col-md-9">
-
-
+</nav><div class="container template-home">
+<div class="row">
+  <main id="main" class="col-md-9">
 <div class="section level1">
 <div class="page-header"><h1 id="id_-immundata--a-unified-data-layer-for-large-scale-single-cell-spatial-and-bulk-immunomics-in-r">🦋 <code>immundata</code> – A unified data layer for large-scale single-cell, spatial and bulk immunomics in R<a class="anchor" aria-label="anchor" href="#id_-immundata--a-unified-data-layer-for-large-scale-single-cell-spatial-and-bulk-immunomics-in-r"></a>
 </h1></div>
@@ -384,13 +366,15 @@
 <p><strong>Aggregate repertoires #1:</strong></p>
 <p>If you already know how to group chains into receptors, perhaps by <code>"Sample"</code> or <code>"Donor"</code> columns from the metadata, you can pass <code>repertoire_schema = c("Sample")</code> to <code><a href="reference/read_repertoires.html">read_repertoires()</a></code>. Otherwise, skip and define repertoires later (common in single-cell workflows where you need cluster labels first).</p>
 </li>
-<li><p><strong>Write data on disk:</strong></p></li>
+<li>
+<p><strong>Write data on disk:</strong></p>
+<p><code>read_repertoires</code> always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.</p>
+</li>
+<li>
+<p><strong>Aggregate repertoires #2:</strong></p>
+<p>Call <code><a href="reference/agg_repertoires.html">agg_repertoires()</a></code> later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.</p>
+</li>
 </ol>
-<div class="sourceCode" id="cb8"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="st">`</span><span class="at">read_repertoires</span><span class="st">`</span> always persists what it just built<span class="sc">:</span> column<span class="sc">-</span>compressed Parquet parts plus a human<span class="sc">-</span>readable metadata <span class="cf">in</span> JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.</span></code></pre></div>
-<ol start="5" style="list-style-type: decimal">
-<li><strong>Aggregate repertoires #2:</strong></li>
-</ol>
-<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>Call <span class="st">`</span><span class="at">agg_repertoires()</span><span class="st">`</span> later <span class="cf">if</span> you withheld grouping until additional annotations were available, e.g. donor <span class="sc">+</span> cell cluster.</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="phase-2-transformation">Phase 2: Transformation<a class="anchor" aria-label="anchor" href="#phase-2-transformation"></a>
@@ -483,7 +467,7 @@
 <li>
 <p><strong>Pass a single file name:</strong></p>
 <p>If you just have <strong>one</strong> AIRR file:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inp_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/tsv"</span>, <span class="st">"sample_0_1k.tsv"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -498,7 +482,7 @@
 <li>
 <p><strong>Pass a vector of file names:</strong></p>
 <p>For <strong>multiple</strong> files in a vector:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inp_file1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/tsv"</span>, <span class="st">"sample_0_1k.tsv"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -517,7 +501,7 @@
 <li>
 <p><strong>Pass a glob pattern:</strong></p>
 <p>If your files follow a consistent naming pattern, you can leverage shell globs:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">folder_with_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/tsv"</span>, <span class="st">""</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -545,7 +529,7 @@
 <li><p><strong>Pass</strong> the resulting data frame to <code>read_repertoires(path = "&lt;metadata&gt;", ..., metadata = md_table)</code>. Mind the <code>"&lt;metadata&gt;"</code> string we pass to the function. It indicates that we should take file paths from the input metadata table.</p></li>
 </ol>
 <p>An example code:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">md_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/tsv"</span>, <span class="st">"metadata.tsv"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -560,7 +544,7 @@
   &lt;chr&gt;                      &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;
 1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
 2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…</code></pre>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_repertoires.html">read_repertoires</a></span><span class="op">(</span></span>
 <span>  path     <span class="op">=</span> <span class="st">"&lt;metadata&gt;"</span>,</span>
 <span>  metadata <span class="op">=</span> <span class="va">md_table</span>,</span>
@@ -575,7 +559,7 @@
 <li>
 <p><strong>Convert from <code>immunarch</code> lists:</strong></p>
 <p>Pass <code>immunarch</code> data lists to <code><a href="reference/from_immunarch.html">from_immunarch()</a></code> to create <code>ImmunData</code> objects.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span><span class="co"># Install old immunarch:</span></span>
 <span><span class="co"># pak::pkg_install("immunomind/immunarch@0.9.1")</span></span>
@@ -597,7 +581,7 @@
 <blockquote>
 <p>[!WARNING] In the current version, “metadata” and “repertoire schema” is the same, meaning you can’t get a metadata field to <code>idata$repertoires</code> if you haven’t define repertoires using that field. I will implement it in the next versions; for now, please consider using <code><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">dplyr::left_join</a></code> to merge metadata and the repertoires table together.</p>
 </blockquote>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">md_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/tsv"</span>, <span class="st">"metadata.tsv"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -611,7 +595,7 @@ chr (4): File, Therapy, Response, Prefix
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 ℹ Found 2/2 repertoire files from the metadata on the disk
 ✔ Metadata parsed successfully</code></pre>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">md_table</span><span class="op">)</span></span></code></pre></div>
 <pre><code># A tibble: 2 × 5
   File                       Therapy Response Prefix filename
@@ -628,7 +612,7 @@ chr (4): File, Therapy, Response, Prefix
 <li><p>Chains to keep / pair - e.g. TRA only or a pair TRA + TRB.</p></li>
 </ul>
 <p>If you have only feature columns, you can usually pass the character vector with columns to functions. In a more advanced case with multiple chain data, <code>immundata</code> provides a helper function <code><a href="reference/make_receptor_schema.html">make_receptor_schema()</a></code> for building schemas:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_receptor_schema.html">make_receptor_schema</a></span><span class="op">(</span></span>
 <span>  features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cdr3_aa"</span>, <span class="st">"v_call"</span><span class="op">)</span>,</span>
 <span>  chains   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TRA"</span>, <span class="st">"TRB"</span><span class="op">)</span></span>
@@ -637,7 +621,7 @@ chr (4): File, Therapy, Response, Prefix
 <li>
 <p><strong>Chain-agnostic</strong></p>
 <p>Used for bulk or pre-filtered immune repertoire data. No filtering by chain data such as TRA or TRB. Each unique combination of features in the schema vector is assigned a unique receptor identifier and counts as a receptor. In the example below, the receptor features are “cdr3_aa” and “v_call” columns - CDR3 amino acid sequence and V gene segment columns respectively.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inp_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/tsv"</span>, <span class="st">"sample_0_1k.tsv"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -657,7 +641,7 @@ chr (4): File, Therapy, Response, Prefix
 <p>[!NOTE] Please note that single-chain option does not (!) remove multiple chains per cell - yet. In other words, you will get multiple receptors per barcode. The paired chain option filter out chains which don’t have the max number of reads or umis per barcode. So receptor numbers and sequences could differ significantly.</p>
 </blockquote>
 <p>Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inp_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/single_cell"</span>, <span class="st">"lt6.csv.gz"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -680,7 +664,7 @@ chr (4): File, Therapy, Response, Prefix
 <li>
 <p><strong>Paired-chain</strong></p>
 <p>When you want full αβ (or heavy‑light) receptors, immundata can pair two chains that originate from the same barcode and keep, for each locus, the chain with the highest UMI/reads. A single unique receptor identifier is then assigned to the pair. The data is pre-filtered to loci in target chains. Within each barcode×locus the the chain with max umis or reads is selected. Barcodes lacking either chain are dropped from the receptor table.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inp_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/single_cell"</span>, <span class="st">"lt6.csv.gz"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -756,7 +740,7 @@ chr (4): File, Therapy, Response, Prefix
 <p>[!NOTE] Don’t confuse grouping of immune repertoires with grouping in plots. When you define an immune repertoire, all the proportions are recomputed, and each receptor assigned a unique repertoire identifier for faster computations. You create virtual “tables” with immune receptors, and you can work with them separately using filters or mutations, despite that the data is still stored as a huge table with all receptors. When you plot data, you first compute statistics per defined immune repertoire, and then you group it. You can later plot or re‑group the resulting statistics, but the order of operations matters.</p>
 </blockquote>
 <p>The true power of regrouping repertoires opens up when you work with single-cell data.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span>      </span>
 <span><span class="va">inp_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/single_cell"</span>, <span class="st">"lt6.csv.gz"</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span></span>
@@ -783,8 +767,8 @@ chr (4): File, Therapy, Response, Prefix
 <span><span class="co"># Annotate data with cell clusters</span></span>
 <span><span class="va">idata</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate_barcodes</a></span><span class="op">(</span></span>
 <span>  idata <span class="op">=</span> <span class="va">idata</span>,</span>
-<span>  annotations <span class="op">=</span> <span class="va">cells</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_id"</span>, <span class="st">"ident"</span><span class="op">)</span><span class="op">]</span>, </span>
-<span>  annot_col <span class="op">=</span> <span class="st">"cell_id"</span>, </span>
+<span>  annotations <span class="op">=</span> <span class="va">cells</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"barcode"</span>, <span class="st">"ident"</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>  annot_col <span class="op">=</span> <span class="st">"barcode"</span>, </span>
 <span>  keep_repertoires <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -844,7 +828,7 @@ chr (4): File, Therapy, Response, Prefix
 <p>You should not and you can not change those slots directly. Being a self-describing container is a harsh life, full of dangers and unwanted adventures, and it requires a constant re-evaluation of what goes there and why. <code>immundata</code> functions do that internally.</p>
 <p>Every transformation returns a new <code>ImmunData</code>, so you can stash (not trash) intermediate versions on disk and reproduce any branch of the analysis.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span>      </span>
 <span><span class="va">inp_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/single_cell"</span>, <span class="st">""</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span>, <span class="st">"/*.csv.gz"</span><span class="op">)</span></span>
@@ -928,7 +912,7 @@ chains:
 <h2 id="id_-transformation">🛠 Transformation<a class="anchor" aria-label="anchor" href="#id_-transformation"></a>
 </h2>
 <p>Before running the code in the following subsections, execute the code below. Mind that for the example purposes, the data uses the TRB locus only. Change the input receptor schema and the column names to adapt it to the paired-chain case.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
 <span>      </span>
 <span><span class="va">inp_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/single_cell"</span>, <span class="st">""</span>, package <span class="op">=</span> <span class="st">"immundata"</span><span class="op">)</span>, <span class="st">"/*.csv.gz"</span><span class="op">)</span></span>
@@ -948,14 +932,14 @@ chains:
 <ol style="list-style-type: decimal">
 <li>
 <p><strong>Filter by any annotation</strong></p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">v_call</span> <span class="op">==</span> <span class="st">"TRBV2"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Tissue</span> <span class="op">==</span> <span class="st">"Blood"</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
 <p><strong>Chain filters together</strong></p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># this expression:</span></span>
 <span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">v_call</span> <span class="op">==</span> <span class="st">"TRBV2"</span>, <span class="va">imd_proportion</span> <span class="op">&gt;=</span> <span class="fl">0.0002</span><span class="op">)</span></span>
 <span></span>
@@ -964,25 +948,25 @@ chains:
 </li>
 <li>
 <p><strong>Filter by sequence distance</strong></p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span>seq_options <span class="op">=</span> <span class="fu"><a href="reference/make_seq_options.html">make_seq_options</a></span><span class="op">(</span>patterns <span class="op">=</span> <span class="st">"CASSELAGYRGEQYF"</span>, query_col <span class="op">=</span> <span class="st">"cdr3"</span>, method <span class="op">=</span> <span class="st">"lev"</span>, max_dist <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">v_call</span> <span class="op">==</span> <span class="st">"TRBV2"</span>, seq_options <span class="op">=</span> <span class="fu"><a href="reference/make_seq_options.html">make_seq_options</a></span><span class="op">(</span>patterns <span class="op">=</span> <span class="st">"CASSELAGYRGEQYF"</span>, query_col <span class="op">=</span> <span class="st">"cdr3"</span>, method <span class="op">=</span> <span class="st">"lev"</span>, max_dist <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
 <p><strong>Filter by receptor identifiers</strong></p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/filter_immundata.html">filter_receptors</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
 <p><strong>Filter by barcodes</strong></p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">target_bc</span> <span class="op">&lt;-</span> <span class="va">cells</span><span class="op">$</span><span class="va">cell_id</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span></span>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">target_bc</span> <span class="op">&lt;-</span> <span class="va">cells</span><span class="op">$</span><span class="va">barcode</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span></span>
 <span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/filter_immundata.html">filter_barcodes</a></span><span class="op">(</span><span class="va">target_bc</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
 <p><strong>Filter by repertoire</strong></p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">imd_repertoire_id</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Tissue</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Blood"</span>, <span class="st">"Tumor"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -996,8 +980,8 @@ chains:
 <ol style="list-style-type: decimal">
 <li>
 <p><strong>Annotate by any column</strong></p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate</a></span><span class="op">(</span>idata <span class="op">=</span> <span class="va">idata</span>, annotations <span class="op">=</span> <span class="va">cells</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_id"</span>, <span class="st">"ident"</span><span class="op">)</span><span class="op">]</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>imd_barcode <span class="op">=</span> <span class="st">"cell_id"</span><span class="op">)</span>, keep_repertoires <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate</a></span><span class="op">(</span>idata <span class="op">=</span> <span class="va">idata</span>, annotations <span class="op">=</span> <span class="va">cells</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"barcode"</span>, <span class="st">"ident"</span><span class="op">)</span><span class="op">]</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>imd_barcode <span class="op">=</span> <span class="st">"barcode"</span><span class="op">)</span>, keep_repertoires <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="va">idata2</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ident</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="va">idata2</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/agg_repertoires.html">agg_repertoires</a></span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"ident"</span><span class="op">)</span></span>
 <span></span>
@@ -1005,15 +989,15 @@ chains:
 </li>
 <li>
 <p><strong>Annotate by receptor identifiers</strong></p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate_receptors</a></span><span class="op">(</span>idata <span class="op">=</span> <span class="va">idata</span>, annotations <span class="op">=</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>receptor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span>, important_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span><span class="op">)</span>, annot_col <span class="op">=</span> <span class="st">"receptor"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">idata2</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">important_data</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
 <p><strong>Annotate by barcodes</strong></p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate_barcodes</a></span><span class="op">(</span>idata <span class="op">=</span> <span class="va">idata</span>, annotations <span class="op">=</span> <span class="va">cells</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_id"</span>, <span class="st">"ident"</span><span class="op">)</span><span class="op">]</span>,  annot_col <span class="op">=</span> <span class="st">"cell_id"</span>, keep_repertoires <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate_barcodes</a></span><span class="op">(</span>idata <span class="op">=</span> <span class="va">idata</span>, annotations <span class="op">=</span> <span class="va">cells</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"barcode"</span>, <span class="st">"ident"</span><span class="op">)</span><span class="op">]</span>,  annot_col <span class="op">=</span> <span class="st">"barcode"</span>, keep_repertoires <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="va">idata2</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ident</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="va">idata2</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/agg_repertoires.html">agg_repertoires</a></span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"ident"</span><span class="op">)</span></span>
 <span></span>
@@ -1028,7 +1012,7 @@ chains:
 <ol style="list-style-type: decimal">
 <li>
 <p><strong>Add or transform one or several annotation columns</strong></p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>new_column <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>big_chains <span class="op">=</span> <span class="va">umis</span> <span class="op">&gt;=</span> <span class="fl">10</span><span class="op">)</span></span>
@@ -1038,7 +1022,7 @@ chains:
 </li>
 <li>
 <p><strong>Add columns with sequence distance to patterns</strong></p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">patterns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CASSVHPQYF"</span>, <span class="st">"CAWSGQGWGGSTDTQYF"</span>, <span class="st">"CASSPRPGSTGELFF"</span><span class="op">)</span></span>
 <span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>seq_options <span class="op">=</span> <span class="fu"><a href="reference/make_seq_options.html">make_seq_options</a></span><span class="op">(</span>query_col <span class="op">=</span> <span class="st">"cdr3"</span>, patterns <span class="op">=</span> <span class="va">patterns</span>, method <span class="op">=</span> <span class="st">"lev"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -1046,7 +1030,7 @@ chains:
 </li>
 <li>
 <p><strong>Modify a subset of column values</strong></p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>found_pattern <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="va">cdr3</span> <span class="op">==</span> <span class="st">"CASSVHPQYF"</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </li>
@@ -1060,7 +1044,7 @@ chains:
 <h3 id="basic-analysis-using-immundata">Basic analysis using <code>immundata</code>
 <a class="anchor" aria-label="anchor" href="#basic-analysis-using-immundata"></a>
 </h3>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Find receptors from several repertoires which have &gt;60 abundance</span></span>
 <span><span class="co"># and get their barcodes</span></span>
 <span><span class="va">idata2</span> <span class="op">&lt;-</span> <span class="va">idata</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">imd_count</span> <span class="op">&gt;=</span> <span class="fl">60</span><span class="op">)</span></span>
@@ -1074,7 +1058,7 @@ chains:
 <h3 id="advanced-analysis-using-immundata">Advanced analysis using <code>immundata</code>
 <a class="anchor" aria-label="anchor" href="#advanced-analysis-using-immundata"></a>
 </h3>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install the latest pre-1.0 version of immunarch</span></span>
 <span><span class="co"># pak::pkg_install(immunomind/immunarch)</span></span>
 <span></span>
@@ -1092,7 +1076,7 @@ chains:
 <h2 id="id_-use-cases">🧩 Use Cases<a class="anchor" aria-label="anchor" href="#id_-use-cases"></a>
 </h2>
 <blockquote>
-<p>[!TIP] Tutorial on <code>immundata</code> + <code>immunarch</code> is available <a href="">on <code>immunarch</code> website</a>.</p>
+<p>[!TIP] Tutorial on <code>immundata</code> + <code>immunarch</code> is available <a href="https://immunarch.com/" class="external-link">on <code>immunarch</code> website</a>.</p>
 <p>Read the previous section about the analysis.</p>
 <p>This section is still under construction.</p>
 </blockquote>
@@ -1113,7 +1097,7 @@ chains:
 <p>[!CAUTION] 🚧 Under construction. 🚧</p>
 </blockquote>
 <p>Make sure to pass <code>make_default_preprocessing("10x")</code>, <code>locus_col</code> and <code>barcode_col</code> to read paired-chain data. Drop the <code>locus_col</code> if you want to read single-chain data only.</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span> </span>
 <span></span>
 <span><span class="va">sdata</span> <span class="op">&lt;-</span> <span class="va">...</span>  <span class="co"># Load the Seurat data</span></span>
@@ -1127,7 +1111,7 @@ chains:
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">idata</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate_barcodes</a></span><span class="op">(</span><span class="va">idata</span>, <span class="va">smeta</span>, annot_col <span class="op">=</span> <span class="st">"barcode"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">AnnDataR</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">adata</span> <span class="op">&lt;-</span> <span class="va">...</span>  <span class="co"># Load the AnndataR data</span></span>
@@ -1412,7 +1396,7 @@ chains:
 <li>
 <p><strong>Q: I don’t want to use <code>pak</code>, how can I use the good old <code>install.packages</code> or <code>devtools</code>?</strong></p>
 <p>A: Nothing will stop you, eh? You are welcome, but I’m not responsible if something won’t work due to issues with dependencies:</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># CRAN release</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"immundata"</span><span class="op">)</span></span>
 <span></span>
@@ -1433,10 +1417,7 @@ chains:
 </div>
 </div>
 
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-    <div class="links">
+  </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
 <li><a href="https://cloud.r-project.org/package=immundata" class="external-link">View on CRAN</a></li>
@@ -1485,23 +1466,20 @@ chains:
 </ul>
 </div>
 
-  </div>
+  </aside>
 </div>
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by <a href="https://www.linkedin.com/in/vdnaz" class="external-link">Vadim I. Nazarov</a>.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by <a href="https://www.linkedin.com/in/vdnaz" class="external-link">Vadim I. Nazarov</a>.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 

@@ -2,20 +2,18 @@
 <url><loc>https://immunomind.github.io/immundata/404.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/CONTRIBUTING.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/SUPPORT.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/articles/index.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/articles/single_cell.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/authors.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/index.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/IMD_GLOBALS.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/ImmunData.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/agg_receptors.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/agg_repertoires.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/airr_subgroup_abundance.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/annotate_immundata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/annotate_tbl_regex.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/count.ImmunData.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/filter_immundata.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/from_immunarch.html</loc></url>
+<url><loc>https://immunomind.github.io/immundata/reference/get_test_idata.html</loc></url>
+<url><loc>https://immunomind.github.io/immundata/reference/get_test_immundata.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/imd_schema.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/immundata-package.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/index.html</loc></url>
@@ -26,9 +24,6 @@
 <url><loc>https://immunomind.github.io/immundata/reference/read_immundata.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/read_metadata.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/read_repertoires.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/receptor_query.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/receptor_track.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/write_annotations.html</loc></url>
 <url><loc>https://immunomind.github.io/immundata/reference/write_immundata.html</loc></url>
 </urlset>
 
