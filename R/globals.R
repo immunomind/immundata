@@ -132,6 +132,8 @@ IMD_GLOBALS <- list(
 #' @param format Character what format to load - "airr" or "10x".
 #' @param schema Receptor schema from [make_receptor_schema()].
 #'
+#' @concept schema
+#'
 #' @export
 imd_schema <- function(key = NULL) {
   if (is.null(key)) {

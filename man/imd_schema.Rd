@@ -42,3 +42,4 @@ Returns the standardized field names used across Immundata objects and processin
 as defined in \code{IMD_GLOBALS$schema}. These include column names for cell ids or barcodes, receptors,
 repertoires, and related metadata.
 }
+\concept{schema}

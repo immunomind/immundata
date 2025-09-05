@@ -52,3 +52,4 @@ idata <- from_immunarch(imm,
 \seealso{
 \code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=read_immundata]{read_immundata()}}, \link{ImmunData}
 }
+\concept{ingestion}

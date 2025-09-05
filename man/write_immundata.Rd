@@ -69,3 +69,4 @@ unlink(save_dir, recursive = TRUE)
 \code{\link[=read_immundata]{read_immundata()}} for loading the saved data, \code{\link[=read_repertoires]{read_repertoires()}}
 which uses this function internally, \link{ImmunData} class definition.
 }
+\concept{ingestion}

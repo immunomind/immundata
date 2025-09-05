@@ -29,6 +29,7 @@
 #' @return A validated and updated metadata data frame with absolute file paths,
 #'   and an additional column renamed according to `IMD_GLOBALS$schema$filename`.
 #'
+#' @concept ingestion
 #' @export
 read_metadata <- function(metadata, filename_col = "File", delim = "\t", ...) {
 

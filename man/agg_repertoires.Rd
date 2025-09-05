@@ -98,3 +98,4 @@ print(head(idata_aggregated$annotations)) # Note the new columns
 \seealso{
 \code{\link[=read_repertoires]{read_repertoires()}} (which can call this function), \link{ImmunData} class.
 }
+\concept{aggregation}

@@ -299,11 +299,11 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
       
   3) **Write data on disk:**
   
-    `read_repertoires` always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.
+      `read_repertoires` always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.
     
   5) **Aggregate repertoires #2:**
   
-    Call `agg_repertoires()` later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.
+      Call `agg_repertoires()` later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.
 
 ### Phase 2: Transformation
 
@@ -712,8 +712,8 @@ print(cells)
 # Annotate data with cell clusters
 idata <- annotate_barcodes(
   idata = idata,
-  annotations = cells[c("cell_id", "ident")], 
-  annot_col = "cell_id", 
+  annotations = cells[c("barcode", "ident")], 
+  annot_col = "barcode", 
   keep_repertoires = FALSE
 )
 
@@ -918,7 +918,7 @@ To filter data, you simply pass predicates like in `dplyr`. Optionally, you can 
   5. **Filter by barcodes**
   
       ```r
-      target_bc <- cells$cell_id[1:3]
+      target_bc <- cells$barcode[1:3]
       idata |> filter_barcodes(target_bc)
       ```
       
@@ -937,7 +937,7 @@ The key function for annotations are `annotate` and `annotate_immundata`. Functi
   1. **Annotate by any column**
   
       ```r
-      idata2 <- annotate(idata = idata, annotations = cells[c("cell_id", "ident")], by = c(imd_barcode = "cell_id"), keep_repertoires = FALSE)
+      idata2 <- annotate(idata = idata, annotations = cells[c("barcode", "ident")], by = c(imd_barcode = "barcode"), keep_repertoires = FALSE)
       idata2 <- idata2 |> filter(!is.na(ident))
       idata2 <- idata2 |> agg_repertoires(schema = "ident")
       
@@ -955,7 +955,7 @@ The key function for annotations are `annotate` and `annotate_immundata`. Functi
   3. **Annotate by barcodes**
   
       ```r
-      idata2 <- annotate_barcodes(idata = idata, annotations = cells[c("cell_id", "ident")],  annot_col = "cell_id", keep_repertoires = FALSE)
+      idata2 <- annotate_barcodes(idata = idata, annotations = cells[c("barcode", "ident")],  annot_col = "barcode", keep_repertoires = FALSE)
       idata2 <- idata2 |> filter(!is.na(ident))
       idata2 <- idata2 |> agg_repertoires(schema = "ident")
       
@@ -1028,7 +1028,7 @@ ggplot2::ggplot(data = clonal_space_homeo) + geom_col(aes(x = Tissue, y = occupi
 ## 🧩 Use Cases
 
 > [!TIP]
-> Tutorial on `immundata` + `immunarch` is available [on `immunarch` website]().
+> Tutorial on `immundata` + `immunarch` is available [on `immunarch` website](https://immunarch.com/).
 >
 > Read the previous section about the analysis.
 >

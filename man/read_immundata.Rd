@@ -81,3 +81,4 @@ unlink(save_dir, recursive = TRUE)
 \code{\link[=read_repertoires]{read_repertoires()}} for the primary data loading pipeline, \link{ImmunData} class,
 \code{\link[=agg_repertoires]{agg_repertoires()}} for repertoire definition.
 }
+\concept{ingestion}

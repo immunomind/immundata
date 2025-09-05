@@ -3,6 +3,7 @@ url: https://immunomind.github.io/immundata/
 template:
   params:
     bootswatch: flatly
+  bootstrap: 5
 
 authors:
   Vadim I. Nazarov:
@@ -10,16 +11,41 @@ authors:
 
 navbar:
   structure:
-    left: [reference]
-    right: [im_link, github]
+    left: [tutorial, migration, reference]
+    right: [search, lightswitch, im_link, github]
   components:
-    twitter:
-      icon: fa-lg fa-twitter
-      href: http://twitter.com/immunomind
+    tutorial:
+      text: ""
+      href: ...
+    migration:
+      text: ""
+      href: ...
     im_link:
       text: ImmunoMind
       href: https://immunomind.com
     github:
       icon: fa-github
-      href: https://github.com/immunomind/immunarch
+      href: https://github.com/immunomind/immundata
+      aria-label: GitHub
 
+reference:
+- title: "Ingestion"
+  contents:
+  - has_concept("ingestion")
+  - has_concept("processing")
+  - has_concept("aggregation")
+- title: "ImmunData object"
+  contents:
+  - has_concept("core_immundata")
+- title: "Transformation"
+  contents:
+  - has_concept("annotation")
+  - has_concept("filtering")
+  - has_concept("mutation")
+  - has_concept("operations")
+- title: "Utils"
+  contents:
+  - has_concept("utils")
+- title: "Schema"
+  contents:
+  - has_concept("schema")

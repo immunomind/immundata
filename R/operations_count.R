@@ -6,6 +6,8 @@
 #' @param sort Not used.
 #' @param name Not used.
 #'
+#' @concept operations
+#'
 #' @exportS3Method dplyr::count
 count.ImmunData <- function(x, ..., wt = NULL, sort = FALSE, name = NULL) {
   checkmate::check_r6(x, "ImmunData")

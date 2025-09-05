@@ -13,3 +13,8 @@
 ^altdoc$
 ^_pkgdown\.yml$
 ^pkgdown$
+(^|/)wip-.*$
+^.venv_altdoc$
+^edit-bench$
+^immdata-test$
+^immundata-quick-start$

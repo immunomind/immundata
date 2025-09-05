@@ -68,7 +68,7 @@
 #' @seealso
 #' [read_repertoires()]
 #'
-#' @concept Preprocessing and postprocessing
+#' @concept processing
 #' @rdname preprocess_postprocess
 #' @export
 make_default_preprocessing <- function(format = c("airr", "10x")) {

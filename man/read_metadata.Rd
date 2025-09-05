@@ -39,3 +39,4 @@ and stops execution if none of the files exist.
 
 The column with file paths is normalized and renamed to match the internal filename schema.
 }
+\concept{ingestion}
