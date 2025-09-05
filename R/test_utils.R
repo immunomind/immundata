@@ -26,6 +26,13 @@ get_test_idata_tsv_with_metadata <- function(schema = c("cdr3_aa", "v_call")) {
   )
 }
 
+#' Get test datasets from `immundata`
+#'
+#' @export
+get_test_idata <- function() {
+  get_test_idata_tsv_with_metadata()
+}
+
 get_test_idata_tsv_metadata <- function() {
   md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
 
