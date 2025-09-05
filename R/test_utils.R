@@ -27,9 +27,16 @@ get_test_idata_tsv_with_metadata <- function(schema = c("cdr3_aa", "v_call")) {
 }
 
 #' Get test datasets from `immundata`
-#'
+#' @keywords internal
 #' @export
 get_test_idata <- function() {
+  get_test_idata_tsv_with_metadata()
+}
+
+#' Get test datasets from `immundata`
+#' @keywords internal
+#' @export
+get_test_immundata <- function() {
   get_test_idata_tsv_with_metadata()
 }
 
