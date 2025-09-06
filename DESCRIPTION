@@ -7,7 +7,7 @@ Authors@R:
 Contact: support@immunomind.com
 Description: Provides a unified data layer for single-cell, spatial and bulk
  T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject,
- but for AIRR data, a.k.a Adaptive Immune Receptor Repertoire, VDJ-seq, RepSeq, or 
+ but for AIRR data, a.k.a. Adaptive Immune Receptor Repertoire, VDJ-seq, RepSeq, or 
  VDJ sequencing data.
 License: Apache License (>= 2)
 URL: https://immunomind.com/, https://github.com/immunomind/immundata, https://immunomind.github.io/immundata/

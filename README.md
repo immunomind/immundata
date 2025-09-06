@@ -1,19 +1,23 @@
+![Static Badge](https://img.shields.io/badge/ecosystem-ImmunoMind-orange?style=for-the-badge&link=github.com%2Fimmunomind%2F)
+
 [![CRAN](http://www.r-pkg.org/badges/version-ago/immundata?style=flat-square)](https://cran.r-project.org/package=immundata)
 [![Downloads_all](http://cranlogs.r-pkg.org/badges/grand-total/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
 [![Downloads_week](http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
+
 [![Issues](https://img.shields.io/github/issues/immunomind/immundata?style=flat-square)](https://github.com/immunomind/immundata/issues)
 
-# 🦋 `immundata` – A unified data layer for large-scale single-cell, spatial and bulk immunomics in R
 
-`immundata` introduces the `ImmunData` data structure – think [AnnData](https://github.com/scverse/anndata) or [SeuratObject](https://github.com/satijalab/seurat-object/) but for immune repertoires – so you can:
+# 🦋 `immundata` --- A unified data layer for large-scale single-cell, spatial and bulk immunomics in R
 
-- Store tens of millions of immune receptors plus metadata in one place;
+`immundata` introduces the `ImmunData` data structure – think [AnnData](https://github.com/scverse/anndata) or [SeuratObject](https://github.com/satijalab/seurat-object/) but for immune repertoires – so you can have:
 
-- Compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;
+- **Single source of truth:** store tens of millions of immune receptors plus metadata in one place;
 
-- Work seamlessly with datasets that don't fit in memory;
+- **Multi-modality:** compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;
 
-- Run the same workflow on a laptop, server, or cloud instance.
+- **Immunomics at scale:** work seamlessly with datasets that don't fit in memory;
+
+- **Reproducibility by design:** run the same workflow on a laptop, server, or cloud instance.
 
 ---
 
@@ -27,7 +31,8 @@ Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 
 - The same immune repertoire dataset must power multiple plots, dashboards, deep learning models and be reproducible months (years, ideally) later.
 
-`immundata` is the data-engineering backbone powered by [Arrow](https://arrow.apache.org/docs/r/), [DuckDB](https://duckdb.org/), and [duckplyr](https://duckplyr.tidyverse.org/). It lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
+`immundata` is the data-engineering backbone powered by [Arrow](https://arrow.apache.org/docs/r/), [DuckDB](https://duckdb.org/), and [duckplyr](https://duckplyr.tidyverse.org/).
+It lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
 
 ---
 
