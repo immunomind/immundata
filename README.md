@@ -1,5 +1,5 @@
 <div align="center">
-  <h2>🦋 <code>immundata</code> --- <strong>Data layer for large-scale multi-modal immune repertoires in R</strong></h2>
+  <h2>🦋 <code>immundata</code> – <strong>Data layer for large-scale multi-modal immune repertoires in R</strong></h2>
 </div>
 
 ---
