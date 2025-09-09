@@ -1,13 +1,43 @@
-![Static Badge](https://img.shields.io/badge/ecosystem-ImmunoMind-orange?style=for-the-badge&link=github.com%2Fimmunomind%2F)
+<div align="center">
+  <h2>🦋 <code>immundata</code> --- <strong>Data layer for large-scale multi-modal immune repertoires in R</strong></h2>
+</div>
 
-[![CRAN](http://www.r-pkg.org/badges/version-ago/immundata?style=flat-square)](https://cran.r-project.org/package=immundata)
-[![Downloads_all](http://cranlogs.r-pkg.org/badges/grand-total/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
-[![Downloads_week](http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square)](https://www.r-pkg.org/pkg/immundata)
+---
 
-[![Issues](https://img.shields.io/github/issues/immunomind/immundata?style=flat-square)](https://github.com/immunomind/immundata/issues)
+<div align="center">
+  <a href="https://github.com/immunomind">
+    <img alt="Ecosystem: ImmunoMind"
+         src="https://img.shields.io/badge/ecosystem-ImmunoMind-orange?style=flat-square">
+  </a>
+  <a href="https://cran.r-project.org/package=immundata">
+    <img alt="CRAN Version"
+         src="https://www.r-pkg.org/badges/version-ago/immundata?style=flat-square">
+  </a>
+  <a href="https://www.r-pkg.org/pkg/immundata">
+    <img alt="CRAN Downloads (all time)"
+         src="https://cranlogs.r-pkg.org/badges/grand-total/immundata">
+  </a>
+  <a href="https://www.r-pkg.org/pkg/immundata">
+    <img alt="CRAN Downloads (last week)"
+         src="https://cranlogs.r-pkg.org/badges/last-week/immundata">
+  </a>
+  <a href="https://github.com/immunomind/immunarch/issues">
+    <img alt="GitHub Issues"
+         src="https://img.shields.io/github/issues/immunomind/immundata?style=flat-square">
+  </a>
+</div>
 
+<p align="center">
+  <a href="https://immunomind.github.io/docs/tutorials/single-cell/">Tutorials</a>
+  |
+  <a href="https://immunomind.github.io/immundata/reference">API reference</a>
+  |
+  <a href=https://immunomind.github.io/docs/>Ecosystem</a>
+  |
+  Publication (coming soon...)
+</p>
 
-# 🦋 `immundata` --- A unified data layer for large-scale single-cell, spatial and bulk immunomics in R
+---
 
 `immundata` introduces the `ImmunData` data structure – think [AnnData](https://github.com/scverse/anndata) or [SeuratObject](https://github.com/satijalab/seurat-object/) but for immune repertoires – so you can have:
 
@@ -25,14 +55,30 @@
 
 Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:
 
-- We now blend bulk AIRR-seq, single-cell V(D)J + GEX, spatial transcriptomics, clinical metadata and public databases – often inside the same analysis notebook;
+- We now blend bulk AIRR-seq, single-cell V(D)J + GEX, spatial transcriptomics, clinical metadata and public databases -- often inside the same analysis notebook;
 
 - Pipelines that handle gigabytes today face deca-gigabytes after the next experiment;
 
 - The same immune repertoire dataset must power multiple plots, dashboards, deep learning models and be reproducible months (years, ideally) later.
 
-`immundata` is the data-engineering backbone powered by [Arrow](https://arrow.apache.org/docs/r/), [DuckDB](https://duckdb.org/), and [duckplyr](https://duckplyr.tidyverse.org/).
-It lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
+`immundata` brings you a unified data layer for large-scale single-cell, spatial and bulk immunomics in R.
+It is the data-engineering backbone powered by [Arrow](https://arrow.apache.org/docs/r/), [DuckDB](https://duckdb.org/), and [duckplyr](https://duckplyr.tidyverse.org/).
+`immundata` lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.
+
+---
+
+> [!WARNING]
+> `immundata` is still in the **0.x** series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0). When you attach the package, sometimes you'll see startup messages summarising
+> the most important changes – please read them. If something that used to work suddenly fails, check the updated
+> documentation (`?function_name`) first.
+>   
+> **Tip:** if your analysis depends on a specific behaviour, pin the
+> exact version with `renv` or use `pak` for installation:
+> ```r
+> pak::pkg_install("immunomind/immundata@0.2.1")
+> ```  
+> I'll keep publishing tagged releases with full docs so you can always
+> roll back if needed.
 
 ---
 
@@ -81,20 +127,6 @@ It lets you scale, mix and, ultimately, analyse annotated AIRR data without rewr
 
 ---
 
-> [!WARNING]
-> `immundata` is still in the **0.x** series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0). When you attach the package, sometimes you'll see startup messages summarising
-> the most important changes – please read them. If something that used to work suddenly fails, check the updated
-> documentation (`?function_name`) first.
->   
-> **Tip:** if your analysis depends on a specific behaviour, pin the
-> exact version with `renv` or use `pak` for installation:
-> ```r
-> pak::pkg_install("immunomind/immundata@0.2.1")
-> ```  
-> I'll keep publishing tagged releases with full docs so you can always
-> roll back if needed.
-
-
 ## 📦 Installation
 
 ### Prerequisites
@@ -134,15 +166,6 @@ pak::pkg_install("immunomind/immundata@dev")
 ---
 
 ## ⚡ Quick Start
-
-> [!TIP]
-> Interested in specific use cases, e.g., 
-> analyse cell clusters from single-cell data,
-> work with paired-chain data,
-> search for matches in databases with condition-associated TCR and BCR data?
-> 
-> Take a look at the [🧩 Use Cases section](#-use-cases) below.
-
 
 Use the immune repertoire data packaged with `immundata` for quick dive.
 Replace `system.file` calls with your local file paths to run the code on your data.
@@ -1033,7 +1056,7 @@ ggplot2::ggplot(data = clonal_space_homeo) + geom_col(aes(x = Tissue, y = occupi
 ## 🧩 Use Cases
 
 > [!TIP]
-> Tutorial on `immundata` + `immunarch` is available [on `immunarch` website](https://immunarch.com/).
+> Tutorial on `immundata` + `immunarch` is available [on the ecosystem website](https://immunomind.github.io/docs/tutorials/single-cell/).
 >
 > Read the previous section about the analysis.
 >
@@ -1087,69 +1110,6 @@ ameta <- data.frame(
 
 idata <- annotate_barcodes(idata, ameta, annot_col = "barcode")
 ```
-
-### Spatial -- spatial transcriptomics and cell coordinates
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-### Annotate immune receptors using external AIRR databases 
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-`annotate()`
-
-### Immunogenicity -- run external tools such as TCRdist to annotate ImmunData 
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-TCRdist: https://github.com/kmayerb/tcrdist3
-
-Save receptors to file and read it via TCRdist. If you need to rename columns, use `dplyr`.
-
-```
-receptors_mater <- idata$receptors |> rename(cdr3_b_aa = cdr3) |> collect()
-
-readr::write_csv(receptors_mater, "receptors.csv")
-
-# Read it via TCRdist
-# Run TCRdist and get neighbours
-# Write neightbours to disk
-# Read neighbours to R and annotate `idata` using `annotate()`
-```
-
-### Hybrid datasets 
-
-#### Multi-locus data
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-#### Multiple contigs for TCR
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-#### BCR-heavy chains with multiple light chains
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-#### Bulk and single-cell data integration
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-Artificial barcodes for bulk data
-
-### Receptor clusters and motifs
-
-> [!CAUTION]
-> 🚧 Under construction. 🚧
-
-Run external clustering, assign identifiers to resultant clusters, annotate the data, create new receptors using the assigned identifiers. More convenient alternative to identifiers - cluster motifs.
 
 ---
 
@@ -1225,7 +1185,7 @@ Consider caching your data to disk after heavy operations, such as distance comp
 
 ### License 
 
-[Apache-2.0](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)
+The package is freely distributed under the Apache-2.0 license. You can read more about it [here](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0).
 
 ### Author and contributors 
 
