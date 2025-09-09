@@ -11,8 +11,15 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics">
-<meta name="description" content="Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data.">
-<meta property="og:description" content="Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data.">
+<meta name="description" content="Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data, a.k.a. Adaptive Immune Receptor Repertoire, VDJ-seq, RepSeq, or VDJ sequencing data.">
+<meta property="og:description" content="Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data, a.k.a. Adaptive Immune Receptor Repertoire, VDJ-seq, RepSeq, or VDJ sequencing data.">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-YHL2JHZTFV"></script><script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-YHL2JHZTFV');
+</script>
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">immundata</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,16 +55,25 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-<div class="section level1">
-<div class="page-header"><h1 id="id_-immundata--a-unified-data-layer-for-large-scale-single-cell-spatial-and-bulk-immunomics-in-r">🦋 <code>immundata</code> – A unified data layer for large-scale single-cell, spatial and bulk immunomics in R<a class="anchor" aria-label="anchor" href="#id_-immundata--a-unified-data-layer-for-large-scale-single-cell-spatial-and-bulk-immunomics-in-r"></a>
-</h1></div>
-<p><code>immundata</code> introduces the <code>ImmunData</code> data structure – think <a href="https://github.com/scverse/anndata" class="external-link">AnnData</a> or <a href="https://github.com/satijalab/seurat-object/" class="external-link">SeuratObject</a> but for immune repertoires – so you can:</p>
+  <main id="main" class="col-md-9"><div align="center">
+<h2>
+🦋 <code>immundata</code> – <strong>Data layer for large-scale multi-modal immune repertoires in R</strong>
+</h2>
+</div>
+<hr>
+<div align="center">
+<p><a href="https://github.com/immunomind" class="external-link"> <img alt="Ecosystem: ImmunoMind" src="https://img.shields.io/badge/ecosystem-ImmunoMind-orange?style=flat-square"></a> <a href="https://cran.r-project.org/package=immundata" class="external-link"> <img alt="CRAN Version" src="https://www.r-pkg.org/badges/version-ago/immundata?style=flat-square"></a> <a href="https://www.r-pkg.org/pkg/immundata" class="external-link"> <img alt="CRAN Downloads (all time)" src="https://cranlogs.r-pkg.org/badges/grand-total/immundata"></a> <a href="https://www.r-pkg.org/pkg/immundata" class="external-link"> <img alt="CRAN Downloads (last week)" src="https://cranlogs.r-pkg.org/badges/last-week/immundata"></a> <a href="https://github.com/immunomind/immunarch/issues" class="external-link"> <img alt="GitHub Issues" src="https://img.shields.io/github/issues/immunomind/immundata?style=flat-square"></a></p>
+</div>
+<p align="center">
+<a href="https://immunomind.github.io/docs/tutorials/single-cell/" class="external-link">Tutorials</a> | <a href="https://immunomind.github.io/immundata/reference">API reference</a> | <a href="https://immunomind.github.io/docs/" class="external-link">Ecosystem</a> | Publication (coming soon…)
+</p>
+<hr>
+<p><code>immundata</code> introduces the <code>ImmunData</code> data structure – think <a href="https://github.com/scverse/anndata" class="external-link">AnnData</a> or <a href="https://github.com/satijalab/seurat-object/" class="external-link">SeuratObject</a> but for immune repertoires – so you can have:</p>
 <ul>
-<li><p>Store tens of millions of immune receptors plus metadata in one place;</p></li>
-<li><p>Compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;</p></li>
-<li><p>Work seamlessly with datasets that don’t fit in memory;</p></li>
-<li><p>Run the same workflow on a laptop, server, or cloud instance.</p></li>
+<li><p><strong>Single source of truth:</strong> store tens of millions of immune receptors plus metadata in one place;</p></li>
+<li><p><strong>Multi-modality:</strong> compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;</p></li>
+<li><p><strong>Immunomics at scale:</strong> work seamlessly with datasets that don’t fit in memory;</p></li>
+<li><p><strong>Reproducibility by design:</strong> run the same workflow on a laptop, server, or cloud instance.</p></li>
 </ul>
 <hr>
 <div class="section level2">
@@ -69,7 +85,15 @@
 <li><p>Pipelines that handle gigabytes today face deca-gigabytes after the next experiment;</p></li>
 <li><p>The same immune repertoire dataset must power multiple plots, dashboards, deep learning models and be reproducible months (years, ideally) later.</p></li>
 </ul>
-<p><code>immundata</code> is the data-engineering backbone powered by <a href="https://arrow.apache.org/docs/r/" class="external-link">Arrow</a>, <a href="https://duckdb.org/" class="external-link">DuckDB</a>, and <a href="https://duckplyr.tidyverse.org/" class="external-link">duckplyr</a>. It lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.</p>
+<p><code>immundata</code> brings you a unified data layer for large-scale single-cell, spatial and bulk immunomics in R. It is the data-engineering backbone powered by <a href="https://arrow.apache.org/docs/r/" class="external-link">Arrow</a>, <a href="https://duckdb.org/" class="external-link">DuckDB</a>, and <a href="https://duckplyr.tidyverse.org/" class="external-link">duckplyr</a>. <code>immundata</code> lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.</p>
+<hr>
+<blockquote>
+<p>[!WARNING] <code>immundata</code> is still in the <strong>0.x</strong> series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0). When you attach the package, sometimes you’ll see startup messages summarising the most important changes – please read them. If something that used to work suddenly fails, check the updated documentation (<code>?function_name</code>) first.</p>
+<p><strong>Tip:</strong> if your analysis depends on a specific behaviour, pin the exact version with <code>renv</code> or use <code>pak</code> for installation:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"immunomind/immundata@0.2.1"</span><span class="op">)</span></span></code></pre></div>
+<p>I’ll keep publishing tagged releases with full docs so you can always roll back if needed.</p>
+</blockquote>
 <hr>
 <blockquote>
 <p>[!IMPORTANT] This README is huge. I’m not kidding. Please consider using navigation.</p>
@@ -142,13 +166,6 @@
 </li>
 </ul>
 <hr>
-<blockquote>
-<p>[!WARNING] <code>immundata</code> is still in the <strong>0.x</strong> series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0). When you attach the package, sometimes you’ll see startup messages summarising the most important changes – please read them. If something that used to work suddenly fails, check the updated documentation (<code>?function_name</code>) first.</p>
-<p><strong>Tip:</strong> if your analysis depends on a specific behaviour, pin the exact version with <code>renv</code> or use <code>pak</code> for installation:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"immunomind/immundata@0.2.1"</span><span class="op">)</span></span></code></pre></div>
-<p>I’ll keep publishing tagged releases with full docs so you can always roll back if needed.</p>
-</blockquote>
 </div>
 <div class="section level2">
 <h2 id="id_-installation">📦 Installation<a class="anchor" aria-label="anchor" href="#id_-installation"></a>
@@ -184,10 +201,6 @@
 <div class="section level2">
 <h2 id="id_-quick-start">⚡ Quick Start<a class="anchor" aria-label="anchor" href="#id_-quick-start"></a>
 </h2>
-<blockquote>
-<p>[!TIP] Interested in specific use cases, e.g., analyse cell clusters from single-cell data, work with paired-chain data, search for matches in databases with condition-associated TCR and BCR data?</p>
-<p>Take a look at the <a href="#id_-use-cases">🧩 Use Cases section</a> below.</p>
-</blockquote>
 <p>Use the immune repertoire data packaged with <code>immundata</code> for quick dive. Replace <code>system.file</code> calls with your local file paths to run the code on your data.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://immunomind.com/" class="external-link">immundata</a></span><span class="op">)</span></span>
@@ -1076,7 +1089,7 @@ chains:
 <h2 id="id_-use-cases">🧩 Use Cases<a class="anchor" aria-label="anchor" href="#id_-use-cases"></a>
 </h2>
 <blockquote>
-<p>[!TIP] Tutorial on <code>immundata</code> + <code>immunarch</code> is available <a href="https://immunarch.com/" class="external-link">on <code>immunarch</code> website</a>.</p>
+<p>[!TIP] Tutorial on <code>immundata</code> + <code>immunarch</code> is available <a href="https://immunomind.github.io/docs/tutorials/single-cell/" class="external-link">on the ecosystem website</a>.</p>
 <p>Read the previous section about the analysis.</p>
 <p>This section is still under construction.</p>
 </blockquote>
@@ -1124,79 +1137,6 @@ chains:
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">idata</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/annotate_immundata.html">annotate_barcodes</a></span><span class="op">(</span><span class="va">idata</span>, <span class="va">ameta</span>, annot_col <span class="op">=</span> <span class="st">"barcode"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="spatial--spatial-transcriptomics-and-cell-coordinates">Spatial – spatial transcriptomics and cell coordinates<a class="anchor" aria-label="anchor" href="#spatial--spatial-transcriptomics-and-cell-coordinates"></a>
-</h3>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-</div>
-<div class="section level3">
-<h3 id="annotate-immune-receptors-using-external-airr-databases">Annotate immune receptors using external AIRR databases<a class="anchor" aria-label="anchor" href="#annotate-immune-receptors-using-external-airr-databases"></a>
-</h3>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-<p><code><a href="reference/annotate_immundata.html">annotate()</a></code></p>
-</div>
-<div class="section level3">
-<h3 id="immunogenicity--run-external-tools-such-as-tcrdist-to-annotate-immundata">Immunogenicity – run external tools such as TCRdist to annotate ImmunData<a class="anchor" aria-label="anchor" href="#immunogenicity--run-external-tools-such-as-tcrdist-to-annotate-immundata"></a>
-</h3>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-<p>TCRdist: <a href="https://github.com/kmayerb/tcrdist3" class="external-link uri">https://github.com/kmayerb/tcrdist3</a></p>
-<p>Save receptors to file and read it via TCRdist. If you need to rename columns, use <code>dplyr</code>.</p>
-<pre><code><span><span class="va">receptors_mater</span> <span class="op">&lt;-</span> <span class="va">idata</span><span class="op">$</span><span class="va">receptors</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>cdr3_b_aa <span class="op">=</span> <span class="va">cdr3</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/write_delim.html" class="external-link">write_csv</a></span><span class="op">(</span><span class="va">receptors_mater</span>, <span class="st">"receptors.csv"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Read it via TCRdist</span></span>
-<span><span class="co"># Run TCRdist and get neighbours</span></span>
-<span><span class="co"># Write neightbours to disk</span></span>
-<span><span class="co"># Read neighbours to R and annotate `idata` using `annotate()`</span></span></code></pre>
-</div>
-<div class="section level3">
-<h3 id="hybrid-datasets">Hybrid datasets<a class="anchor" aria-label="anchor" href="#hybrid-datasets"></a>
-</h3>
-<div class="section level4">
-<h4 id="multi-locus-data">Multi-locus data<a class="anchor" aria-label="anchor" href="#multi-locus-data"></a>
-</h4>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-</div>
-<div class="section level4">
-<h4 id="multiple-contigs-for-tcr">Multiple contigs for TCR<a class="anchor" aria-label="anchor" href="#multiple-contigs-for-tcr"></a>
-</h4>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-</div>
-<div class="section level4">
-<h4 id="bcr-heavy-chains-with-multiple-light-chains">BCR-heavy chains with multiple light chains<a class="anchor" aria-label="anchor" href="#bcr-heavy-chains-with-multiple-light-chains"></a>
-</h4>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-</div>
-<div class="section level4">
-<h4 id="bulk-and-single-cell-data-integration">Bulk and single-cell data integration<a class="anchor" aria-label="anchor" href="#bulk-and-single-cell-data-integration"></a>
-</h4>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-<p>Artificial barcodes for bulk data</p>
-</div>
-</div>
-<div class="section level3">
-<h3 id="receptor-clusters-and-motifs">Receptor clusters and motifs<a class="anchor" aria-label="anchor" href="#receptor-clusters-and-motifs"></a>
-</h3>
-<blockquote>
-<p>[!CAUTION] 🚧 Under construction. 🚧</p>
-</blockquote>
-<p>Run external clustering, assign identifiers to resultant clusters, annotate the data, create new receptors using the assigned identifiers. More convenient alternative to identifiers - cluster motifs.</p>
 <hr>
 </div>
 </div>
@@ -1305,7 +1245,7 @@ chains:
 <div class="section level3">
 <h3 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
 </h3>
-<p><a href="https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0" class="external-link">Apache-2.0</a></p>
+<p>The package is freely distributed under the Apache-2.0 license. You can read more about it <a href="https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0" class="external-link">here</a>.</p>
 </div>
 <div class="section level3">
 <h3 id="author-and-contributors">Author and contributors<a class="anchor" aria-label="anchor" href="#author-and-contributors"></a>
@@ -1396,7 +1336,7 @@ chains:
 <li>
 <p><strong>Q: I don’t want to use <code>pak</code>, how can I use the good old <code>install.packages</code> or <code>devtools</code>?</strong></p>
 <p>A: Nothing will stop you, eh? You are welcome, but I’m not responsible if something won’t work due to issues with dependencies:</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># CRAN release</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"immundata"</span><span class="op">)</span></span>
 <span></span>
@@ -1414,7 +1354,6 @@ chains:
 <p>A: Counts and proportions are properties of a receptor inside a specific repertoire. A receptor seen in two samples will be counted twice – once per repertoire. Until receptors and repertoires are defined, any “count” would be ambiguous. That’s why the numbers appear only after <code><a href="reference/agg_receptors.html">agg_receptors()</a></code> and <code><a href="reference/agg_repertoires.html">agg_repertoires()</a></code> have locked those definitions in.</p>
 </li>
 </ol>
-</div>
 </div>
 
   </main><aside class="col-md-3"><div class="links">
@@ -1456,15 +1395,7 @@ chains:
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://cran.r-project.org/package=immundata" class="external-link"><img src="http://www.r-pkg.org/badges/version-ago/immundata?style=flat-square" alt="CRAN"></a></li>
-<li><a href="https://www.r-pkg.org/pkg/immundata" class="external-link"><img src="http://cranlogs.r-pkg.org/badges/grand-total/immundata?style=flat-square" alt="Downloads_all"></a></li>
-<li><a href="https://www.r-pkg.org/pkg/immundata" class="external-link"><img src="http://cranlogs.r-pkg.org/badges/last-week/immundata?style=flat-square" alt="Downloads_week"></a></li>
-<li><a href="https://github.com/immunomind/immundata/issues" class="external-link"><img src="https://img.shields.io/github/issues/immunomind/immundata?style=flat-square" alt="Issues"></a></li>
-</ul>
-</div>
+
 
   </aside>
 </div>
