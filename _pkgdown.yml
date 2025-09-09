@@ -1,9 +1,12 @@
 url: https://immunomind.github.io/immundata/
 
 template:
-  params:
-    bootswatch: flatly
   bootstrap: 5
+  bslib:
+    bootswatch: flatly
+    pkgdown-nav-height: 100px
+  params:
+    ganalytics: G-YHL2JHZTFV
 
 authors:
   Vadim I. Nazarov:
