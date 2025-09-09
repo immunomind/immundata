@@ -1,13 +1,14 @@
 Package: immundata
 Title: A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics
-Version: 0.0.4
+Version: 0.0.4.9000
 Authors@R: 
     person("Vadim I.", "Nazarov", , "support@immunomind.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3659-2709"))
 Contact: support@immunomind.com
 Description: Provides a unified data layer for single-cell, spatial and bulk
  T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject,
- but for AIRR data.
+ but for AIRR data, a.k.a. Adaptive Immune Receptor Repertoire, VDJ-seq, RepSeq, or 
+ VDJ sequencing data.
 License: Apache License (>= 2)
 URL: https://immunomind.com/, https://github.com/immunomind/immundata, https://immunomind.github.io/immundata/
 BugReports: https://github.com/immunomind/immundata/issues
