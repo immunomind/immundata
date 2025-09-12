@@ -33,7 +33,9 @@ grouped into repertoires. This may include sample-level metadata (e.g., \code{sa
 
 \item{\code{annotations}}{Accessor for the annotation-level table (\code{.annotations}).}
 
-\item{\code{repertoires}}{Get a vector of repertoire names after data aggregation with \code{\link[=agg_repertoires]{agg_repertoires()}}}
+\item{\code{repertoires}}{Get a table of repertoires and their basic statistics.}
+
+\item{\code{metadata}}{Get a table of repertoires without their basic statistics.}
 }
 \if{html}{\out{</div>}}
 }

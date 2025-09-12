@@ -101,11 +101,23 @@ ImmunData <- R6Class(
       private$.annotations
     },
 
-    #' @field repertoires Get a vector of repertoire names after data aggregation with [agg_repertoires()]
+    #' @field repertoires Get a table of repertoires and their basic statistics.
     repertoires = function() {
       # TODO: cache repertoire table to memory if not very big?
       if (!is.null(private$.repertoire_table)) {
         private$.repertoire_table |>
+          collect() |>
+          arrange_at(vars(1))
+      } else {
+        NULL
+      }
+    },
+
+    #' @field metadata Get a table of repertoires without their basic statistics.
+    metadata = function() {
+      if (!is.null(private$.repertoire_table)) {
+        private$.repertoire_table |>
+          select(c(imd_schema("repertoire"), self$schema_repertoire)) |>
           collect() |>
           arrange_at(vars(1))
       } else {
