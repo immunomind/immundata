@@ -16,8 +16,11 @@ will be written. If the directory does not exist, it will be created
 recursively.}
 }
 \value{
-Invisibly returns the input \code{idata} object. Its primary effect is creating
-\code{metadata.json} and \code{annotations.parquet} files in the \code{output_folder}.
+Invisibly returns the input \code{idata} object, saved to disk.
+In other words, this allows you to create snapshots of the data in the
+\code{output_folder}. Mind that by saving the object, you execute all the
+stored computations, so this operations can take longer than expected.
+Read more about snapshots on our website in the \href{https://immunomind.github.io/docs/concepts/basics/immutability/}{"Concept" section}.
 }
 \description{
 Serializes the essential components of an \code{ImmunData} object to disk for
