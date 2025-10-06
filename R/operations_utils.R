@@ -129,6 +129,7 @@ annotate_tbl_distance <- function(tbl_data,
   )
 
   # TODO: Optimize it via SQL instead of cycles - if it is even needed...
+  # TODO: lump together multiple patterns in batches
   for (i in seq_along(patterns)) {
     p <- patterns[[i]]
     col_name_out <- dist_cols[i]
@@ -188,6 +189,7 @@ annotate_tbl_distance <- function(tbl_data,
   # 4) precompute sequence length before (!) any filtering, on data loading, and don't compute it here
 
   # TODO: max dist. Left join - compute. Right join - filter
+
   if (is.na(max_dist)) {
     uniq <- uniq |>
       as_duckdb_tibble()
