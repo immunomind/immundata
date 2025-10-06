@@ -11,9 +11,8 @@ Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cel
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://immunomind.com/}
+  \item \url{https://immunomind.github.io/docs/}
   \item \url{https://github.com/immunomind/immundata}
-  \item \url{https://immunomind.github.io/immundata/}
   \item Report bugs at \url{https://github.com/immunomind/immundata/issues}
 }
 

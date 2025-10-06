@@ -59,5 +59,5 @@ annotate_seurat <- function(idata,
   meta <- as.data.frame(df[, cols, drop = FALSE])
   rownames(meta) <- df$barcode
 
-  SeuratObject::AddMetaData(sdata, metadata = meta)
+  Seurat::AddMetaData(sdata, metadata = meta)
 }
