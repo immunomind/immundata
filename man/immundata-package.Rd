@@ -6,14 +6,13 @@
 \alias{immundata-package}
 \title{immundata: A Unified Data Layer for Large-Scale Single-Cell, Spatial and Bulk Immunomics}
 \description{
-Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data.
+Provides a unified data layer for single-cell, spatial and bulk T-cell and B-cell immune receptor repertoire data. Think AnnData or SeuratObject, but for AIRR data, a.k.a. Adaptive Immune Receptor Repertoire, VDJ-seq, RepSeq, or VDJ sequencing data.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://immunomind.com/}
+  \item \url{https://immunomind.github.io/docs/}
   \item \url{https://github.com/immunomind/immundata}
-  \item \url{https://immunomind.github.io/immundata/}
   \item Report bugs at \url{https://github.com/immunomind/immundata/issues}
 }
 

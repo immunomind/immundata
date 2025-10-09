@@ -34,8 +34,11 @@
 #' along with the schema needed to reconstruct/interpret them.
 #'
 #' @return
-#' Invisibly returns the input `idata` object. Its primary effect is creating
-#' `metadata.json` and `annotations.parquet` files in the `output_folder`.
+#' Invisibly returns the input `idata` object, saved to disk.
+#' In other words, this allows you to create snapshots of the data in the
+#' `output_folder`. Mind that by saving the object, you execute all the
+#' stored computations, so this operations can take longer than expected.
+#' Read more about snapshots on our website in the ["Concept" section](https://immunomind.github.io/docs/concepts/basics/immutability/).
 #'
 #' @seealso [read_immundata()] for loading the saved data, [read_repertoires()]
 #'   which uses this function internally, [ImmunData] class definition.
@@ -93,5 +96,5 @@ write_immundata <- function(idata, output_folder) {
 
   cli::cli_alert_success("ImmunData files saved to [{output_folder}]")
 
-  invisible(idata)
+  invisible(read_immundata(output_folder))
 }
