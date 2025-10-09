@@ -30,7 +30,7 @@
 <p align="center">
   <a href="https://immunomind.github.io/docs/tutorials/single_cell/">Tutorials</a>
   |
-  <a href="https://immunomind.github.io/immundata/reference">API reference</a>
+  <a href="https://immunomind.github.io/immundata/reference/">API reference</a>
   |
   <a href=https://immunomind.github.io/docs/>Ecosystem</a>
   |
@@ -1056,7 +1056,7 @@ ggplot2::ggplot(data = clonal_space_homeo) + geom_col(aes(x = Tissue, y = occupi
 ## 🧩 Use Cases
 
 > [!TIP]
-> Tutorial on `immundata` + `immunarch` is available [on the ecosystem website](https://immunomind.github.io/docs/tutorials/single-cell/).
+> Tutorial on `immundata` + `immunarch` is available [on the ecosystem website](https://immunomind.github.io/docs/tutorials/single_cell/).
 >
 > Read the previous section about the analysis.
 >

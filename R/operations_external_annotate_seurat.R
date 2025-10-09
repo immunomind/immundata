@@ -13,8 +13,11 @@
 #' @return The updated Seurat object with new metadata columns.
 #'
 #' @seealso
-#' [immunarch::annotate_clonality_prop], [immunarch::annotate_clonality_prop],
 #' [ImmunData], [SeuratObject::AddMetaData]
+#'
+#' @details
+#' See functions `annotate_clonality_rank` and `annotate_clonality_prop` in `immunarch` package.
+#'
 #'
 #' @examples
 #' \dontrun{

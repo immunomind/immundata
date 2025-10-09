@@ -22,6 +22,9 @@ Copy selected columns from \code{idata$annotations} to Seurat metadata using
 the cell barcode. This is the simplest way to transfer data from \code{immundata}
 to Seurat object, e.g., for plotting data on UMAP.
 }
+\details{
+See functions \code{annotate_clonality_rank} and \code{annotate_clonality_prop} in \code{immunarch} package.
+}
 \examples{
 \dontrun{
 # After annotating receptors:
@@ -38,7 +41,6 @@ sdata <- annotate_seurat(idata, sdata, cols = "clonal_rank_bin")
 
 }
 \seealso{
-\link[immunarch:annotate_clonality]{immunarch::annotate_clonality_prop}, \link[immunarch:annotate_clonality]{immunarch::annotate_clonality_prop},
 \link{ImmunData}, \link[SeuratObject:AddMetaData]{SeuratObject::AddMetaData}
 }
 \concept{Annotation}
