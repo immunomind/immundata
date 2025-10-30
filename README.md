@@ -686,11 +686,12 @@ schema <- make_receptor_schema(
 
 Cheat-sheet for arguments to `read_repertoires`:
 
-| Situation                                | `barcode_col` | `locus_col` | `umi_col` | `chains`         |
-| ---------------------------------------- | ------------- | ----------- | --------- | ---------------- |
-| Bulk data, no locus filtering            | no            | no          | no        | omit / `NULL`    |
-| Analyse TRA only                         | **yes**¹      | **yes**     | no        | `"TRA"`          |
-| Pair TRA+TRB, pick best chain per cell   | **yes**       | **yes**     | **yes**   | `c("TRA","TRB")` |
+| Situation                                | `count_col` |`barcode_col` | `locus_col` | `umi_col` | `schema$chains`  |
+| ---------------------------------------- | ----------- | ------------ | ----------- | --------- | ---------------- |
+| Bulk data without counts, no locus       | no          | no           | no          | no        | no               |
+| Bulk data with counts, no locus          | *yes*       | no           | no          | no        | no               |
+| Analyse TRA only                         | no          | **yes**¹     | **yes**     | no        | `"TRA"`          |
+| Pair TRA+TRB, pick best chain per cell   | no          | **yes**      | **yes**     | **yes**   | `c("TRA","TRB")` |
 
 ¹ If you pass barcodes, they're stored but used for counting only.
 

@@ -14,9 +14,10 @@ agg_receptors(
 )
 }
 \arguments{
-\item{dataset}{A data frame or \code{duckplyr_df} containing sequence/clonotype data.
+\item{dataset}{A \code{duckplyr_df} containing AIRR data.
 Must include columns specified in \code{schema} and potentially \code{barcode_col},
-\code{count_col}, \code{locus_col}, \code{umi_col}. Could be \code{idata$annotations}.}
+\code{count_col}, \code{locus_col}, \code{umi_col}. Expected \code{idata$annotations},
+support for \code{ImmunData} will probably be added later.}
 
 \item{schema}{Defines how a unique receptor is identified. Can be:
 \itemize{

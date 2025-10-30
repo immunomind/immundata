@@ -177,9 +177,10 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
 #'     it can perform chain pairing if the schema specifies multiple chains
 #'     (e.g., TRA and TRB).
 #'
-#' @param dataset A data frame or `duckplyr_df` containing sequence/clonotype data.
+#' @param dataset A `duckplyr_df` containing AIRR data.
 #'   Must include columns specified in `schema` and potentially `barcode_col`,
-#'   `count_col`, `locus_col`, `umi_col`. Could be `idata$annotations`.
+#'   `count_col`, `locus_col`, `umi_col`. Expected `idata$annotations`,
+#'   support for `ImmunData` will probably be added later.
 #' @param schema Defines how a unique receptor is identified. Can be:
 #'   * A character vector of column names representing receptor features
 #'       (e.g., `c("v_call", "j_call", "junction_aa")`).

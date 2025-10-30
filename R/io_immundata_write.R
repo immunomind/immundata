@@ -77,7 +77,7 @@ write_immundata <- function(idata, output_folder) {
   annotations_path <- file.path(output_folder, imd_files()$annotations)
 
   metadata_json <- list(
-    version = as.character(packageVersion("immundata")),
+    version = jsonlite::unbox(as.character(packageVersion("immundata"))),
     receptor_schema = idata$schema_receptor,
     repertoire_schema = idata$schema_repertoire
   )
@@ -92,7 +92,7 @@ write_immundata <- function(idata, output_folder) {
   )
 
   cli::cli_alert_info("Writing the metadata to [{metadata_path}]")
-  jsonlite::write_json(metadata_json, metadata_path)
+  jsonlite::write_json(metadata_json, metadata_path, null = "null")
 
   cli::cli_alert_success("ImmunData files saved to [{output_folder}]")
 

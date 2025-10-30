@@ -71,18 +71,25 @@
 #' @concept processing
 #' @rdname preprocess_postprocess
 #' @export
-make_default_preprocessing <- function(format = c("airr", "10x")) {
+make_default_preprocessing <- function(format = c("default", "airr", "10x")) {
   format <- match.arg(format)
 
-  if (format == "airr") {
+  truthy <- c("TRUE", "True", "true", "T", "t", "YES", "Yes", "yes", "Y", "y", "1")
+
+  if (format == "default") {
+    list(
+      exclude_columns = make_exclude_columns(imd_drop_cols("universal")),
+      filter_nonproductive = make_productive_filter(truthy = truthy)
+    )
+  } else if (format == "airr") {
     list(
       exclude_columns = make_exclude_columns(imd_drop_cols("airr")),
-      filter_nonproductive = make_productive_filter(truthy = TRUE)
+      filter_nonproductive = make_productive_filter(truthy = truthy)
     )
   } else if (format == "10x") {
     list(
       exclude_columns = make_exclude_columns(imd_drop_cols("10x")),
-      filter_nonproductive = make_productive_filter(truthy = c("true", "TRUE", "True", "t", "T", "1"))
+      filter_nonproductive = make_productive_filter(truthy = truthy)
     )
   }
 }
@@ -117,7 +124,7 @@ make_exclude_columns <- function(cols = imd_drop_cols("airr")) {
 #' @export
 make_productive_filter <- function(col_name = c("productive"),
                                    truthy = TRUE) {
-  checkmate::assert_character(col_name)
+  checkmate::assert_string(col_name)
 
   fun <- function(dataset, ...) {
     col_name <- intersect(
@@ -126,16 +133,21 @@ make_productive_filter <- function(col_name = c("productive"),
     )
 
     if (length(col_name) == 0) {
-      cli::cli_alert_warning("No columns with productive specification found; skipping the filtering")
+      cli::cli_alert_warning("No columns with the productive specification found; skipping the filtering")
       dataset
     } else {
-      col <- col_name[[1]]
+      prod_col <- paste0("imd_", col_name)
+      truthy <- truthy |> as.character()
 
-      if (checkmate::test_logical(truthy)) {
-        dataset |> filter(!!rlang::sym(col_name) == truthy)
+      dataset <- dataset |> mutate(!!rlang::sym(prod_col) := dd$concat(!!rlang::sym(col_name), ""))
+
+      if (length(truthy) == 1) {
+        dataset <- dataset |> filter(!!rlang::sym(prod_col) == truthy)
       } else {
-        dataset |> filter(!!rlang::sym(col_name) %in% truthy)
+        dataset <- dataset |> filter(!!rlang::sym(prod_col) %in% truthy)
       }
+
+      dataset |> select(-!!rlang::sym(prod_col))
     }
   }
 

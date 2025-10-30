@@ -211,3 +211,45 @@ test_that("read_repertoires() fails if missing columns in the receptor schema", 
     "Not all columns in the receptor schema present in the data"
   )
 })
+
+test_that("read_repertoires() removes non-productive", {
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+
+  imdata <- read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call")
+  )
+  imdata_rows <- imdata |>
+    count() |>
+    pull()
+
+  df <- readr::read_tsv(sample_file)
+  n_prod <- sum(df$productive)
+
+  expect_equal(
+    imdata_rows, n_prod
+  )
+})
+
+test_that("read_repertoires() correctly reads non-productive", {
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+
+  imdata <- read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    preprocess = NULL
+  )
+  imdata_rows <- imdata |>
+    count() |>
+    pull()
+
+  df <- readr::read_tsv(sample_file)
+  n_all <- df |>
+    count() |>
+    pull()
+
+  expect_equal(
+    imdata_rows,
+    n_all
+  )
+})

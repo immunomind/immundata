@@ -2,7 +2,6 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @import rlang
 #' @importFrom checkmate assert
 #' @importFrom checkmate assert_character
 #' @importFrom checkmate assert_choice
@@ -11,6 +10,7 @@
 #' @importFrom checkmate assert_directory_exists
 #' @importFrom checkmate assert_file_exists
 #' @importFrom checkmate assert_logical
+#' @importFrom checkmate assert_string
 #' @importFrom checkmate assertCharacter
 #' @importFrom checkmate assertR6
 #' @importFrom checkmate check_character
@@ -69,6 +69,7 @@
 #' @importFrom duckplyr read_parquet_duckdb
 #' @importFrom ggplot2 autoplot
 #' @importFrom glue glue
+#' @importFrom jsonlite unbox
 #' @importFrom lifecycle deprecated
 #' @importFrom R6 R6Class
 #' @importFrom readr read_delim

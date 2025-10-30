@@ -8,7 +8,7 @@
 \alias{make_barcode_prefix}
 \title{Preprocessing and postprocessing of input immune repertoire files}
 \usage{
-make_default_preprocessing(format = c("airr", "10x"))
+make_default_preprocessing(format = c("default", "airr", "10x"))
 
 make_default_postprocessing()
 

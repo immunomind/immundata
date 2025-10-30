@@ -78,8 +78,13 @@ read_immundata <- function(path, prudence = "stingy", verbose = TRUE) {
   metadata_json <- jsonlite::read_json(file.path(path, imd_files()$metadata), simplifyVector = T)
   annotation_data <- read_parquet_duckdb(file.path(path, imd_files()$annotations), prudence = prudence)
 
+  # TODO: read metadata from versions before 0.0.5
+
   receptor_schema <- metadata_json[[imd_meta_schema()$receptor_schema]]
-  # TODO: run checks/repairs: 1) no receptor schema, need to aggregate; 2) wrong columns; 3) receptor schema but no imd_receptor_id
+  # TODO: run checks/repairs:
+  # 1) no receptor schema, need to aggregate;
+  # 2) wrong columns;
+  # 3) receptor schema but no imd_receptor_id
 
   repertoire_schema <- metadata_json[[imd_meta_schema()$repertoire_schema]]
 
