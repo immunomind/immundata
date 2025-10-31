@@ -21,7 +21,15 @@
     <img alt="CRAN Downloads (last week)"
          src="https://cranlogs.r-pkg.org/badges/last-week/immundata">
   </a>
-  <a href="https://github.com/immunomind/immunarch/issues">
+  <a href="https://anaconda.org/conda-forge/r-immundata">
+    <img alt="Conda Version"
+         src="https://anaconda.org/conda-forge/r-immundata/badges/version.svg">
+  </a>
+  <a href="https://anaconda.org/conda-forge/r-immundata">
+    <img alt="Conda Total Downloads"
+         src="https://anaconda.org/conda-forge/r-immundata/badges/downloads.svg">
+  </a>
+  <a href="https://github.com/immunomind/immundata/issues">
     <img alt="GitHub Issues"
          src="https://img.shields.io/github/issues/immunomind/immundata?style=flat-square">
   </a>
