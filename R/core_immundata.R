@@ -12,7 +12,6 @@
 ImmunData <- R6Class(
   "ImmunData",
   private = list(
-
     # .annotations A barcode-level table that links each barcode (i.e., cell ID)
     # to a receptor. It can also store cell-level metadata such as
     # sample ID, donor, or tissue source. This table is **not aggregated** and
@@ -23,7 +22,6 @@ ImmunData <- R6Class(
     .repertoire_table = NULL
   ),
   public = list(
-
     #' @field schema_receptor A named list describing how to interpret receptor-level data.
     #'   This includes the fields used for aggregation (e.g., `CDR3`, `V_gene`, `J_gene`),
     #'   and optionally unique identifiers for each receptor row. Used to ensure consistency
@@ -61,11 +59,9 @@ ImmunData <- R6Class(
     }
   ),
   active = list(
-
     #' @field receptors Accessor for the dynamically-created table with receptors.
     receptors = function() {
       receptor_id_col <- imd_schema("receptor")
-      barcode_col <- imd_schema("barcode")
       locus_col <- imd_schema("locus")
       features <- imd_receptor_features(self$schema_receptor)
       chains <- imd_receptor_chains(self$schema_receptor)
@@ -74,21 +70,36 @@ ImmunData <- R6Class(
         receptor_data <- private$.annotations |>
           select(all_of(c(
             receptor_id_col,
-            barcode_col,
             features,
             locus_col
-          )))
+          ))) |>
+          distinct()
 
-        locus_1 <- chains[1]
-        locus_2 <- chains[2]
+        if (!grepl("\\|", chains[2])) {
+          locus_1 <- chains[1]
+          locus_2 <- chains[2]
 
-        receptor_data |>
-          filter(!!rlang::sym(locus_col) == locus_1) |>
-          full_join(
-            receptor_data |>
-              filter(!!rlang::sym(locus_col) == locus_2),
-            by = c(receptor_id_col, barcode_col)
-          )
+          receptor_data |>
+            filter(!!rlang::sym(locus_col) == locus_1) |>
+            full_join(
+              receptor_data |>
+                filter(!!rlang::sym(locus_col) == locus_2),
+              by = receptor_id_col
+            )
+        } else {
+          relaxed_chain_alternatives <- trimws(unlist(strsplit(chains[2], "\\|")))
+          locus_1 <- chains[1]
+          locus_2 <- relaxed_chain_alternatives[1]
+          locus_3 <- relaxed_chain_alternatives[2]
+
+          receptor_data |>
+            filter(!!rlang::sym(locus_col) == locus_1) |>
+            full_join(
+              receptor_data |>
+                filter(!!rlang::sym(locus_col) %in% c(locus_2, locus_3)),
+              by = receptor_id_col
+            )
+        }
       } else {
         private$.annotations |>
           select({{ receptor_id_col }}, all_of(features)) |>
