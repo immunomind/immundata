@@ -1,165 +1,3 @@
-#' @title Aggregate AIRR data into repertoires
-#'
-#' @description
-#' Groups the annotation table of an `ImmunData` object by user-specified
-#' columns to define distinct *repertoires* (e.g., based on sample, donor,
-#' time point). It then calculates summary statistics both per-repertoire and
-#' per-receptor within each repertoire.
-#'
-#' Calculated **per repertoire**:
-#' * `n_barcodes`: Total number of unique cells/barcodes within the repertoire
-#'     (sum of `imd_chain_count`, effectively summing unique cells if input was SC,
-#'     or total counts if input was bulk).
-#' * `n_receptors`: Number of unique receptors (`imd_receptor_id`) found within
-#'     the repertoire.
-#'
-#' Calculated **per annotation row** (receptor within repertoire context):
-#' * `imd_count`: Total count of a specific receptor (`imd_receptor_id`) within
-#'     the specific repertoire it belongs to in that row (sum of relevant
-#'     `imd_chain_count`).
-#' * `imd_proportion`: The proportion of the repertoire's total `n_barcodes`
-#'     accounted for by that specific receptor (`imd_count / n_barcodes`).
-#' * `n_repertoires`: The total number of distinct repertoires (across the entire
-#'     dataset) in which this specific receptor (`imd_receptor_id`) appears.
-#'
-#' These statistics are added to the annotation table, and a summary table is
-#' stored in the `$repertoires` slot of the returned object.
-#'
-#' @param idata An `ImmunData` object, typically the output of [read_repertoires()]
-#'   or [read_immundata()]. Must contain the `$annotations` table with columns
-#'   specified in `schema` and internal columns like `imd_receptor_id` and
-#'   `imd_chain_count`.
-#' @param schema Character vector. Column name(s) in `idata$annotations` that
-#'   define a unique repertoire. For example, `c("SampleID")` or
-#'   `c("DonorID", "TimePoint")`. Columns must exist in `idata$annotations`.
-#'   Default: `"repertoire_id"` (assumes such a column exists).
-#'
-#' @details
-#' The function operates on the `idata$annotations` table:
-#' 1.  **Validation:** Checks `idata` and existence of `schema` columns. Removes
-#'     any pre-existing repertoire summary columns to prevent duplication.
-#' 2.  **Repertoire Definition:** Groups annotations by the `schema` columns.
-#'     Calculates total counts (`n_barcodes`) per group. Assigns a unique integer
-#'     `imd_repertoire_id` to each distinct repertoire group. This forms the
-#'     initial `repertoires_table`.
-#' 3.  **Receptor Counts & Proportion:** Calculates the sum of `imd_chain_count`
-#'     for each receptor within each repertoire (`imd_count`). Calculates the
-#'     proportion (`imd_proportion`) of each receptor within its repertoire.
-#' 4.  **Repertoire & Receptor Stats:** Counts unique receptors per repertoire
-#'     (`n_receptors`, added to `repertoires_table`). Counts the number of
-#'     distinct repertoires each unique receptor appears in (`n_repertoires`).
-#' 5.  **Join Results:** Joins the calculated `imd_count`, `imd_proportion`, and
-#'     `n_repertoires` back to the annotation table based on repertoire columns
-#'     and `imd_receptor_id`.
-#' 6.  **Return New Object:** Creates and returns a *new* `ImmunData` object
-#'     containing the updated `$annotations` table (with the added statistics)
-#'     and the `$repertoires` slot populated with the `repertoires_table`
-#'     (containing `schema` columns, `imd_repertoire_id`, `n_barcodes`, `n_receptors`).
-#'
-#' The original `idata` object remains unmodified. Internal column names are
-#' typically managed by `immundata:::imd_schema()`.
-#'
-#' @return A **new** `ImmunData` object. Its `$annotations` table includes the
-#'   added columns (`imd_repertoire_id`, `imd_count`, `imd_proportion`, `n_repertoires`).
-#'   Its `$repertoires` slot contains the summary table linking `schema` columns
-#'   to `imd_repertoire_id`, `n_barcodes`, and `n_receptors`.
-#'
-#' @seealso [read_repertoires()] (which can call this function), [ImmunData] class.
-#'
-#' @concept aggregation
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' # Assume 'idata_raw' is an ImmunData object loaded via read_repertoires
-#' # but *without* providing 'repertoire_schema' initially.
-#' # It has $annotations but $repertoires is likely NULL or empty.
-#' # Assume idata_raw$annotations has columns "SampleID" and "TimePoint".
-#'
-#' # Define repertoires based on SampleID and TimePoint
-#' idata_aggregated <- agg_repertoires(idata_raw, schema = c("SampleID", "TimePoint"))
-#'
-#' # Explore the results
-#' print(idata_aggregated)
-#' print(idata_aggregated$repertoires)
-#' print(head(idata_aggregated$annotations)) # Note the new columns
-#' }
-agg_repertoires <- function(idata, schema = "repertoire_id") {
-  checkmate::assert_r6(idata, "ImmunData")
-  checkmate::assert_character(schema, min.len = 1)
-
-  missing_cols <- setdiff(schema, colnames(idata$annotations))
-  if (length(missing_cols) > 0) {
-    stop(
-      "Missing columns in `annotations`: ",
-      paste(missing_cols, collapse = ", ")
-    )
-  }
-
-  receptor_id <- imd_schema()$receptor
-  repertoire_id <- imd_schema()$repertoire
-  repertoire_schema_sym <- to_sym(schema)
-  prop_col <- imd_schema()$proportion
-  imd_count_col <- imd_schema("count")
-  chain_count_col <- imd_schema("chain_count")
-  n_receptors_col <- imd_schema("n_receptors")
-  n_barcodes_col <- imd_schema("n_barcodes")
-  n_repertoires_col <- imd_schema("n_repertoires")
-
-  cols_to_drop <- c(repertoire_id, imd_count_col, prop_col, n_receptors_col, n_barcodes_col, n_repertoires_col)
-
-  new_annotations <- idata$annotations |> select(-any_of(cols_to_drop))
-
-  repertoires_table <- new_annotations |>
-    summarise(
-      .by = all_of(schema),
-      n_barcodes = sum(!!to_sym(chain_count_col))
-    ) |>
-    mutate(
-      {{ repertoire_id }} := row_number()
-    ) |>
-    relocate({{ repertoire_id }})
-
-  #
-  # proportions
-  #
-  receptor_cells <- new_annotations |> summarise(
-    .by = all_of(c(schema, receptor_id)),
-    {{ imd_count_col }} := sum(!!rlang::sym(chain_count_col))
-  )
-
-  receptor_props <- receptor_cells |>
-    left_join(repertoires_table, by = schema) |>
-    mutate({{ prop_col }} := !!rlang::sym(imd_count_col) / n_barcodes) |>
-    select(-n_barcodes)
-
-  new_annotations <- new_annotations |>
-    left_join(receptor_props, by = c(schema, receptor_id))
-
-  #
-  # n_repertoires & n_receptors
-  #
-  unique_receptors <- new_annotations |>
-    distinct(!!rlang::sym(receptor_id), !!rlang::sym(repertoire_id))
-
-  n_receptor_df <- unique_receptors |>
-    summarise(.by = !!rlang::sym(repertoire_id), n_receptors = n())
-
-  repertoires_table <- repertoires_table |> left_join(n_receptor_df, by = repertoire_id)
-
-  repertoire_counts <- unique_receptors |>
-    summarise(.by = all_of(receptor_id), n_repertoires = n())
-
-  new_annotations <- new_annotations |> left_join(repertoire_counts, by = receptor_id)
-
-  ImmunData$new(
-    schema = idata$schema_receptor,
-    annotations = new_annotations,
-    repertoires = repertoires_table
-  )
-}
-
-
 #' @title Aggregates AIRR data into receptors
 #'
 #' @description
@@ -257,6 +95,8 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
         cli::cli_abort("Found issues with the schema. The passed schema has a `chain` to aggregate receptors by, but `'locus_col'` is NULL. Please provide `'locus_col'` or aggregate receptors without using several chains.")
       } else if (is.null(barcode_col) && length(schema$locus) == 2) {
         cli::cli_abort("Found issues with the schema. The passed schema has a `chain` to aggregate receptors by, but `'barcode_col'` is NULL. Please provide `'barcode_col'` or aggregate receptors without using several chains.")
+      } else if (is.null(barcode_col) && length(schema$locus) == 1) {
+        cli::cli_abort("Found issues with the schema. The passed schema has a `chain` to filter receptors by, but `'barcode_col'` is NULL. Please provide `'barcode_col'` or aggregate receptors without using chain filtering.")
       }
     }
   } else {
@@ -296,7 +136,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
   immundata_receptor_id_col <- imd_schema("receptor")
   immundata_chain_id_col <- imd_schema("chain")
   immundata_count_col <- imd_schema("count")
-  immundata_chain_count <- imd_schema("chain_count")
+  immundata_chain_count_col <- imd_schema("chain_count")
 
   # TODO: refactor
   if (!is.null(locus_col)) {
@@ -347,7 +187,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
     annotation_data <- dataset |>
       left_join(receptor_data, by = receptor_features) |>
       mutate(
-        {{ immundata_chain_count }} := 1,
+        {{ immundata_chain_count_col }} := 1,
         {{ immundata_count_col }} := 0
       )
   }
@@ -373,7 +213,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
     annotation_data <- dataset |>
       left_join(receptor_data, by = receptor_features) |>
       mutate(
-        {{ immundata_chain_count }} := !!rlang::sym(count_col),
+        {{ immundata_chain_count_col }} := !!rlang::sym(count_col),
         {{ immundata_count_col }} := 0
       )
   }
@@ -394,6 +234,26 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
     # 3.1) Case #3.1: single chain
     #
     if (length(receptor_chains) <= 1) {
+      # We still need to filter out receptors from barcodes
+      # with more than one receptor
+
+      filtered_chains <- dataset |>
+        select(all_of(c(
+          immundata_chain_id_col,
+          immundata_barcode_col,
+          umi_col
+        ))) |>
+        mutate(
+          .by = all_of(immundata_barcode_col),
+          temp__reads = max(!!rlang::sym(umi_col), na.rm = TRUE)
+        ) |>
+        filter(!!rlang::sym(umi_col) == temp__reads) |>
+        distinct(!!rlang::sym(immundata_barcode_col), .keep_all = TRUE) |>
+        select(all_of(c(immundata_barcode_col, immundata_chain_id_col)))
+
+      dataset <- dataset |>
+        semi_join(filtered_chains, by = immundata_chain_id_col)
+
       receptor_data <- dataset |>
         summarise(.by = all_of(receptor_features)) |>
         mutate(
@@ -402,7 +262,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
 
       annotation_data <- dataset |>
         left_join(receptor_data, by = receptor_features) |>
-        mutate({{ immundata_chain_count }} := 1, {{ immundata_count_col }} := 0)
+        mutate({{ immundata_chain_count_col }} := 1, {{ immundata_count_col }} := 0)
     }
 
     #
@@ -514,7 +374,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
           by = immundata_chain_id_col
         ) |>
         mutate(
-          {{ immundata_chain_count }} := 1,
+          {{ immundata_chain_count_col }} := 1,
           {{ immundata_count_col }} := 0
         )
     }
@@ -533,116 +393,4 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
   }
 
   annotation_data
-}
-
-
-#' @title Create or validate a receptor schema object
-#'
-#' @description
-#' Helper functions for defining and validating the `schema` used by
-#' [agg_receptors()] to identify unique receptors.
-#'
-#' `make_receptor_schema()` creates a schema list object.
-#' `assert_receptor_schema()` checks if an object is a valid schema list and throws
-#'   an error if not.
-#' `test_receptor_schema()` checks if an object is a valid schema list or a
-#'   character vector (which `agg_receptors` can also accept) and returns `TRUE`
-#'   or `FALSE`.
-#'
-#' @param features Character vector. Column names defining the features of a
-#'   single receptor chain (e.g., V gene, J gene, CDR3 sequence).
-#' @param chains Optional character vector (max length 2). Locus names (e.g.,
-#'   `"TRA"`, `"TRB"`) to filter by or pair. If `NULL` or length 1, only
-#'   filtering occurs. If length 2, pairing logic is enabled in [agg_receptors()].
-#'   Default: `NULL`.
-#' @param schema An object to test or assert as a valid schema. Can be a list
-#'   created by `make_receptor_schema` or a character vector (for `test_receptor_schema`).
-#'
-#' @return
-#' `make_receptor_schema` returns a list with elements `features` and `chains`.
-#' `assert_receptor_schema` returns `TRUE` invisibly if valid, or stops execution.
-#' `test_receptor_schema` returns `TRUE` or `FALSE`.
-#'
-#' @rdname make_receptor_schema
-#' @concept utils
-#' @export
-make_receptor_schema <- function(features, chains = NULL) {
-  checkmate::check_character(features, min.len = 1)
-  checkmate::check_character(chains, max.len = 2, null.ok = TRUE)
-
-  list(features = features, chains = chains)
-}
-
-
-#' @rdname make_receptor_schema
-#' @export
-assert_receptor_schema <- function(schema) {
-  # TODO: globals.R with schema list
-
-  checkmate::assert(
-    checkmate::check_character(schema, min.len = 1),
-    checkmate::check_list(schema, len = 2, null.ok = FALSE) &&
-      checkmate::check_names(names(schema), must.include = c("features", "chains"))
-  )
-
-  receptor_chains <- imd_receptor_chains(schema)
-
-  if (!is.null(receptor_chains)) {
-    # Validate chain syntax rules
-    if (length(receptor_chains) > 2) {
-      cli::cli_abort("Schema can have at most 2 chain elements. Found {length(receptor_chains)}: [{paste(receptor_chains, collapse=', ')}]")
-    }
-
-    if (length(receptor_chains) >= 1) {
-      # Check first chain doesn't contain pipe
-      if (grepl("\\|", receptor_chains[1])) {
-        cli::cli_abort("The first chain in the schema cannot contain '|' character. Found: '{receptor_chains[1]}'. The OR syntax is only allowed in the second chain.")
-      }
-    }
-
-    if (length(receptor_chains) == 2) {
-      # Check if second chain contains OR syntax (|)
-      if (grepl("\\|", receptor_chains[2])) {
-        # Split and validate the alternatives
-        relaxed_chain_alternatives <- trimws(unlist(strsplit(receptor_chains[2], "\\|")))
-
-        # Validate the alternatives
-        if (length(relaxed_chain_alternatives) != 2) {
-          cli::cli_abort("Relaxed pairing syntax requires exactly 2 alternatives separated by '|'. Found {length(relaxed_chain_alternatives)} in '{receptor_chains[2]}'")
-        }
-
-        # Check for empty alternatives
-        if (any(relaxed_chain_alternatives == "")) {
-          cli::cli_abort("Empty chain name found in '{receptor_chains[2]}'. Both alternatives must be valid chain names.")
-        }
-
-        # Check for duplicate alternatives
-        if (length(unique(relaxed_chain_alternatives)) != length(relaxed_chain_alternatives)) {
-          cli::cli_abort("Duplicate chain names found in '{receptor_chains[2]}'. Alternatives must be different.")
-        }
-
-        # Check that alternatives are different from the required chain
-        if (receptor_chains[1] %in% relaxed_chain_alternatives) {
-          cli::cli_abort("The required chain '{receptor_chains[1]}' cannot also be an alternative in '{receptor_chains[2]}'")
-        }
-      } else {
-        # Strict pairing - check for accidental spaces or typos
-        if (grepl("[\\s,;]", receptor_chains[2])) {
-          cli::cli_warn("Found potential separator characters in '{receptor_chains[2]}'. For relaxed pairing, use the pipe character '|' to separate alternatives (e.g., 'IGL|IGK')")
-        }
-      }
-    }
-  }
-
-  TRUE
-}
-
-
-#' @rdname make_receptor_schema
-#' @export
-test_receptor_schema <- function(schema) {
-  checkmate::test_character(schema, min.len = 1) || (
-    checkmate::test_list(schema, len = 2, null.ok = FALSE) &&
-      checkmate::test_subset(names(schema), c("features", "chains"), empty.ok = FALSE)
-  )
 }
