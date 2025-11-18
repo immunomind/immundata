@@ -6,7 +6,7 @@ body:
 - type: textarea
   id: description
   attributes:
-    label: Question
-    description: Describe what you want to know.
+    label: Your question
+    description: Describe what you want to know. E.g., how to analyse a specific data, how to do X, when a method will be available, etc.
   validations:
     required: true

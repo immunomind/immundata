@@ -3,19 +3,10 @@ description: "Propose a tutorial for a specific use case or new documentation."
 labels:
 - documentation
 body:
-- type: dropdown
-  id: kind
-  attributes:
-    label: What kind of documentation would you like to request?
-    options:
-    - 'New tutorial for a specific use case'
-    - 'Improved documentation or error message'
-    - 'Other - please describe it in the ticket body'
-  validations:
-    required: true
 - type: textarea
   id: description
   attributes:
-    label: Please describe your idea or what you want to achieve
+    label: What type of documentation would you like to see on the website?
+    description: Interested in a tutorial? More details on how a specific method works? More examples? Something else entirely?
   validations:
     required: true
