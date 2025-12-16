@@ -427,6 +427,11 @@ read_repertoires <- function(path,
     count() |>
     pull("n")
 
+  idata_receptors <- idata$annotations |>
+    distinct(!!imd_schema_sym("receptor")) |>
+    count() |>
+    pull("n")
+
   cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
 
   if (!is.null(repertoire_schema)) {
@@ -436,7 +441,7 @@ read_repertoires <- function(path,
   if (idata_size == 0) {
     cli_alert_warning("Loaded ImmunData with zero (!) chains. Possible problems: wrong {.code 'chain'} specification to the receptor schema (e.g., {.code 'TCRB'} instead of {.code 'TRB'}), or preproces/postprocess filters")
   } else {
-    cli_alert_success("Loaded ImmunData with [{idata_size}] chains")
+    cli_alert_success("Loaded ImmunData with [{idata_size}] chains and [{idata_receptors}] receptors")
   }
 
   idata

@@ -333,3 +333,84 @@ test_that("agg_repertoires n_repertoires calculation is correct for paired data"
     info = "Unique receptor should appear in 1 repertoire"
   )
 })
+
+test_that("agg_repertoires preserves second chain data (no NAs)", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  # Create paired-chain data
+  # Cell1: IGH + IGL
+  test_data <- data.frame(
+    cell_id = c("cell1", "cell1"),
+    sample_id = c("Sample1", "Sample1"),
+    v_call = c("IGHV1", "IGLV1"),
+    j_call = c("IGHJ1", "IGLJ1"),
+    junction_aa = c("CARW", "CASL"),
+    locus = c("IGH", "IGL"),
+    umi_count = c(100, 100)
+  )
+
+  temp_file <- tempfile(fileext = ".tsv")
+  readr::write_tsv(test_data, temp_file)
+  on.exit(unlink(temp_file), add = TRUE)
+
+  idata <- read_repertoires(
+    path = temp_file,
+    schema = make_receptor_schema(
+      features = c("v_call", "j_call", "junction_aa"),
+      chains = c("IGH", "IGL")
+    ),
+    barcode_col = "cell_id",
+    locus_col = "locus",
+    umi_col = "umi_count",
+    output_folder = output_dir
+  )
+
+  # Run aggregation
+  idata_agg <- agg_repertoires(idata, schema = "sample_id")
+  annotations <- idata_agg$annotations |> collect()
+
+  # ----------------------------------------------------------------------
+  # CHECK 1: Row Count
+  # The input had 2 rows (1 cell x 2 chains).
+  # The output MUST have 2 rows.
+  # (The bug caused this to drop to 1 row).
+  # ----------------------------------------------------------------------
+  expect_equal(nrow(annotations), 2,
+    info = "Annotation table should retain rows for both chains (IGH and IGL)"
+  )
+
+  # ----------------------------------------------------------------------
+  # CHECK 2: Second Chain Data Presence
+  # Filter for the Light Chain row and ensure V-call is present (not NA)
+  # ----------------------------------------------------------------------
+  igl_row <- annotations |> filter(locus == "IGL")
+
+  expect_equal(nrow(igl_row), 1,
+    info = "Should find exactly one row for the IGL chain"
+  )
+
+  expect_false(is.na(igl_row$v_call),
+    info = "IGL row should have valid v_call data (not NA)"
+  )
+  expect_equal(igl_row$v_call, "IGLV1",
+    info = "IGL v_call should match input data"
+  )
+
+  # ----------------------------------------------------------------------
+  # CHECK 3: Statistics Mapping
+  # Ensure the calculated stats (which are per-receptor) are mapped
+  # correctly to BOTH chain rows.
+  # ----------------------------------------------------------------------
+  # Both IGH and IGL rows belong to the same receptor, so they should
+  # both have the same imd_count and imd_proportion.
+
+  igh_row <- annotations |> filter(locus == "IGH")
+
+  expect_equal(igh_row$imd_count, igl_row$imd_count,
+    info = "Both chains of the same receptor should share the same count stats"
+  )
+  expect_equal(igh_row$imd_repertoire_id, igl_row$imd_repertoire_id,
+    info = "Both chains should belong to the same repertoire ID"
+  )
+})

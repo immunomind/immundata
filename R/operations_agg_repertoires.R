@@ -98,7 +98,6 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
 
   receptor_id <- imd_schema("receptor")
   repertoire_id <- imd_schema("repertoire")
-  repertoire_schema_sym <- to_sym(schema)
   prop_col <- imd_schema("proportion")
   imd_count_col <- imd_schema("count")
   barcode_col <- imd_schema("barcode")
@@ -107,13 +106,17 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
   n_barcodes_col <- imd_schema("n_barcodes")
   n_repertoires_col <- imd_schema("n_repertoires")
 
+  # Remove columns from the previous repertoire aggregation if any
   cols_to_drop <- c(repertoire_id, imd_count_col, prop_col, n_receptors_col, n_barcodes_col, n_repertoires_col)
 
   new_annotations <- idata$annotations |>
-    select(-any_of(cols_to_drop)) |>
-    distinct(!!to_sym(receptor_id), !!to_sym(barcode_col), .keep_all = TRUE) # distinct to remove second chain from two-loci data
+    select(-any_of(cols_to_drop))
 
-  repertoires_table <- new_annotations |>
+  single_chain_annotations <- new_annotations |>
+    # distinct to remove second chain from two-loci data
+    distinct(!!to_sym(receptor_id), !!to_sym(barcode_col), .keep_all = TRUE)
+
+  repertoires_table <- single_chain_annotations |>
     summarise(
       .by = all_of(schema),
       n_barcodes = sum(!!to_sym(chain_count_col))
@@ -126,7 +129,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
   #
   # proportions
   #
-  receptor_cells <- new_annotations |>
+  receptor_cells <- single_chain_annotations |>
     summarise(
       .by = all_of(c(schema, receptor_id)),
       {{ imd_count_col }} := sum(!!rlang::sym(chain_count_col))
