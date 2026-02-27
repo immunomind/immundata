@@ -32,6 +32,8 @@ IMD_GLOBALS <- list(
     chain = "imd_chain_id",
     group = "imd_group_id",
     repertoire = "imd_repertoire_id",
+    strata = "imd_strata_id",
+    strata_name = "strata_name",
     metadata_filename = "imd_filename",
     count = "imd_count",
     receptor_count = "imd_count",

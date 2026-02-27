@@ -53,7 +53,17 @@ ImmunData <- R6Class(
       self$schema_receptor <- schema
 
       if (!is.null(repertoires)) {
-        self$schema_repertoire <- setdiff(colnames(repertoires), c(imd_schema()$repertoire, imd_schema()$n_receptors, imd_schema()$n_barcodes, imd_schema()$n_cells))
+        self$schema_repertoire <- setdiff(
+          colnames(repertoires),
+          c(
+            imd_schema()$repertoire,
+            imd_schema()$strata,
+            imd_schema()$strata_name,
+            imd_schema()$n_receptors,
+            imd_schema()$n_barcodes,
+            imd_schema()$n_cells
+          )
+        )
         private$.repertoire_table <- repertoires
       }
     }
