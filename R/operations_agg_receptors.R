@@ -37,9 +37,9 @@
 #'   (e.g., "TRA", "TRB"). Required if `schema` includes `chains` for filtering
 #'   or pairing. Default: `NULL`.
 #' @param umi_col Character(1). The name of the column containing UMI counts.
-#'   Required for *paired-chain single-cell* data (`length(schema$chains) == 2`).
-#'   Used to select the most abundant chain per locus within a cell when multiple
-#'   chains of the same locus are present. Default: `NULL`.
+#'   Required for single-cell data (`barcode_col` is set). Used to select the
+#'   most abundant chain within each barcode and, for paired schemas, within
+#'   each barcode/locus group when multiple chains are present. Default: `NULL`.
 #'
 #' @details
 #' The function performs the following main steps:
@@ -53,7 +53,8 @@
 #'         `imd_chain_count` (1 for simple table, from `count_col` for bulk).
 #'     * **Single-Cell (Barcodes Provided):** Uses `barcode_col` for `imd_barcode_id`.
 #'         * **Single Chain:** (`length(schema$chains) <= 1`). Identifies unique
-#'             receptors based on `schema$features`. `imd_chain_count` is 1.
+#'             receptors based on `schema$features`. Uses `umi_col` to keep one
+#'             chain per barcode when needed. `imd_chain_count` is 1.
 #'         * **Paired Chain:** (`length(schema$chains) == 2`). Requires `locus_col`
 #'             and `umi_col`. Filters chains within each cell/locus group based
 #'             on max `umi_col`. Creates paired receptors by joining the two
@@ -87,16 +88,18 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
   checkmate::check_character(locus_col, max.len = 1, null.ok = TRUE)
   checkmate::check_character(umi_col, max.len = 1, null.ok = TRUE)
 
+  if (!is.null(barcode_col) && !is.null(count_col)) {
+    cli::cli_abort("Please pass either {.arg barcode_col} (single-cell mode) or {.arg count_col} (bulk mode), not both.")
+  }
+
   if (checkmate::test_character(schema, min.len = 1)) {
     schema <- make_receptor_schema(schema)
   } else if (assert_receptor_schema(schema)) {
-    if (!is.null(schema$locus)) {
+    if (!is.null(schema$chains)) {
       if (is.null(locus_col)) {
         cli::cli_abort("Found issues with the schema. The passed schema has a `chain` to aggregate receptors by, but `'locus_col'` is NULL. Please provide `'locus_col'` or aggregate receptors without using several chains.")
-      } else if (is.null(barcode_col) && length(schema$locus) == 2) {
+      } else if (is.null(barcode_col) && length(schema$chains) == 2) {
         cli::cli_abort("Found issues with the schema. The passed schema has a `chain` to aggregate receptors by, but `'barcode_col'` is NULL. Please provide `'barcode_col'` or aggregate receptors without using several chains.")
-      } else if (is.null(barcode_col) && length(schema$locus) == 1) {
-        cli::cli_abort("Found issues with the schema. The passed schema has a `chain` to filter receptors by, but `'barcode_col'` is NULL. Please provide `'barcode_col'` or aggregate receptors without using chain filtering.")
       }
     }
   } else {
@@ -105,6 +108,10 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
 
   receptor_features <- imd_receptor_features(schema)
   receptor_chains <- imd_receptor_chains(schema)
+
+  if (!is.null(barcode_col) && is.null(umi_col)) {
+    cli::cli_abort("Single-cell mode requires {.arg umi_col}. Please provide the column with per-chain UMI/reads to resolve chain multiplicity within each barcode.")
+  }
 
   is_relaxed_pairing <- FALSE
   relaxed_chain_alternatives <- NULL
@@ -120,9 +127,24 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
     }
   }
 
-  receptor_cols_existence <- setdiff(c(receptor_features, locus_col), colnames(dataset))
+  receptor_cols_existence <- setdiff(receptor_features, colnames(dataset))
   if (length(receptor_cols_existence) != 0) {
-    cli::cli_abort("Not all columns in the receptor schema present in the data: [{receptor_cols_existence}]. Please double check and run again.")
+    cli::cli_abort("Missing receptor feature column(s) required by {.arg schema}: [{receptor_cols_existence}].")
+  }
+
+  required_arg_cols <- c(
+    if (!is.null(locus_col)) stats::setNames(locus_col, "locus_col"),
+    if (!is.null(barcode_col)) stats::setNames(barcode_col, "barcode_col"),
+    if (!is.null(count_col)) stats::setNames(count_col, "count_col"),
+    if (!is.null(umi_col)) stats::setNames(umi_col, "umi_col")
+  )
+
+  missing_arg_cols <- setdiff(unname(required_arg_cols), colnames(dataset))
+  if (length(missing_arg_cols) != 0) {
+    missing_args <- names(required_arg_cols)[match(missing_arg_cols, required_arg_cols)]
+    cli::cli_abort(
+      "Missing column(s) referenced by arguments: [{missing_arg_cols}] (from [{missing_args}])."
+    )
   }
 
   # TODO:
@@ -313,7 +335,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
             has_l2 = any(!!rlang::sym(locus_col) == locus_2),
             has_l3 = any(!!rlang::sym(locus_col) == locus_3),
           ) |>
-          filter(has_l1, (has_l2 & !has_l3) | (!has_l2 & has_l3))
+          filter(.data$has_l1, (.data$has_l2 & !.data$has_l3) | (!.data$has_l2 & .data$has_l3))
       }
 
       # - get back to chains to select only those which are paired
