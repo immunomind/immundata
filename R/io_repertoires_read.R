@@ -39,8 +39,9 @@
 #'   locus (e.g., "TRA", "TRB", "IGH", "IGK", "IGL"). Required if `schema`
 #'   specifies chains for pairing. Default: `NULL`.
 #' @param umi_col Character(1). Name of the column containing UMI counts for
-#'   single-cell data. Used during paired-chain processing to select the most
-#'   abundant chain per barcode per locus. Default: `NULL`.
+#'   single-cell data. Required when `barcode_col` is used. It is used to
+#'   select the most abundant chain within a barcode (and within a locus for
+#'   paired-chain schemas). Default: `NULL`.
 #' @param preprocess List. A named list of functions to apply sequentially to the
 #'   raw data *before* receptor aggregation. Each function should accept a
 #'   data frame (or duckplyr_df) as its first argument. See
@@ -243,6 +244,14 @@ read_repertoires <- function(path,
 
   if (path[1] == "<metadata>") {
     if (!is.null(metadata)) {
+      if (!metadata_file_col %in% colnames(metadata)) {
+        cli::cli_abort("Passed {.code path = '<metadata>'}, but the metadata table has no column {.field {metadata_file_col}}. Available metadata columns: [{colnames(metadata)}].")
+      }
+
+      if (any(is.na(metadata[[metadata_file_col]]) | metadata[[metadata_file_col]] == "")) {
+        cli::cli_abort("Column {.field {metadata_file_col}} in metadata contains empty/NA paths. Please provide valid file paths for all rows.")
+      }
+
       path <- normalizePath(metadata[[metadata_file_col]])
       metadata[[immundata_filename_col]] <- path
     } else {
