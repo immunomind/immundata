@@ -17,8 +17,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.1.0),
-    dplyr,
-    duckplyr (>= 1.1.0)
+    dplyr (>= 1.2.0),
+    duckplyr (>= 1.2.0)
 Imports:
     checkmate,
     cli,
