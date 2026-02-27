@@ -25,7 +25,7 @@ dimnames.ImmunData <- function(x) {
 #' @param value Not used.
 #'
 #' @concept operations
-#' @exportS3Method dimnames<-
+#' @exportS3Method base::`dimnames<-` ImmunData
 `dimnames<-.ImmunData` <- function(x, value) {
   checkmate::assert_r6(x, "ImmunData")
 
@@ -43,7 +43,7 @@ dimnames.ImmunData <- function(x) {
 #' @param value Not used.
 #'
 #' @concept operations
-#' @exportS3Method names<-
+#' @exportS3Method base::`names<-` ImmunData
 `names<-.ImmunData` <- function(x, value) {
   checkmate::assert_r6(x, "ImmunData")
 
