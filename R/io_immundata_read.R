@@ -75,18 +75,26 @@ read_immundata <- function(path, prudence = "stingy", verbose = TRUE) {
   assert_file_exists(file.path(path, imd_files()$annotations))
   assert_file_exists(file.path(path, imd_files()$metadata))
 
-  metadata_json <- jsonlite::read_json(file.path(path, imd_files()$metadata), simplifyVector = T)
+  metadata_path <- file.path(path, imd_files()$metadata)
+  meta_raw <- jsonlite::read_json(metadata_path, simplifyVector = TRUE)
+  legacy_metadata <- is_legacy_metadata_json(meta_raw)
+
+  metadata_json <- normalize_metadata_json(meta_raw)
+  if (legacy_metadata) {
+    backup_path <- archive_legacy_metadata_json(metadata_path)
+    jsonlite::write_json(metadata_json, metadata_path, null = "null", auto_unbox = TRUE, pretty = TRUE)
+    cli_alert_info("Migrated legacy metadata. Backup was saved to [{backup_path}]")
+  }
+
   annotation_data <- read_parquet_duckdb(file.path(path, imd_files()$annotations), prudence = prudence)
 
-  # TODO: read metadata from versions before 0.0.5
-
-  receptor_schema <- metadata_json[[imd_meta_schema()$receptor_schema]]
+  receptor_schema <- metadata_json[["schema_receptor"]]
   # TODO: run checks/repairs:
   # 1) no receptor schema, need to aggregate;
   # 2) wrong columns;
   # 3) receptor schema but no imd_receptor_id
 
-  repertoire_schema <- metadata_json[[imd_meta_schema()$repertoire_schema]]
+  repertoire_schema <- metadata_json[["schema_repertoire"]]
 
   idata <- ImmunData$new(
     schema = receptor_schema,
@@ -97,7 +105,7 @@ read_immundata <- function(path, prudence = "stingy", verbose = TRUE) {
     cli_alert_success("Loaded ImmunData with the receptor schema: [{receptor_schema}]")
   }
 
-  if (length(repertoire_schema) > 0) {
+  if (!is.null(repertoire_schema) && length(repertoire_schema) > 0) {
     idata <- agg_repertoires(idata, repertoire_schema)
 
     if (verbose) {

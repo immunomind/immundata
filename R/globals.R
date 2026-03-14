@@ -51,6 +51,10 @@ IMD_GLOBALS <- list(
     sim_lev = "imd_sim_lev_"
   ),
   meta_schema = list(
+    format_version = "format_version",
+    package_version = "package_version",
+    schema_receptor = "schema_receptor",
+    schema_repertoire = "schema_repertoire",
     version = "version",
     receptor_schema = "receptor_schema",
     repertoire_schema = "repertoire_schema"

@@ -84,72 +84,11 @@
 #' unlink(save_dir, recursive = TRUE)
 #' }
 write_immundata <- function(idata, output_folder, compression = "zstd", compression_level = 9) {
-  compression_was_provided <- !missing(compression)
-  compression_level_was_provided <- !missing(compression_level)
-
-  checkmate::assert_r6(idata, "ImmunData")
-  checkmate::assert_character(output_folder,
-    max.len = 1,
-    null.ok = FALSE
+  write_immundata_internal(
+    idata = idata,
+    output_folder = output_folder,
+    compression = compression,
+    compression_level = compression_level,
+    producer_function = "write_immundata"
   )
-  checkmate::assert_character(compression,
-    max.len = 1,
-    null.ok = TRUE
-  )
-  checkmate::assert_numeric(compression_level,
-    len = 1,
-    null.ok = TRUE
-  )
-
-  output_folder <- normalizePath(output_folder, mustWork = FALSE)
-  dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
-
-  metadata_path <- file.path(output_folder, imd_files()$metadata)
-  annotations_path <- file.path(output_folder, imd_files()$annotations)
-
-  metadata_json <- list(
-    version = jsonlite::unbox(as.character(packageVersion("immundata"))),
-    receptor_schema = idata$schema_receptor,
-    repertoire_schema = idata$schema_repertoire
-  )
-
-  cli::cli_alert_info("Writing the receptor annotation data to [{annotations_path}]")
-  duckplyr_is_1_2_0 <- isTRUE(utils::packageVersion("duckplyr") == "1.2.0")
-  parquet_options <- Filter(
-    f = function(x) !is.null(x),
-    x = list(
-      compression = compression,
-      compression_level = compression_level
-    )
-  )
-
-  if (duckplyr_is_1_2_0) {
-    if (compression_was_provided || compression_level_was_provided) {
-      cli::cli_alert_warning(
-        "duckplyr 1.2.0 does not accept compression options in `compute_parquet()`; ignoring `compression` and `compression_level`."
-      )
-    }
-    compute_parquet(
-      idata$annotations,
-      annotations_path
-    )
-  } else if (length(parquet_options) == 0) {
-    compute_parquet(
-      idata$annotations,
-      annotations_path
-    )
-  } else {
-    compute_parquet(
-      idata$annotations,
-      annotations_path,
-      options = parquet_options
-    )
-  }
-
-  cli::cli_alert_info("Writing the metadata to [{metadata_path}]")
-  jsonlite::write_json(metadata_json, metadata_path, null = "null")
-
-  cli::cli_alert_success("ImmunData files saved to [{output_folder}]")
-
-  invisible(read_immundata(output_folder))
 }

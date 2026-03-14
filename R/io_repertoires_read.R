@@ -87,9 +87,9 @@
 #' 8.  Applies postprocessing steps sequentially if `postprocess` is provided.
 #' 9.  Creates a temporary `ImmunData` object in memory.
 #' 10. Determines the `output_folder` path.
-#' 11. Saves the processed annotation table and metadata using [write_immundata()] to the `output_folder`.
-#' 12. Loads the data back from the saved Parquet files using [read_immundata()] to create the final `ImmunData` object. This ensures the returned object is backed by efficient storage.
-#' 13. If `repertoire_schema` is provided, calls [agg_repertoires()] on the loaded object to define and summarize repertoires.
+#' 11. If `repertoire_schema` is provided, calls [agg_repertoires()] to define and summarize repertoires.
+#' 12. Saves the processed annotation table and metadata using [write_immundata()] to the `output_folder`.
+#' 13. Loads the data back from the saved Parquet files using [read_immundata()] to create the final `ImmunData` object. This ensures the returned object is backed by efficient storage.
 #' 14. Returns the final `ImmunData` object.
 #'
 #' @return An `ImmunData` object containing the processed receptor annotations.
@@ -236,6 +236,11 @@ read_repertoires <- function(path,
     sapply(preprocess, checkmate::assert_function)
   }
 
+  requested_rename_columns <- rename_columns
+  applied_rename_columns <- requested_rename_columns[0]
+  missing_rename_columns <- requested_rename_columns[0]
+  dropped_columns <- character()
+
   #
   # Preprocessing the metadata
   #
@@ -298,6 +303,9 @@ read_repertoires <- function(path,
     cli::cli_h3("Renaming the columns and schemas")
 
     old_colnames <- colnames(raw_dataset)
+    applied_rename_columns <- rename_columns[unname(rename_columns) %in% old_colnames]
+    missing_rename_columns <- rename_columns[!unname(rename_columns) %in% old_colnames]
+
     raw_dataset <- raw_dataset |> rename(any_of(rename_columns))
     new_colnames <- colnames(raw_dataset)
     renamed_cols <- setdiff(new_colnames, old_colnames)
@@ -327,6 +335,7 @@ read_repertoires <- function(path,
   #
   if (length(preprocess)) {
     cli::cli_h3("Preprocessing the data")
+    preprocess_input_cols <- colnames(raw_dataset)
 
     ol <- cli::cli_ol()
     cli::cli_ol()
@@ -336,6 +345,8 @@ read_repertoires <- function(path,
     }
     cli::cli_end()
     cli::cli_end(ol)
+
+    dropped_columns <- setdiff(preprocess_input_cols, colnames(raw_dataset))
 
     cli::cli_alert_success("Preprocessing plan is ready")
   }
@@ -406,18 +417,6 @@ read_repertoires <- function(path,
   dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
 
   #
-  # Save the created ImmunData on disk
-  #
-  cli::cli_h3("Saving the newly created ImmunData to disk")
-
-  write_immundata(idata, output_folder)
-
-  #
-  # ... and load it again so the source will be fast Parquet files
-  #
-  idata <- read_immundata(output_folder, verbose = FALSE)
-
-  #
   # Create repertoires
   #
   if (!is.null(repertoire_schema)) {
@@ -425,8 +424,48 @@ read_repertoires <- function(path,
     idata <- agg_repertoires(idata, repertoire_schema)
     cli_alert_success("Aggregation is finished")
   }
-  # TODO: we need to create repertoires ->
-  # without repertoire aggregating (!) write it on disk with (!!) the repertoire schema
+
+  #
+  # Save the created ImmunData on disk
+  #
+  cli::cli_h3("Saving the newly created ImmunData to disk")
+
+  write_immundata_internal(
+    idata = idata,
+    output_folder = output_folder,
+    producer_function = "read_repertoires",
+    metadata_lineage_inputs = list(
+      files = path,
+      metadata_joined = !is.null(metadata),
+      enforce_schema = enforce_schema
+    ),
+    metadata_lineage_args = list(
+      barcode_col = barcode_col,
+      count_col = count_col,
+      locus_col = locus_col,
+      umi_col = umi_col,
+      metadata_file_col = metadata_file_col
+    ),
+    metadata_lineage_columns = list(
+      renamed = list(
+        requested = requested_rename_columns,
+        applied = applied_rename_columns,
+        not_found = missing_rename_columns
+      ),
+      dropped = list(
+        applied = dropped_columns
+      )
+    ),
+    metadata_lineage_pipeline = list(
+      preprocess = names(preprocess),
+      postprocess = names(postprocess)
+    )
+  )
+
+  #
+  # ... and load it again so the source will be fast Parquet files
+  #
+  idata <- read_immundata(output_folder, verbose = FALSE)
 
   cli::cli_h3("Summary")
   final_time <- format(round(Sys.time() - start_time, 2))
