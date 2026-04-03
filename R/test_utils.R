@@ -26,6 +26,68 @@ get_test_idata_tsv_with_metadata <- function(schema = c("cdr3_aa", "v_call")) {
   )
 }
 
+get_test_ig_drop_cols <- function() {
+  c(
+    "productive",
+    "rev_comp",
+    "d_call",
+    "junction_length",
+    "junction_aa_length",
+    "v_sequence_start",
+    "v_sequence_end",
+    "d_sequence_start",
+    "d_sequence_end",
+    "j_sequence_start",
+    "j_sequence_end",
+    "c_sequence_start",
+    "c_sequence_end",
+    "consensus_count",
+    "is_cell"
+  )
+}
+
+get_test_ig_data <- function(
+    mode = c("single", "paired", "relaxed"),
+    features = c("v_call", "j_call", "junction_aa"),
+    output_folder = tempfile(),
+    preprocess = list(
+      exclude_columns = make_exclude_columns(cols = get_test_ig_drop_cols())
+    ),
+    postprocess = NULL,
+    rename_columns = NULL) {
+  mode <- match.arg(mode)
+
+  schema <- switch(
+    mode,
+    single = make_receptor_schema(
+      features = features,
+      chains = "IGH"
+    ),
+    paired = make_receptor_schema(
+      features = features,
+      chains = c("IGH", "IGL")
+    ),
+    relaxed = make_receptor_schema(
+      features = features,
+      chains = c("IGH", "IGL|IGK")
+    )
+  )
+
+  read_repertoires(
+    path = system.file("extdata/ig", "multiple_ig_loci.tsv.gz", package = "immundata"),
+    schema = schema,
+    barcode_col = "cell_id",
+    locus_col = "locus",
+    umi_col = "duplicate_count",
+    output_folder = output_folder,
+    preprocess = preprocess,
+    postprocess = postprocess,
+    rename_columns = rename_columns
+  )
+}
+
+load_test_ig_idata <- get_test_ig_data
+
 #' Get test datasets from `immundata`
 #' @keywords internal
 #' @export

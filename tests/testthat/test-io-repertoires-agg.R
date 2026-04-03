@@ -40,7 +40,11 @@ test_that("agg_repertoires counts single-chain receptors correctly", {
   )
 
   # Aggregate repertoires by sample_id
-  idata_agg <- agg_repertoires(idata, schema = "sample_id")
+  idata_agg <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "single-chain duplicated receptors"
+  )
 
   repertoires <- idata_agg$repertoires |> collect()
   annotations <- idata_agg$annotations |> collect()
@@ -133,7 +137,11 @@ test_that("agg_repertoires identifies double-counting in paired-chain data", {
   )
 
   # Aggregate repertoires
-  idata_agg <- agg_repertoires(idata, schema = "sample_id")
+  idata_agg <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "paired-chain double-counting check"
+  )
 
   repertoires <- idata_agg$repertoires |> collect()
   annotations <- idata_agg$annotations |> collect()
@@ -203,7 +211,11 @@ test_that("agg_repertoires handles paired-chain data with shared receptors", {
     rename_columns = NULL
   )
 
-  idata_agg <- agg_repertoires(idata, schema = "sample_id")
+  idata_agg <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "paired-chain shared receptors"
+  )
 
   repertoires <- idata_agg$repertoires |> collect()
   annotations <- idata_agg$annotations |> collect()
@@ -266,7 +278,11 @@ test_that("agg_repertoires proportions are affected by double-counting", {
     rename_columns = NULL
   )
 
-  idata_agg <- agg_repertoires(idata, schema = "sample_id")
+  idata_agg <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "paired-chain proportions"
+  )
   annotations <- idata_agg$annotations |> collect()
 
   # Get unique proportions
@@ -315,7 +331,11 @@ test_that("agg_repertoires n_repertoires calculation is correct for paired data"
     rename_columns = NULL
   )
 
-  idata_agg <- agg_repertoires(idata, schema = "sample_id")
+  idata_agg <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "paired-chain n_repertoires"
+  )
   annotations <- idata_agg$annotations |> collect()
 
   # Check n_repertoires for the shared receptor
@@ -367,7 +387,11 @@ test_that("agg_repertoires preserves second chain data (no NAs)", {
   )
 
   # Run aggregation
-  idata_agg <- agg_repertoires(idata, schema = "sample_id")
+  idata_agg <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "paired-chain no-NA preservation"
+  )
   annotations <- idata_agg$annotations |> collect()
 
   # ----------------------------------------------------------------------

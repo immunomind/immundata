@@ -8,6 +8,12 @@
 #'
 #' @param path Character(1). Path to the **directory** containing the saved
 #'   `ImmunData` files (`annotations.parquet` and `metadata.json`).
+#' @param tag Character(1) or `NULL`. Optional snapshot tag to load from
+#'   `path/snapshots/<tag>/vNNN`. When provided, `path` must point to the
+#'   project/home folder.
+#' @param version Integer(1) or `NULL`. Optional snapshot version number to
+#'   load within a tag (e.g. `1` means `v001`). If `NULL`, the latest version
+#'   for the tag is loaded.
 #' @param prudence Character(1). Controls strictness of type inference when
 #'   reading the Parquet file, passed to `duckplyr::read_parquet_duckdb()`.
 #'   Default `"stingy"` likely implies stricter type checking or safer inference.
@@ -18,8 +24,8 @@
 #' This function expects a directory structure created by [write_immundata()],
 #' containing at least:
 #' - `annotations.parquet`: The main annotation data table.
-#' - `metadata.json`: Contains package version, receptor schema, and optionally
-#'   repertoire schema.
+#' - `metadata.json`: Contains package version, receptor/repertoire schema,
+#'   current `snapshot_id`, lineage events, and provenance paths.
 #'
 #' The loading process involves:
 #' 1. Checking that the specified `path` is a directory and contains the
@@ -68,25 +74,23 @@
 #' # Clean up
 #' unlink(save_dir, recursive = TRUE)
 #' }
-read_immundata <- function(path, prudence = "stingy", verbose = TRUE) {
-  cli_alert_info("Reading ImmunData files from [{.path {path}}]")
+read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy", verbose = TRUE) {
+  checkmate::assert_character(path, len = 1, null.ok = FALSE)
+  checkmate::assert_character(tag, len = 1, null.ok = TRUE)
+  checkmate::assert_count(version, null.ok = TRUE)
 
-  assert_directory_exists(path)
-  assert_file_exists(file.path(path, imd_files()$annotations))
-  assert_file_exists(file.path(path, imd_files()$metadata))
+  resolved_path <- resolve_snapshot_input_path(path, tag = tag, version = version)
+  cli_alert_info("Reading ImmunData files from [{.path {resolved_path}}]")
 
-  metadata_path <- file.path(path, imd_files()$metadata)
-  meta_raw <- jsonlite::read_json(metadata_path, simplifyVector = TRUE)
-  legacy_metadata <- is_legacy_metadata_json(meta_raw)
+  assert_directory_exists(resolved_path)
+  assert_file_exists(file.path(resolved_path, imd_files()$annotations))
+  assert_file_exists(file.path(resolved_path, imd_files()$metadata))
 
+  metadata_path <- file.path(resolved_path, imd_files()$metadata)
+  meta_raw <- jsonlite::read_json(metadata_path, simplifyVector = FALSE)
   metadata_json <- normalize_metadata_json(meta_raw)
-  if (legacy_metadata) {
-    backup_path <- archive_legacy_metadata_json(metadata_path)
-    jsonlite::write_json(metadata_json, metadata_path, null = "null", auto_unbox = TRUE, pretty = TRUE)
-    cli_alert_info("Migrated legacy metadata. Backup was saved to [{backup_path}]")
-  }
 
-  annotation_data <- read_parquet_duckdb(file.path(path, imd_files()$annotations), prudence = prudence)
+  annotation_data <- read_parquet_duckdb(file.path(resolved_path, imd_files()$annotations), prudence = prudence)
 
   receptor_schema <- metadata_json[["schema_receptor"]]
   # TODO: run checks/repairs:
@@ -112,6 +116,21 @@ read_immundata <- function(path, prudence = "stingy", verbose = TRUE) {
       cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
     }
   }
+
+  provenance <- normalize_provenance(
+    metadata_json$provenance,
+    fallback_home_path = if (is.null(metadata_json$provenance$home_path)) resolved_path else metadata_json$provenance$home_path,
+    fallback_current_path = resolved_path,
+    fallback_snapshot_id = metadata_json$snapshot_id,
+    fallback_lineage = metadata_json$lineage
+  )
+  provenance$current_path <- normalizePath(resolved_path, mustWork = FALSE)
+  if (is.null(provenance$home_path)) {
+    provenance$home_path <- provenance$current_path
+  }
+  provenance$snapshot_root <- normalizePath(file.path(provenance$home_path, "snapshots"), mustWork = FALSE)
+
+  idata <- imd_set_provenance(idata, provenance)
 
   idata
 }

@@ -10,9 +10,16 @@
 #' @param idata The `ImmunData` object to save. Must be an R6 object of class
 #'   `ImmunData` containing at least the `$annotations` table and schema information
 #'   (`$schema_receptor`, optionally `$schema_repertoire`).
-#' @param output_folder Character(1). Path to the directory where the output files
-#'   will be written. If the directory does not exist, it will be created
-#'   recursively.
+#' @param output_folder Character(1) or `NULL`. Path to the directory where the
+#'   output files will be written. If `NULL`, a snapshot directory is created as
+#'   `home_path/snapshots/<tag>/vNNN`, where `home_path` is read from internal
+#'   `ImmunData` provenance.
+#' @param tag Character(1) or `NULL`. Snapshot tag used only when
+#'   `output_folder = NULL` (for example, `"baseline"`). If `NULL`, defaults to
+#'   `"default"` for auto-snapshots.
+#' @param rehome Logical(1). If `TRUE`, and `output_folder` is explicitly
+#'   provided, this folder becomes the new snapshot home for future auto-snapshots.
+#'   Default: `FALSE`.
 #' @param compression Character(1) or `NULL`. Parquet compression codec passed
 #'   through to DuckDB (via `duckplyr::compute_parquet(options = ...)`).
 #'   Defaults to `"zstd"`. Set `NULL` to let DuckDB choose.
@@ -22,12 +29,14 @@
 #'
 #' @details
 #' The function performs the following actions:
-#' 1. Validates the input `idata` object and `output_folder` path.
-#' 2. Creates the `output_folder` if it doesn't exist.
-#' 3. Constructs a list containing metadata: `immundata` package version,
-#'    receptor schema (`idata$schema_receptor`), and repertoire schema
-#'    (`idata$schema_repertoire`).
-#' 4. Writes the metadata list to `metadata.json` within `output_folder`.
+#' 1. Validates the input `idata` object and write options.
+#' 2. Resolves the destination folder:
+#'    - uses `output_folder` when explicitly provided, or
+#'    - creates an auto-snapshot folder under
+#'      `home_path/snapshots/<tag>/vNNN` when `output_folder = NULL`.
+#' 3. Constructs metadata including schemas, `snapshot_id`, lineage, and
+#'    provenance paths.
+#' 4. Writes metadata to `metadata.json` within the resolved output folder.
 #' 5. Writes the `idata$annotations` table (a `duckplyr_df` or similar) to
 #'    `annotations.parquet` within `output_folder`.
 #'    - By default, uses `compression = "zstd"` and `compression_level = 9`.
@@ -71,6 +80,9 @@
 #' # Save the ImmunData object
 #' write_immundata(my_idata, save_dir)
 #'
+#' # Auto-snapshot under <home>/snapshots/baseline/vNNN
+#' write_immundata(my_idata, tag = "baseline")
+#'
 #' # Optional: request a specific parquet compression setup
 #' write_immundata(my_idata, save_dir, compression = "zstd", compression_level = 9)
 #'
@@ -83,10 +95,17 @@
 #' # Clean up
 #' unlink(save_dir, recursive = TRUE)
 #' }
-write_immundata <- function(idata, output_folder, compression = "zstd", compression_level = 9) {
+write_immundata <- function(idata,
+                            output_folder = NULL,
+                            tag = NULL,
+                            rehome = FALSE,
+                            compression = "zstd",
+                            compression_level = 9) {
   write_immundata_internal(
     idata = idata,
     output_folder = output_folder,
+    snapshot_tag = tag,
+    rehome = rehome,
     compression = compression,
     compression_level = compression_level,
     producer_function = "write_immundata"

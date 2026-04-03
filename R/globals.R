@@ -55,9 +55,11 @@ IMD_GLOBALS <- list(
     package_version = "package_version",
     schema_receptor = "schema_receptor",
     schema_repertoire = "schema_repertoire",
-    version = "version",
-    receptor_schema = "receptor_schema",
-    repertoire_schema = "repertoire_schema"
+    producer = "producer",
+    snapshot_id = "snapshot_id",
+    lineage = "lineage",
+    provenance = "provenance",
+    extensions = "extensions"
   ),
   files = list(
     metadata = "metadata.json",

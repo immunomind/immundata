@@ -19,7 +19,10 @@ ImmunData <- R6Class(
     .annotations = NULL,
 
     # .repertoire_table A duckplyr table with repertoire names and receptor counts.
-    .repertoire_table = NULL
+    .repertoire_table = NULL,
+
+    # .provenance Internal snapshot/provenance metadata used by IO helpers.
+    .provenance = NULL
   ),
   public = list(
     #' @field schema_receptor A named list describing how to interpret receptor-level data.
@@ -40,10 +43,13 @@ ImmunData <- R6Class(
     #' @param schema A character vector specifying the receptor schema (e.g., aggregate fields, ID columns).
     #' @param annotations A cell/barcode-level dataset mapping barcodes to receptor rows.
     #' @param repertoires A repertoire table, created inside the body of [agg_repertoires].
+    #' @param provenance Internal provenance metadata for snapshot lineage.
     initialize = function(schema,
                           annotations,
-                          repertoires = NULL) {
+                          repertoires = NULL,
+                          provenance = NULL) {
       checkmate::check_data_frame(annotations)
+      checkmate::assert_list(provenance, null.ok = TRUE)
 
       if (checkmate::test_character(schema)) {
         schema <- make_receptor_schema(features = schema, chains = NULL)
@@ -51,6 +57,7 @@ ImmunData <- R6Class(
 
       private$.annotations <- annotations
       self$schema_receptor <- schema
+      private$.provenance <- provenance
 
       if (!is.null(repertoires)) {
         self$schema_repertoire <- setdiff(
@@ -144,6 +151,15 @@ ImmunData <- R6Class(
       } else {
         NULL
       }
+    },
+
+    #' @field provenance Read-only accessor for snapshot provenance metadata.
+    provenance = function(value) {
+      if (missing(value)) {
+        return(imd_get_provenance(self))
+      }
+
+      cli::cli_abort("`provenance` is read-only and cannot be assigned directly.")
     }
   )
 )
