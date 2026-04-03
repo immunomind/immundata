@@ -21,7 +21,8 @@ compute.ImmunData <- function(x, ...) {
   ImmunData$new(
     schema = x$schema_receptor,
     annotations = new_annotations,
-    repertoires = x$repertoires
+    repertoires = x$repertoires,
+    provenance = imd_get_provenance(x)
   )
 }
 

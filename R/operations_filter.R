@@ -227,7 +227,8 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = imd_get_provenance(idata)
   )
 
   if (keep_repertoires && !is.null(idata$schema_repertoire)) {
@@ -262,7 +263,8 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = imd_get_provenance(idata)
   )
 
   if (keep_repertoires && !is.null(idata$schema_repertoire)) {
@@ -292,7 +294,8 @@ filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = imd_get_provenance(idata)
   )
 
   if (keep_repertoires && !is.null(idata$schema_repertoire)) {

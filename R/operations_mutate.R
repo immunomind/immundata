@@ -197,7 +197,8 @@ mutate_immundata <- function(idata,
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
-    repertoires = idata$repertoires
+    repertoires = idata$repertoires,
+    provenance = imd_get_provenance(idata)
   )
 
   new_idata

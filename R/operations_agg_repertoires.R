@@ -137,8 +137,18 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
       {{ imd_count_col }} := sum(!!rlang::sym(chain_count_col))
     )
 
+  # TODO: figure this out, probably could change after a new version of duckdb.
+  is_duckdb_150 <- requireNamespace("duckdb", quietly = TRUE) &&
+    utils::packageVersion("duckdb") == "1.5.0"
+
+  repertoires_table_for_join <- repertoires_table
+  if (is_duckdb_150) {
+    repertoires_table_for_join <- repertoires_table_for_join |>
+      compute()
+  }
+
   receptor_props <- receptor_cells |>
-    left_join(repertoires_table, by = schema) |>
+    left_join(repertoires_table_for_join, by = schema) |>
     mutate({{ prop_col }} := !!rlang::sym(imd_count_col) / n_barcodes) |>
     select(-n_barcodes)
 
@@ -164,6 +174,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
   ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
-    repertoires = repertoires_table
+    repertoires = repertoires_table,
+    provenance = imd_get_provenance(idata)
   )
 }

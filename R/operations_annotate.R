@@ -137,7 +137,8 @@ annotate_immundata <- function(idata,
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = imd_get_provenance(idata)
   )
 
   if (keep_repertoires && !is.null(idata$schema_repertoire)) {

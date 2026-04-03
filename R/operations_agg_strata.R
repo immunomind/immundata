@@ -93,7 +93,8 @@ agg_strata <- function(idata, by, strata_name_prefix = "Strata") {
   ImmunData$new(
     schema = idata$schema_receptor,
     annotations = annotations_stratified,
-    repertoires = rep_tbl_stratified
+    repertoires = rep_tbl_stratified,
+    provenance = imd_get_provenance(idata)
   )
 }
 
@@ -224,6 +225,7 @@ rename_strata <- function(idata, names, unnamed = c("error", "auto", "keep"), au
   ImmunData$new(
     schema = idata$schema_receptor,
     annotations = idata$annotations,
-    repertoires = rep_tbl
+    repertoires = rep_tbl,
+    provenance = imd_get_provenance(idata)
   )
 }
