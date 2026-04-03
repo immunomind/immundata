@@ -115,8 +115,13 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
     select(-any_of(cols_to_drop))
 
   single_chain_annotations <- new_annotations |>
-    # distinct to remove second chain from two-loci data
-    distinct(!!to_sym(receptor_id), !!to_sym(barcode_col), .keep_all = TRUE)
+    # Deduplicate receptor/barcode rows without distinct(.keep_all = TRUE),
+    # which is unstable on duckdb 1.5.x due to the optimizer.
+    # https://github.com/duckdb/duckdb/issues/21348
+    summarise(
+      .by = all_of(c(schema, receptor_id, barcode_col)),
+      {{ chain_count_col }} := dplyr::first(!!rlang::sym(chain_count_col))
+    )
 
   repertoires_table <- single_chain_annotations |>
     summarise(
@@ -137,15 +142,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
       {{ imd_count_col }} := sum(!!rlang::sym(chain_count_col))
     )
 
-  # TODO: figure this out, probably could change after a new version of duckdb.
-  is_duckdb_150 <- requireNamespace("duckdb", quietly = TRUE) &&
-    utils::packageVersion("duckdb") == "1.5.0"
-
   repertoires_table_for_join <- repertoires_table
-  if (is_duckdb_150) {
-    repertoires_table_for_join <- repertoires_table_for_join |>
-      compute()
-  }
 
   receptor_props <- receptor_cells |>
     left_join(repertoires_table_for_join, by = schema) |>
