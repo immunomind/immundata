@@ -51,8 +51,8 @@ agg_strata <- function(idata, by, strata_name_prefix = "Strata") {
     )
   }
 
-  rep_tbl_clean <- idata$repertoires
-  rep_tbl_clean <- rep_tbl_clean[, setdiff(colnames(rep_tbl_clean), c(strata_col, strata_name_col)), drop = FALSE]
+  rep_tbl_clean <- idata$repertoires |>
+    select(-any_of(c(strata_col, strata_name_col)))
 
   missing_by_repertoires <- setdiff(by, colnames(rep_tbl_clean))
   if (length(missing_by_repertoires) > 0) {
@@ -61,27 +61,28 @@ agg_strata <- function(idata, by, strata_name_prefix = "Strata") {
     )
   }
 
-  strata_defs <- unique(rep_tbl_clean[by])
-  strata_defs <- strata_defs[do.call(order, strata_defs[by]), , drop = FALSE]
-  rownames(strata_defs) <- NULL
-  strata_defs[[strata_col]] <- seq_len(nrow(strata_defs))
-  strata_defs[[strata_name_col]] <- paste0(strata_name_prefix, strata_defs[[strata_col]])
-  strata_defs <- strata_defs[, c(strata_col, strata_name_col, by), drop = FALSE]
+  strata_defs <- rep_tbl_clean |>
+    select(all_of(by)) |>
+    distinct() |>
+    arrange(!!!rlang::syms(by)) |>
+    mutate(
+      {{ strata_col }} := row_number(),
+      {{ strata_name_col }} := paste0(strata_name_prefix, .data[[strata_col]])
+    ) |>
+    select(all_of(c(strata_col, strata_name_col, by)))
 
-  rep_tbl_work <- rep_tbl_clean
-  rep_tbl_work$.__row_id <- seq_len(nrow(rep_tbl_work))
+  rep_tbl_stratified <- rep_tbl_clean |>
+    mutate(.__row_id = row_number()) |>
+    left_join(
+      strata_defs |> select(all_of(c(by, strata_col, strata_name_col))),
+      by = by
+    ) |>
+    arrange(.__row_id) |>
+    select(-all_of(".__row_id"))
 
-  rep_tbl_stratified <- merge(
-    rep_tbl_work,
-    strata_defs[, c(by, strata_col, strata_name_col), drop = FALSE],
-    by = by,
-    all.x = TRUE,
-    sort = FALSE
-  )
-  rep_tbl_stratified <- rep_tbl_stratified[order(rep_tbl_stratified$.__row_id), , drop = FALSE]
-  rep_tbl_stratified$.__row_id <- NULL
-
-  rep_to_strata <- unique(rep_tbl_stratified[, c(repertoire_col, strata_col), drop = FALSE])
+  rep_to_strata <- rep_tbl_stratified |>
+    select(all_of(c(repertoire_col, strata_col))) |>
+    distinct()
 
   annotations_stratified <- idata$annotations |>
     select(-any_of(strata_col)) |>
