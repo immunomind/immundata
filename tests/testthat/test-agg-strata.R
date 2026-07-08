@@ -8,6 +8,7 @@ test_that("agg_strata adds id and name to repertoires, id only to annotations", 
   stratified <- agg_strata(idata, by = "Response")
   rep_tbl <- stratified$repertoires
 
+  expect_s3_class(rep_tbl, "tbl_df")
   expect_true(strata_col %in% names(rep_tbl))
   expect_true(strata_name_col %in% names(rep_tbl))
   expect_true(strata_col %in% names(stratified$annotations))

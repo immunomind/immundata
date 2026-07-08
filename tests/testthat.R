@@ -7,6 +7,15 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
+
+Sys.setenv(
+  DUCKPLYR_FALLBACK_INFO = "FALSE",
+  DUCKPLYR_FALLBACK_COLLECT = "0",
+  DUCKPLYR_FALLBACK_AUTOUPLOAD = "0",
+  DUCKPLYR_FALLBACK_VERBOSE = "FALSE"
+)
+options(rlib_message_verbosity = "quiet")
+
 library(immundata)
 
 test_check("immundata")

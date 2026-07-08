@@ -207,7 +207,7 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     #
     # Select only those receptors which passed the filer
     #
-    # TODO: Refactor, but I'm not sure how to do it properly. Simply split to separte functions <compute distance> + <filter immundata>?
+    # TODO: Refactor, but I'm not sure how to do it properly. Simply split to separate functions <compute distance> + <filter immundata>?
     # TODO: looks like a case for <move_annotations> from receptors to annotations
     if (seq_options$method != "exact") {
       new_annotations <- new_annotations |>

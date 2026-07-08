@@ -4,11 +4,25 @@
 \alias{read_immundata}
 \title{Load a saved ImmunData from disk}
 \usage{
-read_immundata(path, prudence = "stingy", verbose = TRUE)
+read_immundata(
+  path,
+  tag = NULL,
+  version = NULL,
+  prudence = "stingy",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{path}{Character(1). Path to the \strong{directory} containing the saved
 \code{ImmunData} files (\code{annotations.parquet} and \code{metadata.json}).}
+
+\item{tag}{Character(1) or \code{NULL}. Optional snapshot tag to load from
+\verb{path/snapshots/<tag>/vNNN}. When provided, \code{path} must point to the
+project/home folder.}
+
+\item{version}{Integer(1) or \code{NULL}. Optional snapshot version number to
+load within a tag (e.g. \code{1} means \code{v001}). If \code{NULL}, the latest version
+for the tag is loaded.}
 
 \item{prudence}{Character(1). Controls strictness of type inference when
 reading the Parquet file, passed to \code{duckplyr::read_parquet_duckdb()}.
@@ -32,8 +46,8 @@ This function expects a directory structure created by \code{\link[=write_immund
 containing at least:
 \itemize{
 \item \code{annotations.parquet}: The main annotation data table.
-\item \code{metadata.json}: Contains package version, receptor schema, and optionally
-repertoire schema.
+\item \code{metadata.json}: Contains package version, receptor/repertoire schema,
+current \code{snapshot_id}, lineage events, and provenance paths.
 }
 
 The loading process involves:

@@ -82,11 +82,15 @@ test_that("read_repertoires() excludes columns AND renames simultaneously", {
 })
 
 test_that("read_repertoires() removes non-productive", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
   sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
   imdata <- read_repertoires(
     path = sample_file,
-    schema = c("cdr3_aa", "v_call")
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir
   )
   imdata_rows <- imdata |>
     count() |>
@@ -101,12 +105,16 @@ test_that("read_repertoires() removes non-productive", {
 })
 
 test_that("read_repertoires() correctly reads non-productive", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
   sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
   imdata <- read_repertoires(
     path = sample_file,
     schema = c("cdr3_aa", "v_call"),
-    preprocess = NULL
+    preprocess = NULL,
+    output_folder = output_dir
   )
   imdata_rows <- imdata |>
     count() |>

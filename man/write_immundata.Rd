@@ -4,16 +4,40 @@
 \alias{write_immundata}
 \title{Save ImmunData to disk}
 \usage{
-write_immundata(idata, output_folder)
+write_immundata(
+  idata,
+  output_folder = NULL,
+  tag = NULL,
+  rehome = FALSE,
+  compression = "zstd",
+  compression_level = 9
+)
 }
 \arguments{
 \item{idata}{The \code{ImmunData} object to save. Must be an R6 object of class
 \code{ImmunData} containing at least the \verb{$annotations} table and schema information
 (\verb{$schema_receptor}, optionally \verb{$schema_repertoire}).}
 
-\item{output_folder}{Character(1). Path to the directory where the output files
-will be written. If the directory does not exist, it will be created
-recursively.}
+\item{output_folder}{Character(1) or \code{NULL}. Path to the directory where the
+output files will be written. If \code{NULL}, a snapshot directory is created as
+\verb{home_path/snapshots/<tag>/vNNN}, where \code{home_path} is read from internal
+\code{ImmunData} provenance.}
+
+\item{tag}{Character(1) or \code{NULL}. Snapshot tag used only when
+\code{output_folder = NULL} (for example, \code{"baseline"}). If \code{NULL}, defaults to
+\code{"default"} for auto-snapshots.}
+
+\item{rehome}{Logical(1). If \code{TRUE}, and \code{output_folder} is explicitly
+provided, this folder becomes the new snapshot home for future auto-snapshots.
+Default: \code{FALSE}.}
+
+\item{compression}{Character(1) or \code{NULL}. Parquet compression codec passed
+through to DuckDB (via \code{duckplyr::compute_parquet(options = ...)}).
+Defaults to \code{"zstd"}. Set \code{NULL} to let DuckDB choose.}
+
+\item{compression_level}{Numeric(1) or \code{NULL}. Compression level passed through
+to DuckDB for codecs that support levels (for example, Zstandard). Defaults
+to \code{9}. Set \code{NULL} to let DuckDB choose.}
 }
 \value{
 Invisibly returns the input \code{idata} object, saved to disk.
@@ -32,16 +56,30 @@ within a specified directory.
 \details{
 The function performs the following actions:
 \enumerate{
-\item Validates the input \code{idata} object and \code{output_folder} path.
-\item Creates the \code{output_folder} if it doesn't exist.
-\item Constructs a list containing metadata: \code{immundata} package version,
-receptor schema (\code{idata$schema_receptor}), and repertoire schema
-(\code{idata$schema_repertoire}).
-\item Writes the metadata list to \code{metadata.json} within \code{output_folder}.
+\item Validates the input \code{idata} object and write options.
+\item Resolves the destination folder:
+\itemize{
+\item uses \code{output_folder} when explicitly provided, or
+\item creates an auto-snapshot folder under
+\verb{home_path/snapshots/<tag>/vNNN} when \code{output_folder = NULL}.
+}
+\item Constructs metadata including schemas, \code{snapshot_id}, lineage, and
+provenance paths.
+\item Writes metadata to \code{metadata.json} within the resolved output folder.
 \item Writes the \code{idata$annotations} table (a \code{duckplyr_df} or similar) to
-\code{annotations.parquet} within \code{output_folder}. Uses Zstandard compression
-(\code{compression = "zstd"}, \code{compression_level = 9}) for a good balance
-between file size and read/write speed.
+\code{annotations.parquet} within \code{output_folder}.
+\itemize{
+\item By default, uses \code{compression = "zstd"} and \code{compression_level = 9}.
+\item A common choice is \code{compression = "snappy"} for faster reads/writes
+with larger files.
+\item Another common choice is \code{compression = "zstd"} for smaller files, often
+with higher CPU cost.
+\item \code{compression_level} usually trades speed for size (higher levels: smaller
+output but slower processing).
+\item Compatibility note: for \code{duckplyr} version \verb{1.2.0}, \code{compute_parquet()}
+does not accept extra options due to a known issue. In that version,
+compression-related arguments are ignored and DuckDB defaults are used.
+}
 \item Uses internal helper \code{imd_files()} to determine the standard filenames
 (\code{metadata.json}, \code{annotations.parquet}).
 }
@@ -60,6 +98,15 @@ save_dir <- tempfile("saved_immundata_")
 
 # Save the ImmunData object
 write_immundata(my_idata, save_dir)
+
+# Auto-snapshot under <home>/snapshots/baseline/vNNN
+write_immundata(my_idata, tag = "baseline")
+
+# Optional: request a specific parquet compression setup
+write_immundata(my_idata, save_dir, compression = "zstd", compression_level = 9)
+
+# Optional: let DuckDB choose both settings
+write_immundata(my_idata, save_dir, compression = NULL, compression_level = NULL)
 
 # Check the created files
 list.files(save_dir) # Should show "annotations.parquet" and "metadata.json"

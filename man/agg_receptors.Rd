@@ -43,9 +43,9 @@ processing. Default: \code{NULL}. Cannot be specified if \code{barcode_col} is s
 or pairing. Default: \code{NULL}.}
 
 \item{umi_col}{Character(1). The name of the column containing UMI counts.
-Required for \emph{paired-chain single-cell} data (\code{length(schema$chains) == 2}).
-Used to select the most abundant chain per locus within a cell when multiple
-chains of the same locus are present. Default: \code{NULL}.}
+Required for single-cell data (\code{barcode_col} is set). Used to select the
+most abundant chain within each barcode and, for paired schemas, within
+each barcode/locus group when multiple chains are present. Default: \code{NULL}.}
 }
 \value{
 A \code{duckplyr_df} (or data frame) representing the annotated sequences.
@@ -92,7 +92,8 @@ Identifies unique receptors based on \code{schema$features}. Calculates
 \item \strong{Single-Cell (Barcodes Provided):} Uses \code{barcode_col} for \code{imd_barcode_id}.
 \itemize{
 \item \strong{Single Chain:} (\code{length(schema$chains) <= 1}). Identifies unique
-receptors based on \code{schema$features}. \code{imd_chain_count} is 1.
+receptors based on \code{schema$features}. Uses \code{umi_col} to keep one
+chain per barcode when needed. \code{imd_chain_count} is 1.
 \item \strong{Paired Chain:} (\code{length(schema$chains) == 2}). Requires \code{locus_col}
 and \code{umi_col}. Filters chains within each cell/locus group based
 on max \code{umi_col}. Creates paired receptors by joining the two

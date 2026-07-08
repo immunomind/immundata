@@ -36,6 +36,8 @@ grouped into repertoires. This may include sample-level metadata (e.g., \code{sa
 \item{\code{repertoires}}{Get a table of repertoires and their basic statistics.}
 
 \item{\code{metadata}}{Get a table of repertoires without their basic statistics.}
+
+\item{\code{provenance}}{Read-only accessor for snapshot provenance metadata.}
 }
 \if{html}{\out{</div>}}
 }
@@ -54,7 +56,7 @@ Creates a new \code{ImmunData} object.
 This constructor expects receptor-level and barcode-level data,
 along with a receptor schema defining aggregation and identity fields.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$new(schema, annotations, repertoires = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ImmunData$new(schema, annotations, repertoires = NULL, provenance = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -65,6 +67,8 @@ along with a receptor schema defining aggregation and identity fields.
 \item{\code{annotations}}{A cell/barcode-level dataset mapping barcodes to receptor rows.}
 
 \item{\code{repertoires}}{A repertoire table, created inside the body of \link{agg_repertoires}.}
+
+\item{\code{provenance}}{Internal provenance metadata for snapshot lineage.}
 }
 \if{html}{\out{</div>}}
 }

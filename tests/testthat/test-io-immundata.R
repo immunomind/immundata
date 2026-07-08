@@ -373,6 +373,16 @@ test_that("operation outputs preserve provenance for auto-snapshots", {
     prov$current_path,
     normalizePath(file.path(output_dir, "snapshots", "ops", "v001"), mustWork = FALSE)
   )
+
+  aggregated <- agg_repertoires(idata, "filename")
+  downsampled <- downsample_immundata(aggregated, n = 0.5, seed = 1)
+  downsampled_snap <- write_immundata(downsampled, output_folder = NULL, tag = "downsample")
+  downsampled_prov <- imd_get_provenance(downsampled_snap)
+
+  expect_equal(
+    downsampled_prov$current_path,
+    normalizePath(file.path(output_dir, "snapshots", "downsample", "v001"), mustWork = FALSE)
+  )
 })
 
 test_that("write_immundata_internal() validates lineage as complete set", {

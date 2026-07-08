@@ -56,8 +56,9 @@ locus (e.g., "TRA", "TRB", "IGH", "IGK", "IGL"). Required if \code{schema}
 specifies chains for pairing. Default: \code{NULL}.}
 
 \item{umi_col}{Character(1). Name of the column containing UMI counts for
-single-cell data. Used during paired-chain processing to select the most
-abundant chain per barcode per locus. Default: \code{NULL}.}
+single-cell data. Required when \code{barcode_col} is used. It is used to
+select the most abundant chain within a barcode (and within a locus for
+paired-chain schemas). Default: \code{NULL}.}
 
 \item{preprocess}{List. A named list of functions to apply sequentially to the
 raw data \emph{before} receptor aggregation. Each function should accept a
@@ -129,9 +130,9 @@ The function executes the following steps:
 \item Applies postprocessing steps sequentially if \code{postprocess} is provided.
 \item Creates a temporary \code{ImmunData} object in memory.
 \item Determines the \code{output_folder} path.
+\item If \code{repertoire_schema} is provided, calls \code{\link[=agg_repertoires]{agg_repertoires()}} to define and summarize repertoires.
 \item Saves the processed annotation table and metadata using \code{\link[=write_immundata]{write_immundata()}} to the \code{output_folder}.
 \item Loads the data back from the saved Parquet files using \code{\link[=read_immundata]{read_immundata()}} to create the final \code{ImmunData} object. This ensures the returned object is backed by efficient storage.
-\item If \code{repertoire_schema} is provided, calls \code{\link[=agg_repertoires]{agg_repertoires()}} on the loaded object to define and summarize repertoires.
 \item Returns the final \code{ImmunData} object.
 }
 }

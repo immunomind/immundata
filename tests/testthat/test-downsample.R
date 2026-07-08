@@ -29,13 +29,19 @@ test_that("downsample_immundata downsamples single-cell repertoires and is deter
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL
-  ) |>
-    agg_repertoires("sample_id")
+  )
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "downsample single-cell deterministic"
+  )
 
   ds1 <- downsample_immundata(idata, n = 2, seed = 100)
   ds2 <- downsample_immundata(idata, n = 2, seed = 100)
 
-  reps <- ds1$repertoires |> collect()
+  expect_identical(imd_get_provenance(ds1), imd_get_provenance(idata))
+
+  reps <- ds1$repertoires
   expect_true(all(reps$n_barcodes == 2))
 
   sampled1 <- ds1$annotations |>
@@ -44,12 +50,18 @@ test_that("downsample_immundata downsamples single-cell repertoires and is deter
     arrange(sample_id, imd_barcode) |>
     collect()
 
+  sampled_counts <- sampled1 |>
+    summarise(.by = sample_id, n_barcodes = n()) |>
+    arrange(sample_id)
+
   sampled2 <- ds2$annotations |>
     select(sample_id, imd_barcode) |>
     distinct() |>
     arrange(sample_id, imd_barcode) |>
     collect()
 
+  expect_equal(sampled_counts$n_barcodes, c(2L, 2L))
+  expect_true(all(sampled1$imd_barcode %in% test_data$cell_id))
   expect_equal(sampled1, sampled2)
 })
 
@@ -77,13 +89,35 @@ test_that("downsample_immundata downsampled bulk repertoires by count", {
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL
-  ) |>
-    agg_repertoires("sample_id")
+  )
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "downsample bulk count mode"
+  )
 
   ds <- downsample_immundata(idata, n = 5, seed = 42)
-  reps <- ds$repertoires |> collect()
+  reps <- ds$repertoires
+  ann <- ds$annotations |>
+    select(sample_id, v_call, j_call, junction_aa, imd_n_chains, imd_count, imd_proportion) |>
+    arrange(sample_id, v_call) |>
+    collect()
+
+  count_totals <- ann |>
+    summarise(.by = sample_id, n_barcodes = sum(imd_n_chains)) |>
+    arrange(sample_id)
+
+  original_counts <- test_data |>
+    rename(imd_n_chains_before = clone_count)
+
+  ann_with_original <- ann |>
+    left_join(original_counts, by = c("sample_id", "v_call", "j_call", "junction_aa"))
 
   expect_equal(sort(reps$n_barcodes), c(5, 5))
+  expect_equal(count_totals$n_barcodes, c(5L, 5L))
+  expect_true(all(ann$imd_count == ann$imd_n_chains))
+  expect_true(all(ann$imd_proportion > 0))
+  expect_true(all(ann_with_original$imd_n_chains <= ann_with_original$imd_n_chains_before))
 })
 
 test_that("downsample_immundata keeps paired chains intact", {
@@ -123,11 +157,15 @@ test_that("downsample_immundata keeps paired chains intact", {
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL
-  ) |>
-    agg_repertoires("sample_id")
+  )
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "downsample paired-chain integrity"
+  )
 
   ds <- downsample_immundata(idata, n = 2, seed = 7)
-  reps <- ds$repertoires |> collect()
+  reps <- ds$repertoires
   expect_true(all(reps$n_barcodes == 2))
 
   chain_stats <- ds$annotations |>
@@ -138,6 +176,11 @@ test_that("downsample_immundata keeps paired chains intact", {
       n_rows = n()
     )
 
+  barcode_counts <- chain_stats |>
+    summarise(.by = sample_id, n_barcodes = n()) |>
+    arrange(sample_id)
+
+  expect_equal(barcode_counts$n_barcodes, c(2L, 2L))
   expect_true(all(chain_stats$n_loci == 2))
   expect_true(all(chain_stats$n_rows == 2))
 })
@@ -160,15 +203,29 @@ test_that("downsample_immundata works on IG test data with proportion n", {
     postprocess = NULL,
     rename_columns = NULL
   ) |>
-    mutate_immundata(cohort = "all") |>
-    agg_repertoires("cohort")
+    mutate_immundata(cohort = "all")
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "cohort",
+    context = "downsample IG proportion"
+  )
 
-  n_before <- idata$repertoires |> collect() |> pull(n_barcodes)
+  n_before <- idata$repertoires |>
+    pull(n_barcodes)
 
   ds <- downsample_immundata(idata, n = 0.5, seed = 123)
-  n_after <- ds$repertoires |> collect() |> pull(n_barcodes)
+  n_after <- ds$repertoires |>
+    pull(n_barcodes)
 
   expect_equal(n_after, floor(n_before * 0.5))
+
+  annotation_units <- ds$annotations |>
+    select(cohort, imd_barcode) |>
+    distinct() |>
+    collect() |>
+    summarise(.by = cohort, n_barcodes = n())
+
+  expect_equal(annotation_units$n_barcodes, n_after)
 
   chain_stats <- ds$annotations |>
     collect() |>
@@ -179,13 +236,18 @@ test_that("downsample_immundata works on IG test data with proportion n", {
   expect_true(all(chain_stats$n_loci == 2))
 })
 
-test_that("downsample_immundata validates n and handles no-repertoire fallback", {
+test_that("downsample_immundata rejects ambiguous n = 1", {
   idata <- get_test_idata_tsv_no_metadata()
 
   expect_error(
-    downsample_immundata(idata, n = 1),
+    downsample_immundata(idata, n = 1, seed = 321),
     "ambiguous"
   )
+})
+
+test_that("downsample_immundata validates n and handles no-repertoire fallback", {
+  idata <- get_test_idata_tsv_no_metadata()
+
   expect_error(
     downsample_immundata(idata, n = 2.5),
     "integer count"
@@ -203,7 +265,7 @@ test_that("downsample_immundata validates n and handles no-repertoire fallback",
     collect() |>
     nrow()
 
-  expect_lt(n_after, n_before)
+  expect_equal(n_after, floor(n_before * 0.1))
   expect_null(ds$repertoires)
 })
 
@@ -235,11 +297,14 @@ test_that("downsample_immundata warns and keeps repertoire unchanged when n exce
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL
-  ) |>
-    agg_repertoires("sample_id")
+  )
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "downsample n exceeds units"
+  )
 
   reps_before <- idata$repertoires |>
-    collect() |>
     arrange(sample_id)
 
   ds <- NULL
@@ -249,10 +314,17 @@ test_that("downsample_immundata warns and keeps repertoire unchanged when n exce
   )
 
   reps_after <- ds$repertoires |>
+    arrange(sample_id)
+
+  annotation_counts <- ds$annotations |>
+    select(sample_id, imd_barcode) |>
+    distinct() |>
     collect() |>
+    summarise(.by = sample_id, n_barcodes = n()) |>
     arrange(sample_id)
 
   expect_equal(reps_after$n_barcodes, reps_before$n_barcodes)
+  expect_equal(annotation_counts$n_barcodes, reps_before$n_barcodes)
 })
 
 test_that("downsample_immundata supports count-mode proportion downsampling", {
@@ -279,13 +351,26 @@ test_that("downsample_immundata supports count-mode proportion downsampling", {
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL
-  ) |>
-    agg_repertoires("sample_id")
+  )
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "downsample count proportion"
+  )
 
   ds <- downsample_immundata(idata, n = 0.5, seed = 101)
-  reps <- ds$repertoires |> collect()
+  reps <- ds$repertoires
+  ann <- ds$annotations |>
+    select(sample_id, imd_n_chains, imd_count) |>
+    collect()
+
+  count_totals <- ann |>
+    summarise(.by = sample_id, n_barcodes = sum(imd_n_chains)) |>
+    arrange(sample_id)
 
   expect_equal(sort(reps$n_barcodes), c(7, 7))
+  expect_equal(count_totals$n_barcodes, c(7L, 7L))
+  expect_true(all(ann$imd_count == ann$imd_n_chains))
 })
 
 test_that("downsample_immundata is deterministic in count mode with seed", {
@@ -312,8 +397,12 @@ test_that("downsample_immundata is deterministic in count mode with seed", {
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL
-  ) |>
-    agg_repertoires("sample_id")
+  )
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "downsample count deterministic"
+  )
 
   ds1 <- downsample_immundata(idata, n = 5, seed = 222)
   ds2 <- downsample_immundata(idata, n = 5, seed = 222)
@@ -367,12 +456,16 @@ test_that("downsample_immundata produces consistent imd_count and imd_proportion
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL
-  ) |>
-    agg_repertoires("sample_id")
+  )
+  idata <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "downsample count/proportion invariants"
+  )
 
   ds <- downsample_immundata(idata, n = 2, seed = 33)
 
-  reps <- ds$repertoires |> collect()
+  reps <- ds$repertoires
   ann <- ds$annotations |> collect()
 
   receptor_stats <- ann |>
