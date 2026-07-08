@@ -133,9 +133,15 @@ ImmunData <- R6Class(
     repertoires = function() {
       # TODO: cache repertoire table to memory if not very big?
       if (!is.null(private$.repertoire_table)) {
-        private$.repertoire_table |>
-          collect() |>
-          arrange_at(vars(1))
+        repertoire_table <- private$.repertoire_table |>
+          collect()
+
+        if (imd_schema("repertoire") %in% colnames(repertoire_table)) {
+          repertoire_table <- repertoire_table |>
+            arrange(.data[[imd_schema("repertoire")]])
+        }
+
+        repertoire_table
       } else {
         NULL
       }
@@ -147,7 +153,7 @@ ImmunData <- R6Class(
         private$.repertoire_table |>
           select(c(imd_schema("repertoire"), self$schema_repertoire)) |>
           collect() |>
-          arrange_at(vars(1))
+          arrange(.data[[imd_schema("repertoire")]])
       } else {
         NULL
       }
