@@ -1214,11 +1214,22 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
 ## 🤔 FAQ
 
-1.  **Q: Why all the function names or ImmunData fields are so long? I want to write `idata$rec` instead of `idata$receptors`.**
+1.  **Q: Why did `metadata.tsv` become `manifest.csv`?**
+
+    A: `metadata.tsv` was an old input-table format for listing repertoire files and per-sample annotations. It was confusing because the word "metadata" already means several different things in `immundata` workflows:
+
+    - input file manifests: a table that tells `read_repertoires()` which repertoire files to read and what sample-level annotations to attach;
+    - biological or clinical metadata: donor, tissue, therapy, response, HLA, time point, and similar fields;
+    - cell-level metadata: barcode-level annotations from single-cell or spatial objects, such as cluster labels or gene expression summaries;
+    - ImmunData snapshot metadata: the internal `metadata.json` file that stores schemas, provenance, lineage, package version, and snapshot IDs.
+
+    Calling the input manifest `metadata.tsv` mixed these concepts together. We now use the industry-standard manifest pattern: a `manifest.csv` file with a `file` column plus any additional annotation columns. In code, use `read_manifest()` and `read_repertoires(path = "<manifest>", manifest = manifest_table)`. Snapshot `metadata.json` remains unchanged because it is metadata about the saved `ImmunData` object, not a list of input repertoire files.
+
+2.  **Q: Why all the function names or ImmunData fields are so long? I want to write `idata$rec` instead of `idata$receptors`.**
 
     A: Two major reasons – improving the code readability and motivation to leverage the autocomplete tools. Please consider using `tab` for leveraging autocomplete. It accelerates things x10-20.
 
-2.  **Q: How does `immundata` works under the hood, in simpler terms?**
+3.  **Q: How does `immundata` works under the hood, in simpler terms?**
 
     A: Picture a three-layer sandwich:
     
@@ -1235,11 +1246,11 @@ If you are looking for prioritized support and setting up your data pipelines, c
     2. [DuckDB – embedded analytical database](https://duckdb.org/)
     3. [duckplyr – API/implementation details](https://duckplyr.tidyverse.org/index.html)
 
-3.  **Q: Why do you need to create Parquet files with receptors and annotations?**
+4.  **Q: Why do you need to create Parquet files with receptors and annotations?**
 
     A: Those are intermediate files, optimized for future data operations, and working with them significantly accelerates `immundata`. I will post a benchmark soon.
 
-4.  **Q: Why does `immundata` support only the AIRR standard?!**
+5.  **Q: Why does `immundata` support only the AIRR standard?!**
 
     A: The short answer is because a single, stable schema beats a zoo of drifting ones.
     
@@ -1249,7 +1260,7 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
     `immundata` does not and will not explicitly support other formats. This is both a practical stance and communication of crucial values, put into `immundata` as part of a broader ecosystem of AIRR tools. The domain is already too complex, and we need to work together to make this complexity manageable. A healthy ecosystem is not the same as a complex ecosystem.
 
-5.  **Q: Why is it so complex? Why do we need to use `dplyr` instead of plain R?**
+6.  **Q: Why is it so complex? Why do we need to use `dplyr` instead of plain R?**
 
     A: The short answer is:
 
@@ -1258,7 +1269,7 @@ If you are looking for prioritized support and setting up your data pipelines, c
     -   better data skills thanks to thinking in immutable transformations,
     -   in most cases you don't really need complex transformations, so we can optimize 95% of all AIRR data operations behind the scenes.
 
-6.  **Q: How do I use `dplyr` operations that `duckplyr` doesn't support yet?**
+7.  **Q: How do I use `dplyr` operations that `duckplyr` doesn't support yet?**
 
     A: Let's consider several use cases.
 
