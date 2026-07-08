@@ -11,6 +11,10 @@
 #'
 #' Downsampling is barcode-based. For count-based inputs (e.g. bulk),
 #' per-barcode counts (`imd_n_chains`) are trimmed when needed to reach the target.
+#' Existing repertoire-derived metrics (`imd_count`, `imd_proportion`,
+#' `n_repertoires`, `n_receptors`, `n_barcodes`) are dropped and recalculated
+#' for the downsampled object when a repertoire schema is present. Original
+#' metrics are not retained because they describe the pre-downsampled universe.
 #'
 #' @param idata An `ImmunData` object.
 #' @param n Numeric scalar controlling downsampling amount.
@@ -59,11 +63,14 @@ downsample_immundata <- function(idata, n, seed = NULL) {
       any_non_unit = any(!!rlang::sym(chain_count_col) != 1)
     ) |>
     collect() |>
-    pull(any_non_unit)
+    pull("any_non_unit")
 
   unit_base <- annotations_base |>
     select(all_of(unique(c(unit_cols, receptor_col, chain_count_col)))) |>
-    distinct(!!!rlang::syms(c(unit_cols, receptor_col)), .keep_all = TRUE)
+    summarise(
+      .by = all_of(c(unit_cols, receptor_col)),
+      !!chain_count_col := dplyr::first(!!rlang::sym(chain_count_col))
+    )
 
   unit_table <- if (is_count_mode) {
     unit_base |>
@@ -201,10 +208,10 @@ downsample_immundata <- function(idata, n, seed = NULL) {
         .by = all_of(unit_cols),
         n_rows = n()
       ) |>
-      filter(n_rows > 1) |>
+      filter(.data$n_rows > 1) |>
       summarise(n_dups = n()) |>
       collect() |>
-      pull(n_dups)
+      pull("n_dups")
 
     if (length(n_duplicate_units) == 0) {
       n_duplicate_units <- 0
@@ -219,15 +226,23 @@ downsample_immundata <- function(idata, n, seed = NULL) {
     colnames(sampled_units_chain)[colnames(sampled_units_chain) == count_col] <- chain_count_col
 
     sampled_tbl <- duckdb_tibble(sampled_units_chain)
-    new_annotations <- annotations_base |>
-      distinct(!!!rlang::syms(unit_cols), .keep_all = TRUE) |>
+    unit_annotation_cols <- setdiff(colnames(annotations_base), c(unit_cols, chain_count_col))
+
+    unit_annotations <- annotations_base |>
       select(-all_of(chain_count_col)) |>
-      dplyr::inner_join(sampled_tbl, by = unit_cols)
+      summarise(
+        .by = all_of(unit_cols),
+        dplyr::across(all_of(unit_annotation_cols), dplyr::first)
+      )
+
+    new_annotations <- unit_annotations |>
+      inner_join(sampled_tbl, by = unit_cols)
   }
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = imd_get_provenance(idata)
   )
 
   if (!is.null(idata$schema_repertoire)) {
