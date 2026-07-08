@@ -118,15 +118,18 @@ annotate_immundata <- function(idata,
   if (length(setdiff(by, colnames(ann_tbl)))) {
     cli_abort("Column(s) '{setdiff(by, colnames(ann_tbl))}' not found in annotations.")
   }
-  if (any(names(by) %in% colnames(ann_tbl))) {
-    same_col_names <- intersect(names(by), colnames(ann_tbl))
-    if (!all(by[names(by)] == names(by))) {
-      # We don't care about the very same column names, we are try to mitigate risk when there is a collision after (!) the renaming
-      cli_abort("Column(s) '{names(by)[names(by) %in% colnames(ann_tbl)]}', reserved for joining with ImmunData, are found in the annotations. Can't rename the table, please make sure the names are unique and not already presented in annotations.")
-    }
-  }
   if (!all(names(by) %in% colnames(idata$annotations))) {
     cli_abort("Column(s) '{names(by)[! names(by) %in% colnames(idata$annotations)]}' are not found in ImmunData. Please double-check the column names: {.code colnames(idata$annotations)}.")
+  }
+
+  annotation_value_cols <- setdiff(colnames(ann_tbl), unname(by))
+  system_collisions <- intersect(annotation_value_cols, unname(imd_schema()))
+  annotation_collisions <- intersect(annotation_value_cols, colnames(idata$annotations))
+  collisions <- union(system_collisions, annotation_collisions)
+  if (length(collisions) > 0) {
+    cli_abort(
+      "Annotation column(s) collide with existing ImmunData annotation or system columns: {.field {collisions}}. Please rename them before calling {.fn annotate_immundata}."
+    )
   }
 
   ann_tbl <- ann_tbl |>
