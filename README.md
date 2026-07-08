@@ -99,7 +99,7 @@ It is the data-engineering backbone powered by [Arrow](https://arrow.apache.org/
 - 🧬 [Workflow Explained](#-workflow-explained)
 - 💾 [Ingestion](#-ingestion)
   - [Load AIRR data](#load-airr-data)
-  - [Working with metadata table files](#working-with-metadata-table-files)
+  - [Working with manifest files](#working-with-manifest-files)
   - [Receptor schema](#receptor-schema)
   - [Repertoire schema](#repertoire-schema)
   - [Pre‑ and post‑processing strategies](#pre--and-post‑processing-strategies)
@@ -181,8 +181,8 @@ Replace `system.file` calls with your local file paths to run the code on your d
 ```r
 library(immundata)
 
-# Metadata table with additional sample-level information
-md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
+# Manifest with additional sample-level information
+manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
 
 # Two sample files
 samples <- c(
@@ -190,13 +190,13 @@ samples <- c(
   system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
   )
 
-# Read the metadata table
-md <- read_metadata(md_path)
+# Read the manifest
+manifest <- read_manifest(manifest_path)
 
-# Pass the file paths and the metadata table to the function to read the dataset into R
+# Pass the file paths and the manifest to the function to read the dataset into R
 imdata <- read_repertoires(path          = samples,
                            schema        = c("cdr3_aa", "v_call"),
-                           metadata      = md,
+                           manifest      = manifest,
                            output_folder = "./immundata-quick-start")
 
 # Print the resultant object in the detailed yet manageable format
@@ -246,7 +246,7 @@ Before we go into more details for each of the phase, there are three straightfo
 
     The function `agg_receptors()` lets you declare what *one receptor* means in your study. You choose a schema – perhaps "pair chains that share a barcode and have complementary α and β loci" or "group every IGH with whatever IGL shares the same CDR3 amino-acid sequence." The function re-aggregates the data and returns a new `ImmunData` object, so you keep the previous receptor definition intact; every receptor now has a stable identifier and can be traced back to its constituent chains and barcode. There is no need to touch the downstream pipeline – just change the input.
 
-    The function `agg_repertoires()` states how receptors should be bundled into biologically meaningful cohorts: all receptors from a biopsy, from a therapy responder, from a single-cell-defined cluster, or any combination of metadata columns. The result is a physical `idata$repertoires` table with basic statistics (numbers of chains, barcodes, and unique receptors), again preserving direct links to the receptors it aggregates.
+    The function `agg_repertoires()` states how receptors should be bundled into biologically meaningful cohorts: all receptors from a biopsy, from a therapy responder, from a single-cell-defined cluster, or any combination of manifest-derived annotation columns. The result is a physical `idata$repertoires` table with basic statistics (numbers of chains, barcodes, and unique receptors), again preserving direct links to the receptors it aggregates.
 
     Because these aggregation steps live in your pipeline rather than being buried inside helper functions, they deliver two major pay-offs:
 
@@ -280,7 +280,7 @@ And now, let's dive into how you work with `immundata`.
       └───────┘
           │
           ▼
-   read_metadata()    ──── Read metadata
+   read_manifest()    ──── Read manifest
           │
           ▼ 
   read_repertoires()  ──┬─ Read repertoire files (!)
@@ -307,11 +307,11 @@ Steps marked with `(!)` are non-optional.
 
 The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into an immutable on-disk `ImmunData` dataset.
 
-  1) **Read metadata:**
+  1) **Read manifest:**
   
-      `read_metadata()` pulls in any sample- or donor-level information, such as therapy arm, HLA type, age, etc., and stores it in a data frame that we can pass to the main reading functions `read_repertoires`. Attaching this context early means every chain you read later already "knows" which patient or time-point it belongs to.
+      `read_manifest()` pulls in any sample- or donor-level information, such as therapy arm, HLA type, age, etc., and stores it in a data frame that we can pass to the main reading functions `read_repertoires`. Attaching this context early means every chain you read later already "knows" which patient or time-point it belongs to.
   
-      You can safely skip it if you don't have per-sample pr per-donor metadata.
+      You can safely skip it if you don't have per-sample or per-donor manifest annotations.
   
   2) **Read repertoire files:**
   
@@ -331,7 +331,7 @@ The goal of the **ingestion phase** is to turn a folder of AIRR-seq files into a
   
   5) **Aggregate repertoires #1:**
   
-      If you already know how to group chains into receptors, perhaps by `"Sample"` or `"Donor"` columns from the metadata, you can pass `repertoire_schema = c("Sample")` to `read_repertoires()`. Otherwise, skip and define repertoires later (common in single-cell workflows where you need cluster labels first).
+      If you already know how to group chains into receptors, perhaps by `"Sample"` or `"Donor"` columns from the manifest, you can pass `repertoire_schema = c("Sample")` to `read_repertoires()`. Otherwise, skip and define repertoires later (common in single-cell workflows where you need cluster labels first).
       
   3) **Write data on disk:**
   
@@ -493,31 +493,31 @@ Transformation is a loop of annotation → modification and computation → visu
 
       Behind the scenes, `read_repertoires()` expands the glob with `Sys.glob(...)`, merges the data, and produces a single `ImmunData`.
 
-  4. **Use a metadata file:**
+  4. **Use a manifest file:**
   
       Sometimes you need more control over the data source (e.g. consistent sample naming, extra columns). In that case:
 
-        1.  **Load metadata** with `read_metadata()`.
+        1.  **Load a manifest** with `read_manifest()`.
         
-        2.  **Pass** the resulting data frame to `read_repertoires(path = "<metadata>", ..., metadata = md_table)`. Mind the `"<metadata>"` string we pass to the function. It indicates that we should take file paths from the input metadata table.
+        2.  **Pass** the resulting data frame to `read_repertoires(path = "<manifest>", ..., manifest = manifest_table)`. Mind the `"<manifest>"` string we pass to the function. It indicates that we should take file paths from the input manifest.
 
       An example code:
 
       ```r
       library(immundata)
       
-      md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
+      manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
       
-      md_table <- read_metadata(md_path)
+      manifest_table <- read_manifest(manifest_path)
       
-      print(md_table)
+      print(manifest_table)
       ```
       
       ```
-      # The column "File" stores the file paths. If you have a different column name
-      # for files, use the `metadata_file_col = "<your column name>"` argument.
+      # The column "file" stores the file paths. If you have a different column name
+      # for files, use the `manifest_file_col = "<your column name>"` argument.
       # A tibble: 2 × 5
-        File                       Therapy Response Prefix filename
+        file                       Therapy Response Prefix imd_filename
         <chr>                      <chr>   <chr>    <chr>  <chr>   
       1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
       2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
@@ -525,19 +525,19 @@ Transformation is a loop of annotation → modification and computation → visu
       
       ```r
       idata <- read_repertoires(
-        path     = "<metadata>",
-        metadata = md_table,
+        path     = "<manifest>",
+        manifest = manifest_table,
         schema   = c("cdr3_aa", "v_call")
       )
       
       print(idata)
       ```
 
-      This approach **unifies** sample-level metadata (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
+      This approach **unifies** sample-level annotations (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
       
-      You can pass the metadata table separately along with the list of files as we did in the previous examples without the "<metadata>" directive, but in that case you would need to check the correctness of all filepaths by yourself. Which could be quite cumbersome, to say the least.
+      You can pass the manifest separately along with the list of files as we did in the previous examples without the "<manifest>" directive, but in that case you would need to check the correctness of all filepaths by yourself. Which could be quite cumbersome, to say the least.
       
-      The more information on how to work with metadata files, please read the next section.
+      For more information on how to work with manifest files, please read the next section.
 
   5. **Convert from `immunarch` lists:**
   
@@ -557,43 +557,43 @@ Transformation is a loop of annotation → modification and computation → visu
       print(idata)
       ```
 
-### Working with metadata table files
+### Working with manifest files
 
-Metadata tables store the sample-level information. When `immundata` loads the metadata, it annotates every receptor from a given sample (or file) with the corresponding metadata fields. For example, if a sample has "Therapy" = "CAR‑T", all receptors from that sample receive the same "Therapy" value. You can then aggregate receptors by donor, tissue, or any other field and run your analysis on those repertoires (see the next sections for aggregations).
+Manifest files store repertoire file paths plus sample-level information. When `immundata` loads a manifest, it annotates every receptor from a given sample (or file) with the corresponding manifest fields. For example, if a sample has "Therapy" = "CAR-T", all receptors from that sample receive the same "Therapy" value. You can then aggregate receptors by donor, tissue, or any other field and run your analysis on those repertoires (see the next sections for aggregations).
 
 > [!WARNING]
-> In the current version, "metadata" and "repertoire schema" is the same, meaning you can't get
-> a metadata field to `idata$repertoires` if you haven't define repertoires using that field.
+> In the current version, manifest annotations and "repertoire schema" are tightly linked, meaning you can't get
+> a manifest field to `idata$repertoires` if you haven't define repertoires using that field.
 > I will implement it in the next versions; for now, please consider using `dplyr::left_join` to
-> merge metadata and the repertoires table together.
+> merge manifest annotations and the repertoires table together.
 
 
 ```r
 library(immundata)
 
-md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
-md_table <- read_metadata(md_path)
+manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+manifest_table <- read_manifest(manifest_path)
 ```
 
 ```
 Rows: 2 Columns: 4
 ── Column specification ─────────────────────────────────────────────────────────
-Delimiter: "\t"
-chr (4): File, Therapy, Response, Prefix
+Delimiter: ","
+chr (4): file, Therapy, Response, Prefix
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-ℹ Found 2/2 repertoire files from the metadata on the disk
-✔ Metadata parsed successfully
+ℹ Found 2/2 repertoire files from the manifest on disk
+✔ Manifest parsed successfully
 ```
 
 ```r
-print(md_table)
+print(manifest_table)
 ```
 
 ```
 # A tibble: 2 × 5
-  File                       Therapy Response Prefix filename
+  file                       Therapy Response Prefix imd_filename
   <chr>                      <chr>   <chr>    <chr>  <chr>   
 1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
 2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
@@ -709,7 +709,7 @@ To compute repertoire‑level statistics such as gene‑segment usage, the Jacca
 
 Just like with receptors, you can pass a schema – a character vector of column names – to specify how receptors are grouped into repertoires.
 
-For the bulk data, usually, you rely on the metadata table. It could be useful when you want to aggregate together receptors from the same donor or tissue, and then analyse it. Or you may want to filter out non-responders to analyse the responders only.
+For the bulk data, usually, you rely on the manifest. It could be useful when you want to aggregate together receptors from the same donor or tissue, and then analyse it. Or you may want to filter out non-responders to analyse the responders only.
 
 > [!NOTE]
 > Don't confuse grouping of immune repertoires with grouping in plots.
@@ -726,14 +726,14 @@ The true power of regrouping repertoires opens up when you work with single-cell
 library(immundata)
       
 inp_file <- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
-md_file <- system.file("extdata/single_cell", "metadata.tsv", package = "immundata")
-md_table <- read_metadata(md_file)
+manifest_file <- system.file("extdata/single_cell", "manifest.csv", package = "immundata")
+manifest_table <- read_manifest(manifest_file)
 schema <- make_receptor_schema(features = c("cdr3", "v_call"), chains   = c("TRA", "TRB"))
 
 idata <- read_repertoires(
   path        = inp_file,
   schema      = schema,
-  metadata    = md_table,
+  manifest    = manifest_table,
   barcode_col = "barcode",         # required for pairing
   locus_col   = "locus",           # column that says "TRA" / "TRB"
   umi_col     = "umis",            # choose chain with max UMIs per locus
@@ -773,7 +773,7 @@ print(idata)
 
 2. **Barcode prefix**
 
-    Provide a column named "Prefix" to the metadata so `make_default_postprocessing()` can automatically add this prefix to barcodes to make barcodes unique in your resultant dataset.
+    Provide a column named "Prefix" to the manifest so `make_default_postprocessing()` can automatically add this prefix to barcodes to make barcodes unique in your resultant dataset.
 
 ### Managing the output and intermediate ImmunData files
 
@@ -796,7 +796,7 @@ Why you might need it - to save intermediate files, e.g., after computing levens
 
 - `ImmunData$receptors` – a virtual table created on demand from `$annotations`. One row per receptor as defined by your `$schema_receptor`; guaranteed to have the stable key `imd_receptor_id`. This is the aggregated view into your dataset, meaning that all fields from receptor features (cdr3, v_call) are unique with respect to row, i.e., each row is unique.
 
-- `ImmunData$annotations` – the main table that holds all the data. One row per chain (or per cell barcode in case of single-chained data). Holds every AIRR field (cdr3, v_call, umis, etc.) plus any metadata you imported (sample_id, tissue, distances to patterns).
+- `ImmunData$annotations` – the main table that holds all the data. One row per chain (or per cell barcode in case of single-chained data). Holds every AIRR field (cdr3, v_call, umis, etc.) plus any manifest annotations you imported (sample_id, tissue, distances to patterns).
 
 - `ImmunData$repertoires` – a physical table produced by agg_repertoires(). Each row is a repertoire (sample, donor, cluster) and carries pre-computed counts: number of receptors, barcodes, chains.
 
@@ -814,14 +814,14 @@ Example:
 library(immundata)
       
 inp_files <- paste0(system.file("extdata/single_cell", "", package = "immundata"), "/*.csv.gz")
-md_file <- system.file("extdata/single_cell", "metadata.tsv", package = "immundata")
-md_table <- read_metadata(md_file)
+manifest_file <- system.file("extdata/single_cell", "manifest.csv", package = "immundata")
+manifest_table <- read_manifest(manifest_file)
 cells_file <- system.file("extdata/single_cell", "cells.tsv.gz", package = "immundata")
 cells <- readr::read_tsv(cells_file)
 
 schema <- make_receptor_schema(features = c("cdr3", "v_call"), chains = c("TRB"))
 
-idata <- read_repertoires(path = inp_files, schema = schema, metadata = md_table, barcode_col = "barcode", locus_col = "locus", umi_col = "umis", preprocess = make_default_preprocessing("10x"), repertoire_schema = "Tissue")
+idata <- read_repertoires(path = inp_files, schema = schema, manifest = manifest_table, barcode_col = "barcode", locus_col = "locus", umi_col = "umis", preprocess = make_default_preprocessing("10x"), repertoire_schema = "Tissue")
 
 print(idata)
 ```
@@ -852,7 +852,7 @@ Printed ImmunData `idata`:
 ── Annotations: ──
 
 # A duckplyr data frame: 23 variables
-   barcode   locus v_call d_call j_call c_gene productive cdr3  cdr3_nt reads  umis filename imd_barcode
+   barcode   locus v_call d_call j_call c_gene productive cdr3  cdr3_nt reads  umis imd_filename imd_barcode
    <chr>     <chr> <chr>  <chr>  <chr>  <chr>  <chr>      <chr> <chr>   <dbl> <dbl> <chr>    <chr>      
  1 AAACCTGA… TRB   TRBV2  None   TRBJ2… TRBC2  True       CASS… TGTGCC… 13736    11 /Users/… LB6_AAACCT…
  2 AAACCTGC… TRB   TRBV30 TRBD1  TRBJ2… TRBC2  True       CAWS… TGTGCC…  4062     5 /Users/… LB6_AAACCT…
@@ -865,7 +865,7 @@ Printed ImmunData `idata`:
  9 AAACGGGA… TRB   TRBV7… TRBD2  TRBJ1… TRBC1  True       CASS… TGTGCC…  4956     4 /Users/… LB6_AAACGG…
 10 AAACGGGA… TRB   TRBV2  TRBD1  TRBJ2… TRBC2  True       CASP… TGTGCC…  5625     4 /Users/… LB6_AAACGG…
 # ℹ more rows
-# ℹ 10 more variables: imd_chain_id <int>, imd_receptor_id <int>, imd_n_chains <dbl>, File <chr>,
+# ℹ 10 more variables: imd_chain_id <int>, imd_receptor_id <int>, imd_n_chains <dbl>, file <chr>,
 #   Tissue <chr>, Prefix <chr>, imd_count <dbl>, imd_repertoire_id <int>, imd_proportion <dbl>,
 #   n_repertoires <int>
 # ℹ Use `print(n = ...)` to see more rows
@@ -904,14 +904,14 @@ Before running the code in the following subsections, execute the code below. Mi
 library(immundata)
       
 inp_files <- paste0(system.file("extdata/single_cell", "", package = "immundata"), "/*.csv.gz")
-md_file <- system.file("extdata/single_cell", "metadata.tsv", package = "immundata")
-md_table <- read_metadata(md_file)
+manifest_file <- system.file("extdata/single_cell", "manifest.csv", package = "immundata")
+manifest_table <- read_manifest(manifest_file)
 cells_file <- system.file("extdata/single_cell", "cells.tsv.gz", package = "immundata")
 cells <- readr::read_tsv(cells_file)
 
 schema <- make_receptor_schema(features = c("cdr3", "v_call"), chains = c("TRB"))
 
-idata <- read_repertoires(path = inp_files, schema = schema, metadata = md_table, barcode_col = "barcode", locus_col = "locus", umi_col = "umis", preprocess = make_default_preprocessing("10x"), repertoire_schema = "Tissue")
+idata <- read_repertoires(path = inp_files, schema = schema, manifest = manifest_table, barcode_col = "barcode", locus_col = "locus", umi_col = "umis", preprocess = make_default_preprocessing("10x"), repertoire_schema = "Tissue")
 ```
 
 ### Filter
@@ -1144,8 +1144,8 @@ S3 methods etc.
 
 By design, **`immundata`** data-loading pipeline is **three** steps, rather than one giant function. This promotes modularity, easier debugging, and flexible usage:
 
-1.  **(Optionally) Load the metadata** via `read_metadata()`.
-    -   This ensures your metadata has the correct file paths, absolute or relative.
+1.  **(Optionally) Load the manifest** via `read_manifest()`.
+    -   This ensures your manifest has the correct file paths, absolute or relative.
 2.  **Load the repertoire files** from disk via `read_repertoires()`.
     -   This function unifies your data (be it 1 file or 100 files) and **outputs** a Parquet file:
         -   **`annotations.parquet`** (cell-level data, sample metadata, etc.)
@@ -1157,7 +1157,7 @@ By design, **`immundata`** data-loading pipeline is **three** steps, rather than
 
 Why split it up?
 
--   **Modularity**: If something breaks, you can debug whether it's in metadata parsing or the actual repertoire table creation.
+-   **Modularity**: If something breaks, you can debug whether it's in manifest parsing or the actual repertoire table creation.
 -   **Reusability**: It is straightforward to share one folder with two `immundata` files.
 -   **Performance**: Once your data is in `immundata` format, you can load it in future sessions in **constant time** without merging or parsing again.
 

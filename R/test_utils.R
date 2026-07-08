@@ -1,4 +1,4 @@
-get_test_idata_tsv_no_metadata <- function(schema = c("cdr3_aa", "v_call")) {
+get_test_idata_tsv_no_manifest <- function(schema = c("cdr3_aa", "v_call")) {
   sample_files <- c(
     system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
     system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
@@ -10,9 +10,9 @@ get_test_idata_tsv_no_metadata <- function(schema = c("cdr3_aa", "v_call")) {
   )
 }
 
-get_test_idata_tsv_with_metadata <- function(schema = c("cdr3_aa", "v_call")) {
-  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
-  md <- read_metadata(md_path)
+get_test_idata_tsv_with_manifest <- function(schema = c("cdr3_aa", "v_call")) {
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest <- read_manifest(manifest_path)
 
   sample_files <- c(
     system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
@@ -21,7 +21,7 @@ get_test_idata_tsv_with_metadata <- function(schema = c("cdr3_aa", "v_call")) {
   read_repertoires(
     path = sample_files,
     schema = schema,
-    metadata = md,
+    manifest = manifest,
     output_folder = tempfile()
   )
 }
@@ -92,18 +92,18 @@ load_test_ig_idata <- get_test_ig_data
 #' @keywords internal
 #' @export
 get_test_idata <- function() {
-  get_test_idata_tsv_with_metadata()
+  get_test_idata_tsv_with_manifest()
 }
 
 #' Get test datasets from `immundata`
 #' @keywords internal
 #' @export
 get_test_immundata <- function() {
-  get_test_idata_tsv_with_metadata()
+  get_test_idata_tsv_with_manifest()
 }
 
-get_test_idata_tsv_metadata <- function() {
-  md_path <- system.file("extdata/tsv", "metadata_samples.tsv", package = "immundata")
+get_test_idata_tsv_manifest <- function() {
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
 
-  read_metadata(md_path)
+  read_manifest(manifest_path)
 }

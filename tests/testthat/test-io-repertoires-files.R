@@ -95,13 +95,13 @@ test_that("read_repertoires() works with glob pattern", {
   expect_gt(nrow(annotations), 0)
 })
 
-test_that("read_repertoires() works with metadata table and file vector", {
+test_that("read_repertoires() works with manifest table and file vector", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  # Load metadata
-  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
-  metadata_df <- read_metadata(md_path)
+  # Load manifest
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
 
   # Get sample files
   sample_files <- c(
@@ -112,7 +112,7 @@ test_that("read_repertoires() works with metadata table and file vector", {
   idata <- read_repertoires(
     path = sample_files,
     schema = c("cdr3_aa", "v_call"),
-    metadata = metadata_df,
+    manifest = manifest_df,
     output_folder = output_dir,
     preprocess = NULL,
     postprocess = NULL
@@ -123,27 +123,27 @@ test_that("read_repertoires() works with metadata table and file vector", {
   expect_true(file.exists(file.path(output_dir, "annotations.parquet")))
   expect_true(file.exists(file.path(output_dir, "metadata.json")))
 
-  # Check metadata was joined
+  # Check manifest annotations were joined
   annotations <- idata$annotations |> collect()
-  if (!is.null(metadata_df) && "Therapy" %in% colnames(metadata_df)) {
+  if (!is.null(manifest_df) && "Therapy" %in% colnames(manifest_df)) {
     expect_true("Therapy" %in% colnames(annotations))
     expect_true("Response" %in% colnames(annotations))
   }
 })
 
-test_that("read_repertoires() works with <metadata> directive", {
+test_that("read_repertoires() works with <manifest> directive", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  # Load metadata with proper file paths
-  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
-  metadata_df <- read_metadata(md_path)
+  # Load manifest with proper file paths
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
 
   idata <- read_repertoires(
-    path = "<metadata>",
+    path = "<manifest>",
     schema = c("cdr3_aa", "v_call"),
-    metadata = metadata_df,
-    metadata_file_col = "File",
+    manifest = manifest_df,
+    manifest_file_col = "file",
     output_folder = output_dir,
     preprocess = NULL,
     postprocess = NULL
@@ -152,31 +152,45 @@ test_that("read_repertoires() works with <metadata> directive", {
   # Verify result
   expect_s3_class(idata, "ImmunData")
 
-  # Check metadata columns are present
+  # Check manifest columns are present
   annotations <- idata$annotations |> collect()
   expect_true("Therapy" %in% colnames(annotations))
   expect_true("Response" %in% colnames(annotations))
   expect_true("Prefix" %in% colnames(annotations))
 })
 
-test_that("read_repertoires() fails with <metadata> when no metadata provided", {
+test_that("read_manifest() rejects old metadata filenames", {
+  manifest_dir <- tempfile("old_manifest_name_")
+  dir.create(manifest_dir)
+  on.exit(unlink(manifest_dir, recursive = TRUE), add = TRUE)
+
+  old_path <- file.path(manifest_dir, "metadata.tsv")
+  writeLines(c("file", "sample_0_1k.tsv"), old_path)
+
   expect_error(
-    read_repertoires(
-      path = "<metadata>",
-      schema = c("cdr3_aa", "v_call"),
-      metadata = NULL
-    ),
-    "no `metadata` table provided"
+    read_manifest(old_path),
+    "repertoire metadata tables are now manifests"
   )
 })
 
-test_that("read_repertoires() handles custom metadata_file_col", {
+test_that("read_repertoires() fails with <manifest> when no manifest provided", {
+  expect_error(
+    read_repertoires(
+      path = "<manifest>",
+      schema = c("cdr3_aa", "v_call"),
+      manifest = NULL
+    ),
+    "no `manifest` table provided"
+  )
+})
+
+test_that("read_repertoires() handles custom manifest_file_col", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  # Create custom metadata with different column name
+  # Create custom manifest with different column name
   base_dir <- system.file("extdata/tsv", package = "immundata")
-  custom_metadata <- data.frame(
+  custom_manifest <- data.frame(
     FilePath = c(
       file.path(base_dir, "sample_0_1k.tsv"),
       file.path(base_dir, "sample_1k_2k.tsv")
@@ -186,10 +200,10 @@ test_that("read_repertoires() handles custom metadata_file_col", {
   )
 
   idata <- read_repertoires(
-    path = "<metadata>",
+    path = "<manifest>",
     schema = c("cdr3_aa", "v_call"),
-    metadata = custom_metadata,
-    metadata_file_col = "FilePath", # Custom column name
+    manifest = custom_manifest,
+    manifest_file_col = "FilePath", # Custom column name
     output_folder = output_dir,
     preprocess = NULL,
     postprocess = NULL

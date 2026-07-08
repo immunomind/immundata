@@ -7,7 +7,7 @@
 read_repertoires(
   path,
   schema,
-  metadata = NULL,
+  manifest = NULL,
   barcode_col = NULL,
   count_col = NULL,
   locus_col = NULL,
@@ -16,7 +16,7 @@ read_repertoires(
   postprocess = make_default_postprocessing(),
   rename_columns = imd_rename_cols("10x"),
   enforce_schema = TRUE,
-  metadata_file_col = "File",
+  manifest_file_col = "file",
   output_folder = NULL,
   repertoire_schema = NULL
 )
@@ -26,8 +26,8 @@ read_repertoires(
 \code{"/path/to/data/*.tsv.gz"}). Supports glob patterns via \code{\link[=Sys.glob]{Sys.glob()}}.
 Files can be Parquet, CSV, TSV, or gzipped versions thereof. All files
 must be of the same type.
-Alternatively, pass the special string \code{"<metadata>"} to read file paths
-from the \code{metadata} table (see \code{metadata} and \code{metadata_file_col} params).}
+Alternatively, pass the special string \code{"<manifest>"} to read file paths
+from the \code{manifest} table (see \code{manifest} and \code{manifest_file_col} params).}
 
 \item{schema}{Defines how unique receptors are identified. Can be:
 \itemize{
@@ -36,10 +36,10 @@ from the \code{metadata} table (see \code{metadata} and \code{metadata_file_col}
 of chains for pairing (e.g., \code{make_receptor_schema(features = c("v_call", "junction_aa"), chains = c("TRA", "TRB"))}).
 }}
 
-\item{metadata}{Optional. A data frame containing
-metadata to be joined with the repertoire data, read by
-\code{\link[=read_metadata]{read_metadata()}} function. If \code{path = "<metadata>"}, this table \emph{must}
-be provided and contain the file paths column specified by \code{metadata_file_col}.
+\item{manifest}{Optional. A data frame containing
+per-file annotations to be joined with the repertoire data, read by
+\code{\link[=read_manifest]{read_manifest()}} function. If \code{path = "<manifest>"}, this table \emph{must}
+be provided and contain the file paths column specified by \code{manifest_file_col}.
 Default: \code{NULL}.}
 
 \item{barcode_col}{Character(1). Name of the column containing cell barcodes
@@ -67,7 +67,7 @@ data frame (or duckplyr_df) as its first argument. See
 Default: \code{make_default_preprocessing()}. Set to \code{NULL} or \code{list()} to disable.}
 
 \item{postprocess}{List. A named list of functions to apply sequentially to the
-annotation data \emph{after} receptor aggregation and metadata joining. Each
+annotation data \emph{after} receptor aggregation and manifest joining. Each
 function should accept a data frame (or duckplyr_df) as its first argument.
 See \code{\link[=make_default_postprocessing]{make_default_postprocessing()}} for examples.
 Default: \code{make_default_postprocessing()}. Set to \code{NULL} or \code{list()} to disable.}
@@ -83,9 +83,9 @@ requires them to have the exact same columns and types. If \code{FALSE}, columns
 are unioned across files (potentially slower, requires more memory).
 Default: \code{TRUE}.}
 
-\item{metadata_file_col}{Character(1). The name of the column in the \code{metadata}
+\item{manifest_file_col}{Character(1). The name of the column in the \code{manifest}
 table that contains the full paths to the repertoire files. Only used when
-\code{path = "<metadata>"}. Default: \code{"File"}.}
+\code{path = "<manifest>"}. Default: \code{"file"}.}
 
 \item{output_folder}{Character(1). Path to a directory where intermediate
 processed annotation data will be saved as \code{annotations.parquet} and
@@ -109,7 +109,7 @@ This is the main function for reading immune repertoire data into the
 \code{immundata} framework. It reads one or more repertoire files (AIRR TSV,
 10X CSV, Parquet), performs optional preprocessing and column renaming,
 aggregates sequences into receptors based on a provided schema, optionally
-joins external metadata, performs optional postprocessing, and returns
+joins manifest annotations, performs optional postprocessing, and returns
 an \code{ImmunData} object.
 
 The function handles different data types (bulk, single-cell) based on
@@ -121,12 +121,12 @@ as a Parquet file before loading them back into the final \code{ImmunData} objec
 The function executes the following steps:
 \enumerate{
 \item Validates inputs.
-\item Determines the list of input files based on \code{path} and \code{metadata}. Checks file extensions.
+\item Determines the list of input files based on \code{path} and \code{manifest}. Checks file extensions.
 \item Reads data using \code{duckplyr} (\code{read_parquet_duckdb} or \code{read_csv_duckdb}). Handles \code{.gz}.
 \item Applies column renaming if \code{rename_columns} is provided.
 \item Applies preprocessing steps sequentially if \code{preprocess} is provided.
 \item Aggregates sequences into receptors using \code{\link[=agg_receptors]{agg_receptors()}}, based on \code{schema}, \code{barcode_col}, \code{count_col}, \code{locus_col}, and \code{umi_col}. This creates the core annotation table.
-\item Joins the \code{metadata} table if provided.
+\item Joins the \code{manifest} table if provided.
 \item Applies postprocessing steps sequentially if \code{postprocess} is provided.
 \item Creates a temporary \code{ImmunData} object in memory.
 \item Determines the \code{output_folder} path.
@@ -176,21 +176,20 @@ print(idata$annotations)
 #
 # Example 2: single-chain, multiple files
 #
-# Read multiple files using metadata
-# Create dummy files and metadata
+# Read multiple files using a manifest
+# Create dummy files and a manifest
 readr::write_tsv(airr_data[1:2, ], "sample1.tsv")
 readr::write_tsv(airr_data[3:5, ], "sample2.tsv")
-meta <- data.frame(
+manifest <- data.frame(
   SampleID = c("S1", "S2"),
   Tissue = c("PBMC", "Tumor"),
-  FilePath = c(normalizePath("sample1.tsv"), normalizePath("sample2.tsv"))
+  file = c(normalizePath("sample1.tsv"), normalizePath("sample2.tsv"))
 )
-readr::write_tsv(meta, "metadata.tsv")
+readr::write_csv(manifest, "manifest.csv")
 
 idata_multi <- read_repertoires(
-  path = "<metadata>",
-  metadata = meta,
-  metadata_file_col = "FilePath",
+  path = "<manifest>",
+  manifest = manifest,
   schema = receptor_def,
   repertoire_schema = "SampleID", # Aggregate by SampleID
   output_folder = tempfile("immundata_multi_"),
@@ -202,13 +201,13 @@ print(idata_multi)
 print(idata_multi$repertoires) # Check repertoire summary
 
 # Clean up dummy files
-file.remove("my_sample.tsv", "sample1.tsv", "sample2.tsv", "metadata.tsv")
+file.remove("my_sample.tsv", "sample1.tsv", "sample2.tsv", "manifest.csv")
 unlink(out_dir, recursive = TRUE)
 unlink(attr(idata_multi, "output_folder"), recursive = TRUE) # Get path used by function
 }
 }
 \seealso{
-\link{ImmunData}, \code{\link[=read_immundata]{read_immundata()}}, \code{\link[=write_immundata]{write_immundata()}}, \code{\link[=read_metadata]{read_metadata()}},
+\link{ImmunData}, \code{\link[=read_immundata]{read_immundata()}}, \code{\link[=write_immundata]{write_immundata()}}, \code{\link[=read_manifest]{read_manifest()}},
 \code{\link[=agg_receptors]{agg_receptors()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=make_receptor_schema]{make_receptor_schema()}},
 \code{\link[=make_default_preprocessing]{make_default_preprocessing()}}, \code{\link[=make_default_postprocessing]{make_default_postprocessing()}}
 }

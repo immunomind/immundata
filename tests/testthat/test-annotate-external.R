@@ -15,7 +15,7 @@ warn_if_pkg_missing <- function(pkg, test_context) {
 }
 
 make_external_idata <- function() {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   barcode_col <- imd_schema("barcode")
 
   barcode_tbl <- idata$annotations |>
@@ -68,7 +68,7 @@ testthat::test_that("annotate_seurat transfers selected columns by barcode", {
     return(invisible(NULL))
   }
 
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   barcode_col <- imd_schema("barcode")
 
   ann <- idata$annotations |>
@@ -124,7 +124,7 @@ testthat::test_that("annotate_seurat errors for missing annotation columns", {
     return(invisible(NULL))
   }
 
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   counts <- matrix(
     c(1, 0, 2, 3, 4, 5),
@@ -155,7 +155,7 @@ testthat::test_that("annotate_anndata transfers selected columns by obs_names", 
 })
 
 testthat::test_that("annotate_anndata validates obs_names and requested columns", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   annotate_anndata <- immundata:::annotate_anndata
 
   adata_empty <- structure(

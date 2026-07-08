@@ -1,5 +1,5 @@
 test_that("filter() filters ImmunData by receptor-level conditions", {
-  idata <- get_test_idata_tsv_with_metadata()
+  idata <- get_test_idata_tsv_with_manifest()
 
   # Sanity check
   checkmate::expect_r6(idata, "ImmunData")
@@ -17,7 +17,7 @@ test_that("filter() filters ImmunData by receptor-level conditions", {
 })
 
 test_that("filter() filters ImmunData by annotation-level conditions (locus)", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   # Let's say the annotation table has a column "locus" (common in TCR/BCR data)
   # We'll filter to "TRB". Adjust to an actual locus present in your data

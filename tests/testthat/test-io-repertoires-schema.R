@@ -52,20 +52,20 @@ test_that("read_repertoires() fails with a clear message when barcode column is 
   )
 })
 
-test_that("read_repertoires() fails with a clear message when metadata file column is missing", {
+test_that("read_repertoires() fails with a clear message when manifest file column is missing", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  metadata <- data.frame(
+  manifest <- data.frame(
     WrongFileCol = "some/path.tsv",
     stringsAsFactors = FALSE
   )
 
   expect_error(
     read_repertoires(
-      path = "<metadata>",
-      metadata = metadata,
-      metadata_file_col = "File",
+      path = "<manifest>",
+      manifest = manifest,
+      manifest_file_col = "file",
       schema = c("cdr3_aa", "v_call"),
       output_folder = output_dir
     ),
@@ -190,19 +190,19 @@ test_that("read_repertoires() fails with a clear message when umi_col is missing
   )
 })
 
-test_that("read_repertoires() fails when metadata paths are empty or NA", {
+test_that("read_repertoires() fails when manifest paths are empty or NA", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  metadata <- data.frame(
-    File = c("", NA),
+  manifest <- data.frame(
+    file = c("", NA),
     stringsAsFactors = FALSE
   )
 
   expect_error(
     read_repertoires(
-      path = "<metadata>",
-      metadata = metadata,
+      path = "<manifest>",
+      manifest = manifest,
       schema = c("cdr3_aa", "v_call"),
       output_folder = output_dir
     ),

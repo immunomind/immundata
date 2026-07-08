@@ -1,5 +1,5 @@
 testthat::test_that("annotate_receptors adds receptor‑level annotations", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   receptor_id_col <- imd_schema()$receptor
 
   recs <- idata$receptors %>%

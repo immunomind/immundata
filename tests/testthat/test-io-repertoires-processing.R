@@ -135,13 +135,13 @@ test_that("read_repertoires() with repertoire_schema creates repertoires", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
-  metadata_df <- read_metadata(md_path)
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
 
   idata <- read_repertoires(
-    path = "<metadata>",
+    path = "<manifest>",
     schema = c("cdr3_aa", "v_call"),
-    metadata = metadata_df,
+    manifest = manifest_df,
     repertoire_schema = "Therapy",
     output_folder = output_dir,
     preprocess = NULL,

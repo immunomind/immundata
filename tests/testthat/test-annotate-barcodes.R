@@ -1,5 +1,5 @@
 test_that("annotate_barcodes adds cell‑level annotations", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   cell_id_col <- imd_schema()$cell
 
   idata <- ImmunData$new(schema = idata$schema_receptor,

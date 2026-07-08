@@ -16,9 +16,8 @@ utils::globalVariables(c("dd", "meta", "n_cells", "n_barcodes", "p", "tmp_recept
 #'     - `cell`: Column name for cell barcode IDs.
 #'     - `receptor`: Column name for receptor unique identifiers.
 #'     - `repertoire`: Column name for repertoire group IDs.
-#'     - `metadata_filename`: Column name for metadata files (internal).
+#'     - `manifest_filename`: Column name for manifest file paths (internal).
 #'     - `count`: Column name for receptor count per group.
-#'     - `filename`: Original column name used in user metadata.
 #' - `files`: Default file names used to store structured Immundata:
 #'     - `receptors`: File name for receptor-level data (`receptors.parquet`).
 #'     - `annotations`: File name for annotation-level data (`annotations.parquet`).
@@ -34,7 +33,7 @@ IMD_GLOBALS <- list(
     repertoire = "imd_repertoire_id",
     strata = "imd_strata_id",
     strata_name = "strata_name",
-    metadata_filename = "imd_filename",
+    manifest_filename = "imd_filename",
     count = "imd_count",
     receptor_count = "imd_count",
     chain_count = "imd_n_chains",
@@ -43,7 +42,6 @@ IMD_GLOBALS <- list(
     n_barcodes = "n_barcodes",
     n_cells = "n_cells",
     n_repertoires = "n_repertoires",
-    filename = "filename",
     locus = "locus",
     sim_exact = "imd_sim_exact_",
     sim_regex = "imd_sim_regex_",

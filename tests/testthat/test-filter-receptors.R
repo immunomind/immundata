@@ -1,6 +1,6 @@
 test_that("filter_receptors() filters ImmunData by a set of receptor identifiers", {
 
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   all_receptors <- idata$annotations %>%
     distinct(imd_receptor_id) %>%

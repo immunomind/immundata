@@ -91,7 +91,7 @@ test_that("read_repertoires() writes metadata with lineage array and provenance"
   expect_equal(ingestion_event$event, "ingestion")
   expect_equal(ingestion_event$producer[["function"]], "read_repertoires")
   expect_equal(ingestion_event$inputs$files, normalizePath(sample_file))
-  expect_false(isTRUE(ingestion_event$inputs$metadata_joined))
+  expect_false(isTRUE(ingestion_event$inputs$manifest_joined))
 
   normalized_out <- normalizePath(output_dir, mustWork = FALSE)
   expect_equal(metadata_json$provenance$home_path, normalized_out)
@@ -137,18 +137,18 @@ test_that("write_immundata() appends snapshot lineage event", {
   expect_equal(snapshot_event$snapshot_path, normalized_out)
 })
 
-test_that("read_repertoires() writes metadata-derived files in ingestion lineage", {
+test_that("read_repertoires() writes manifest-derived files in ingestion lineage", {
   layout <- create_snapshot_test_layout()
   on.exit(cleanup_snapshot_test_root())
   output_dir <- layout$projectA
 
-  md_path <- system.file("extdata/tsv", "metadata.tsv", package = "immundata")
-  metadata_df <- read_metadata(md_path)
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
 
   read_repertoires(
-    path = "<metadata>",
+    path = "<manifest>",
     schema = c("cdr3_aa", "v_call"),
-    metadata = metadata_df,
+    manifest = manifest_df,
     output_folder = output_dir,
     preprocess = NULL,
     postprocess = NULL
@@ -161,12 +161,12 @@ test_that("read_repertoires() writes metadata-derived files in ingestion lineage
   expect_length(metadata_json$lineage, 1)
 
   ingestion_event <- metadata_json$lineage[[1]]
-  expect_true(isTRUE(ingestion_event$inputs$metadata_joined))
+  expect_true(isTRUE(ingestion_event$inputs$manifest_joined))
   expect_equal(
     unlist(ingestion_event$inputs$files, use.names = FALSE),
-    normalizePath(metadata_df$File)
+    normalizePath(manifest_df$file)
   )
-  expect_equal(ingestion_event$args$metadata_file_col, "File")
+  expect_equal(ingestion_event$args$manifest_file_col, "file")
 })
 
 test_that("write_immundata() auto-creates snapshot folders and increments versions", {
@@ -301,7 +301,7 @@ test_that("write_immundata() validates tags and missing provenance for auto-snap
   on.exit(cleanup_snapshot_test_root())
   output_dir <- layout$projectA
 
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   annotations_tbl <- idata$annotations |> collect()
   idata_no_provenance <- ImmunData$new(
     schema = idata$schema_receptor,
@@ -374,7 +374,7 @@ test_that("operation outputs preserve provenance for auto-snapshots", {
     normalizePath(file.path(output_dir, "snapshots", "ops", "v001"), mustWork = FALSE)
   )
 
-  aggregated <- agg_repertoires(idata, "filename")
+  aggregated <- agg_repertoires(idata, "imd_filename")
   downsampled <- downsample_immundata(aggregated, n = 0.5, seed = 1)
   downsampled_snap <- write_immundata(downsampled, output_folder = NULL, tag = "downsample")
   downsampled_prov <- imd_get_provenance(downsampled_snap)
@@ -390,7 +390,7 @@ test_that("write_immundata_internal() validates lineage as complete set", {
   on.exit(cleanup_snapshot_test_root())
   output_dir <- layout$projectA
 
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   expect_error(
     write_immundata_internal(
@@ -399,7 +399,7 @@ test_that("write_immundata_internal() validates lineage as complete set", {
       producer_function = "read_repertoires",
       metadata_lineage_inputs = list(
         files = c("/tmp/sample.tsv"),
-        metadata_joined = FALSE,
+        manifest_joined = FALSE,
         enforce_schema = TRUE
       )
     ),
@@ -412,7 +412,7 @@ test_that("write_immundata_internal() validates lineage fields", {
   on.exit(cleanup_snapshot_test_root())
   output_dir <- layout$projectA
 
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   expect_error(
     write_immundata_internal(
@@ -421,7 +421,7 @@ test_that("write_immundata_internal() validates lineage fields", {
       producer_function = "read_repertoires",
       metadata_lineage_inputs = list(
         files = c("/tmp/sample.tsv"),
-        metadata_joined = FALSE,
+        manifest_joined = FALSE,
         enforce_schema = TRUE
       ),
       metadata_lineage_args = list(
@@ -436,6 +436,6 @@ test_that("write_immundata_internal() validates lineage fields", {
       ),
       metadata_lineage_pipeline = list(preprocess = character(), postprocess = character())
     ),
-    "metadata_file_col|must include"
+    "manifest_file_col|must include"
   )
 })

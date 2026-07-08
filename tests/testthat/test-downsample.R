@@ -237,7 +237,7 @@ test_that("downsample_immundata works on IG test data with proportion n", {
 })
 
 test_that("downsample_immundata rejects ambiguous n = 1", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   expect_error(
     downsample_immundata(idata, n = 1, seed = 321),
@@ -246,7 +246,7 @@ test_that("downsample_immundata rejects ambiguous n = 1", {
 })
 
 test_that("downsample_immundata validates n and handles no-repertoire fallback", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   expect_error(
     downsample_immundata(idata, n = 2.5),
@@ -420,7 +420,7 @@ test_that("downsample_immundata is deterministic in count mode with seed", {
 })
 
 test_that("downsample_immundata errors when proportion results in zero target", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
 
   expect_error(
     downsample_immundata(idata, n = 0.0001, seed = 1),

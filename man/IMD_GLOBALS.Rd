@@ -24,9 +24,8 @@ field names, default file names, and internal error messages.
 \item \code{cell}: Column name for cell barcode IDs.
 \item \code{receptor}: Column name for receptor unique identifiers.
 \item \code{repertoire}: Column name for repertoire group IDs.
-\item \code{metadata_filename}: Column name for metadata files (internal).
+\item \code{manifest_filename}: Column name for manifest file paths (internal).
 \item \code{count}: Column name for receptor count per group.
-\item \code{filename}: Original column name used in user metadata.
 }
 \item \code{files}: Default file names used to store structured Immundata:
 \itemize{

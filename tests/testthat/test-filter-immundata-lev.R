@@ -1,6 +1,6 @@
 # 3. Levenshtein fuzzy matching
 testthat::test_that("Levenshtein fuzzy matching returns correct results", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   all_receptors <- idata$receptors |> collect()
 
   pat <- substr(all_receptors$cdr3_aa[1:3], 1, nchar(all_receptors$cdr3_aa[1:3]) - 1)
@@ -26,7 +26,7 @@ testthat::test_that("Levenshtein fuzzy matching returns correct results", {
 
 # 6. Combined pre-filter and fuzzy matching
 test_that("combined pre-filter and fuzzy matching works correctly", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   all_receptors <- idata$receptors |> collect()
 
   vc <- all_receptors$v_call[5]

@@ -3,7 +3,7 @@
 #' @description
 #' The `from_immunarch()` function takes an **immunarch** object (as returned by
 #' `immunarch::repLoad()`), writes each repertoire to a TSV file with an added
-#' `filename` column in a specified folder, and then imports those files into
+#' internal filename column in a specified folder, and then imports those files into
 #' an **ImmunData** object via `read_repertoires()`.
 #'
 #' @param imm A list returned by `immunarch::repLoad()`, typically containing:
@@ -56,8 +56,8 @@ from_immunarch <- function(
     names(rep_list) <- paste0("repertoire_", seq_along(rep_list))
   }
 
-  # write each repertoire with a 'filename' column
-  immundata_filename_col <- IMD_GLOBALS$schema$filename
+  # write each repertoire and track its path through the internal manifest column
+  immundata_filename_col <- IMD_GLOBALS$schema$manifest_filename
   file_paths <- c()
   for (nm in names(rep_list)) {
     df <- rep_list[[nm]]
@@ -77,12 +77,12 @@ from_immunarch <- function(
   }
   names(file_paths) <- names(rep_list)
 
-  # if metadata present, add 'filename' column and pass it in
-  metadata_df <- NULL
+  # If immunarch metadata is present, add the internal manifest join column.
+  manifest_df <- NULL
   if (!is.null(imm$meta)) {
-    metadata_df <- imm$meta
-    if ("Sample" %in% colnames(metadata_df)) {
-      metadata_df[[immundata_filename_col]] <- normalizePath(file_paths[metadata_df$Sample])
+    manifest_df <- imm$meta
+    if ("Sample" %in% colnames(manifest_df)) {
+      manifest_df[[immundata_filename_col]] <- normalizePath(file_paths[manifest_df$Sample])
     } else {
       cli_abort("No `Sample` in the metadata object. Please create the column with repertoires names from `$data`")
     }
@@ -95,7 +95,7 @@ from_immunarch <- function(
   read_repertoires(
     path = unname(file_paths),
     schema = schema,
-    metadata = metadata_df,
+    manifest = manifest_df,
     output_folder = output_folder,
     repertoire_schema = "repertoire_id"
   )

@@ -1,5 +1,5 @@
 testthat::test_that("Regex matching returns correct results", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   all_receptors <- idata$receptors %>% collect()
 
   regex <- paste0("^", substr(all_receptors$cdr3_aa[1], 1, 4))

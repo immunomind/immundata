@@ -1,5 +1,5 @@
 test_that("exact matching with single and multiple patterns", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   all_receptors <- idata$receptors %>% collect()
 
   # Single pattern

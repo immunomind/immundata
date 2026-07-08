@@ -213,7 +213,7 @@ imd_resolve_snapshot_output_folder <- function(idata,
 validate_metadata_lineage_inputs <- function(metadata_lineage_inputs) {
   checkmate::assert_list(metadata_lineage_inputs)
 
-  required_fields <- c("files", "metadata_joined", "enforce_schema")
+  required_fields <- c("files", "manifest_joined", "enforce_schema")
   checkmate::assert_names(
     names(metadata_lineage_inputs),
     must.include = required_fields,
@@ -221,7 +221,7 @@ validate_metadata_lineage_inputs <- function(metadata_lineage_inputs) {
   )
 
   checkmate::assert_character(metadata_lineage_inputs$files, min.len = 1)
-  checkmate::assert_logical(metadata_lineage_inputs$metadata_joined, len = 1)
+  checkmate::assert_logical(metadata_lineage_inputs$manifest_joined, len = 1)
   checkmate::assert_logical(metadata_lineage_inputs$enforce_schema, len = 1)
 
   metadata_lineage_inputs
@@ -230,7 +230,7 @@ validate_metadata_lineage_inputs <- function(metadata_lineage_inputs) {
 validate_metadata_lineage_args <- function(metadata_lineage_args) {
   checkmate::assert_list(metadata_lineage_args)
 
-  required_fields <- c("barcode_col", "count_col", "locus_col", "umi_col", "metadata_file_col")
+  required_fields <- c("barcode_col", "count_col", "locus_col", "umi_col", "manifest_file_col")
   checkmate::assert_names(
     names(metadata_lineage_args),
     must.include = required_fields,
@@ -241,7 +241,7 @@ validate_metadata_lineage_args <- function(metadata_lineage_args) {
   checkmate::assert_character(metadata_lineage_args$count_col, max.len = 1, null.ok = TRUE)
   checkmate::assert_character(metadata_lineage_args$locus_col, max.len = 1, null.ok = TRUE)
   checkmate::assert_character(metadata_lineage_args$umi_col, max.len = 1, null.ok = TRUE)
-  checkmate::assert_character(metadata_lineage_args$metadata_file_col, len = 1, null.ok = FALSE)
+  checkmate::assert_character(metadata_lineage_args$manifest_file_col, len = 1, null.ok = FALSE)
 
   metadata_lineage_args
 }

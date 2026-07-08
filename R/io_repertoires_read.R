@@ -5,7 +5,7 @@
 #' `immundata` framework. It reads one or more repertoire files (AIRR TSV,
 #' 10X CSV, Parquet), performs optional preprocessing and column renaming,
 #' aggregates sequences into receptors based on a provided schema, optionally
-#' joins external metadata, performs optional postprocessing, and returns
+#' joins manifest annotations, performs optional postprocessing, and returns
 #' an `ImmunData` object.
 #'
 #' The function handles different data types (bulk, single-cell) based on
@@ -17,16 +17,16 @@
 #'   `"/path/to/data/*.tsv.gz"`). Supports glob patterns via [Sys.glob()].
 #'   Files can be Parquet, CSV, TSV, or gzipped versions thereof. All files
 #'   must be of the same type.
-#'   Alternatively, pass the special string `"<metadata>"` to read file paths
-#'   from the `metadata` table (see `metadata` and `metadata_file_col` params).
+#'   Alternatively, pass the special string `"<manifest>"` to read file paths
+#'   from the `manifest` table (see `manifest` and `manifest_file_col` params).
 #' @param schema Defines how unique receptors are identified. Can be:
 #'   - A character vector of column names (e.g., `c("v_call", "j_call", "junction_aa")`).
 #'   - A schema object created by [make_receptor_schema()], allowing specification
 #'     of chains for pairing (e.g., `make_receptor_schema(features = c("v_call", "junction_aa"), chains = c("TRA", "TRB"))`).
-#' @param metadata Optional. A data frame containing
-#'   metadata to be joined with the repertoire data, read by
-#'   [read_metadata()] function. If `path = "<metadata>"`, this table *must*
-#'   be provided and contain the file paths column specified by `metadata_file_col`.
+#' @param manifest Optional. A data frame containing
+#'   per-file annotations to be joined with the repertoire data, read by
+#'   [read_manifest()] function. If `path = "<manifest>"`, this table *must*
+#'   be provided and contain the file paths column specified by `manifest_file_col`.
 #'   Default: `NULL`.
 #' @param barcode_col Character(1). Name of the column containing cell barcodes
 #'   or other unique cell/clone identifiers for single-cell data. Triggers
@@ -48,7 +48,7 @@
 #'   [make_default_preprocessing()] for examples.
 #'   Default: `make_default_preprocessing()`. Set to `NULL` or `list()` to disable.
 #' @param postprocess List. A named list of functions to apply sequentially to the
-#'   annotation data *after* receptor aggregation and metadata joining. Each
+#'   annotation data *after* receptor aggregation and manifest joining. Each
 #'   function should accept a data frame (or duckplyr_df) as its first argument.
 #'   See [make_default_postprocessing()] for examples.
 #'   Default: `make_default_postprocessing()`. Set to `NULL` or `list()` to disable.
@@ -61,9 +61,9 @@
 #'   requires them to have the exact same columns and types. If `FALSE`, columns
 #'   are unioned across files (potentially slower, requires more memory).
 #'   Default: `TRUE`.
-#' @param metadata_file_col Character(1). The name of the column in the `metadata`
+#' @param manifest_file_col Character(1). The name of the column in the `manifest`
 #'   table that contains the full paths to the repertoire files. Only used when
-#'   `path = "<metadata>"`. Default: `"File"`.
+#'   `path = "<manifest>"`. Default: `"file"`.
 #' @param output_folder Character(1). Path to a directory where intermediate
 #'   processed annotation data will be saved as `annotations.parquet` and
 #'   `metadata.json`. If `NULL` (default), a folder named
@@ -78,12 +78,12 @@
 #' @details
 #' The function executes the following steps:
 #' 1.  Validates inputs.
-#' 2.  Determines the list of input files based on `path` and `metadata`. Checks file extensions.
+#' 2.  Determines the list of input files based on `path` and `manifest`. Checks file extensions.
 #' 3.  Reads data using `duckplyr` (`read_parquet_duckdb` or `read_csv_duckdb`). Handles `.gz`.
 #' 4.  Applies column renaming if `rename_columns` is provided.
 #' 5.  Applies preprocessing steps sequentially if `preprocess` is provided.
 #' 6.  Aggregates sequences into receptors using [agg_receptors()], based on `schema`, `barcode_col`, `count_col`, `locus_col`, and `umi_col`. This creates the core annotation table.
-#' 7.  Joins the `metadata` table if provided.
+#' 7.  Joins the `manifest` table if provided.
 #' 8.  Applies postprocessing steps sequentially if `postprocess` is provided.
 #' 9.  Creates a temporary `ImmunData` object in memory.
 #' 10. Determines the `output_folder` path.
@@ -96,7 +96,7 @@
 #'   If `repertoire_schema` was provided, the object will also contain repertoire
 #'   definitions and summaries calculated by [agg_repertoires()].
 #'
-#' @seealso [ImmunData], [read_immundata()], [write_immundata()], [read_metadata()],
+#' @seealso [ImmunData], [read_immundata()], [write_immundata()], [read_manifest()],
 #'   [agg_receptors()], [agg_repertoires()], [make_receptor_schema()],
 #'   [make_default_preprocessing()], [make_default_postprocessing()]
 #'
@@ -143,21 +143,20 @@
 #' #
 #' # Example 2: single-chain, multiple files
 #' #
-#' # Read multiple files using metadata
-#' # Create dummy files and metadata
+#' # Read multiple files using a manifest
+#' # Create dummy files and a manifest
 #' readr::write_tsv(airr_data[1:2, ], "sample1.tsv")
 #' readr::write_tsv(airr_data[3:5, ], "sample2.tsv")
-#' meta <- data.frame(
+#' manifest <- data.frame(
 #'   SampleID = c("S1", "S2"),
 #'   Tissue = c("PBMC", "Tumor"),
-#'   FilePath = c(normalizePath("sample1.tsv"), normalizePath("sample2.tsv"))
+#'   file = c(normalizePath("sample1.tsv"), normalizePath("sample2.tsv"))
 #' )
-#' readr::write_tsv(meta, "metadata.tsv")
+#' readr::write_csv(manifest, "manifest.csv")
 #'
 #' idata_multi <- read_repertoires(
-#'   path = "<metadata>",
-#'   metadata = meta,
-#'   metadata_file_col = "FilePath",
+#'   path = "<manifest>",
+#'   manifest = manifest,
 #'   schema = receptor_def,
 #'   repertoire_schema = "SampleID", # Aggregate by SampleID
 #'   output_folder = tempfile("immundata_multi_"),
@@ -169,13 +168,13 @@
 #' print(idata_multi$repertoires) # Check repertoire summary
 #'
 #' # Clean up dummy files
-#' file.remove("my_sample.tsv", "sample1.tsv", "sample2.tsv", "metadata.tsv")
+#' file.remove("my_sample.tsv", "sample1.tsv", "sample2.tsv", "manifest.csv")
 #' unlink(out_dir, recursive = TRUE)
 #' unlink(attr(idata_multi, "output_folder"), recursive = TRUE) # Get path used by function
 #' }
 read_repertoires <- function(path,
                              schema,
-                             metadata = NULL,
+                             manifest = NULL,
                              barcode_col = NULL,
                              count_col = NULL,
                              locus_col = NULL,
@@ -184,7 +183,7 @@ read_repertoires <- function(path,
                              postprocess = make_default_postprocessing(),
                              rename_columns = imd_rename_cols("10x"),
                              enforce_schema = TRUE,
-                             metadata_file_col = "File",
+                             manifest_file_col = "file",
                              output_folder = NULL,
                              repertoire_schema = NULL) {
   start_time <- Sys.time()
@@ -197,8 +196,8 @@ read_repertoires <- function(path,
 
   assert_receptor_schema(schema)
 
-  checkmate::assert_data_frame(metadata, null.ok = T)
-  checkmate::assert_character(metadata_file_col, null.ok = T)
+  checkmate::assert_data_frame(manifest, null.ok = TRUE)
+  checkmate::assert_character(manifest_file_col, null.ok = TRUE)
   checkmate::assert_character(
     barcode_col,
     min.len = 1,
@@ -242,25 +241,29 @@ read_repertoires <- function(path,
   dropped_columns <- character()
 
   #
-  # Preprocessing the metadata
+  # Preprocessing the manifest
   #
-  # TODO: define "<metadata>" in globals.R
-  immundata_filename_col <- IMD_GLOBALS$schema$filename
+  # TODO: define "<manifest>" in globals.R
+  immundata_filename_col <- IMD_GLOBALS$schema$manifest_filename
 
   if (path[1] == "<metadata>") {
-    if (!is.null(metadata)) {
-      if (!metadata_file_col %in% colnames(metadata)) {
-        cli::cli_abort("Passed {.code path = '<metadata>'}, but the metadata table has no column {.field {metadata_file_col}}. Available metadata columns: [{colnames(metadata)}].")
+    cli::cli_abort("Input repertoire metadata tables are now manifests. Use {.code path = '<manifest>'}, {.arg manifest}, and {.arg manifest_file_col}. Snapshot metadata.json is not affected.")
+  }
+
+  if (path[1] == "<manifest>") {
+    if (!is.null(manifest)) {
+      if (!manifest_file_col %in% colnames(manifest)) {
+        cli::cli_abort("Passed {.code path = '<manifest>'}, but the manifest has no column {.field {manifest_file_col}}. Available manifest columns: [{colnames(manifest)}].")
       }
 
-      if (any(is.na(metadata[[metadata_file_col]]) | metadata[[metadata_file_col]] == "")) {
-        cli::cli_abort("Column {.field {metadata_file_col}} in metadata contains empty/NA paths. Please provide valid file paths for all rows.")
+      if (any(is.na(manifest[[manifest_file_col]]) | manifest[[manifest_file_col]] == "")) {
+        cli::cli_abort("Column {.field {manifest_file_col}} in manifest contains empty/NA paths. Please provide valid file paths for all rows.")
       }
 
-      path <- normalizePath(metadata[[metadata_file_col]])
-      metadata[[immundata_filename_col]] <- path
+      path <- normalizePath(manifest[[manifest_file_col]])
+      manifest[[immundata_filename_col]] <- path
     } else {
-      cli::cli_abort("Passed `<metadata>`, but no `metadata` table provided. Please provide either a list of file paths or a metadata table.")
+      cli::cli_abort("Passed `<manifest>`, but no `manifest` table provided. Please provide either a list of file paths or a manifest.")
     }
   } else {
     path <- normalizePath(Sys.glob(path), mustWork = FALSE)
@@ -297,6 +300,9 @@ read_repertoires <- function(path,
       )
     )
   )
+
+  raw_dataset <- raw_dataset |>
+    rename(!!immundata_filename_col := any_of("filename"))
 
   # Rename columns
   if (!is.null(rename_columns)) {
@@ -341,7 +347,7 @@ read_repertoires <- function(path,
     cli::cli_ol()
     for (strategy_i in seq_along(preprocess)) {
       cli::cli_li(names(preprocess)[strategy_i])
-      raw_dataset <- preprocess[[strategy_i]](raw_dataset, metadata = metadata)
+      raw_dataset <- preprocess[[strategy_i]](raw_dataset, manifest = manifest)
     }
     cli::cli_end()
     cli::cli_end(ol)
@@ -369,19 +375,19 @@ read_repertoires <- function(path,
   cli::cli_alert_success("Execution plan for receptor data aggregation and annotation is ready")
 
   #
-  # Joining with the metadata table
+  # Joining with the manifest table
   #
-  if (!is.null(metadata)) {
-    if (!immundata_filename_col %in% colnames(metadata)) {
-      cli::cli_abort("No '{immundata_filename_col}' in the metadata table. It is imperative to have this column - `immundata` uses it to annotate the AIRR files")
+  if (!is.null(manifest)) {
+    if (!immundata_filename_col %in% colnames(manifest)) {
+      cli::cli_abort("No '{immundata_filename_col}' in the manifest. It is imperative to have this column - `immundata` uses it to annotate the AIRR files")
     }
 
-    cli::cli_h3("Joining the metadata table with the dataset using '{immundata_filename_col}' column")
+    cli::cli_h3("Joining the manifest with the dataset using '{immundata_filename_col}' column")
 
-    metadata_duckdb <- duckdb_tibble(metadata)
+    manifest_duckdb <- duckdb_tibble(manifest)
 
     annotation_data <- annotation_data |>
-      left_join(metadata_duckdb, by = immundata_filename_col)
+      left_join(manifest_duckdb, by = immundata_filename_col)
 
     cli::cli_alert_success("Joining plan is ready")
   }
@@ -436,7 +442,7 @@ read_repertoires <- function(path,
     producer_function = "read_repertoires",
     metadata_lineage_inputs = list(
       files = path,
-      metadata_joined = !is.null(metadata),
+      manifest_joined = !is.null(manifest),
       enforce_schema = enforce_schema
     ),
     metadata_lineage_args = list(
@@ -444,7 +450,7 @@ read_repertoires <- function(path,
       count_col = count_col,
       locus_col = locus_col,
       umi_col = umi_col,
-      metadata_file_col = metadata_file_col
+      manifest_file_col = manifest_file_col
     ),
     metadata_lineage_columns = list(
       renamed = list(
