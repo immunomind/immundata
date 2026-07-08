@@ -1,3 +1,42 @@
+is_special_repertoire_schema <- function(repertoire_schema, value = NULL) {
+  is_special <- is.character(repertoire_schema) &&
+    length(repertoire_schema) == 1 &&
+    repertoire_schema %in% c("<auto>", "<manifest>")
+
+  if (is.null(value)) {
+    return(is_special)
+  }
+
+  is_special && identical(repertoire_schema, value)
+}
+
+resolve_repertoire_schema <- function(repertoire_schema,
+                                      manifest,
+                                      path_from_manifest,
+                                      filename_col) {
+  if (is.null(repertoire_schema) || is.function(repertoire_schema)) {
+    return(repertoire_schema)
+  }
+
+  if (is_special_repertoire_schema(repertoire_schema, "<auto>")) {
+    if (isTRUE(path_from_manifest)) {
+      repertoire_schema <- "<manifest>"
+    } else {
+      return(filename_col)
+    }
+  }
+
+  if (is_special_repertoire_schema(repertoire_schema, "<manifest>")) {
+    if (!is.null(manifest)) {
+      return(colnames(manifest))
+    }
+
+    return(filename_col)
+  }
+
+  repertoire_schema
+}
+
 #' @title Read and process immune repertoire files to immundata
 #'
 #' @description
@@ -70,10 +109,12 @@
 #'   `immundata-<basename_without_ext>` is created in the same directory as the
 #'   first input file specified in `path`. The final `ImmunData` object reads
 #'   from these saved files. Default: `NULL`.
-#' @param repertoire_schema Character vector or Function. Defines columns used to
-#'   group annotations into distinct repertoires (e.g., by sample or donor).
-#'   If provided, [agg_repertoires()] is called after loading to add repertoire-level
-#'   summaries and metrics. Default: `NULL`.
+#' @param repertoire_schema Character vector, Function, `NULL`, or a special
+#'   string. Defines columns used to group annotations into distinct repertoires
+#'   (e.g., by sample or donor). `"<manifest>"` means group by input file /
+#'   manifest row. `"<auto>"` chooses `"<manifest>"` behavior when
+#'   `path = "<manifest>"`, otherwise it groups by the internal input filename
+#'   column. If `NULL`, no repertoires are created. Default: `"<auto>"`.
 #'
 #' @details
 #' The function executes the following steps:
@@ -87,13 +128,13 @@
 #' 8.  Applies postprocessing steps sequentially if `postprocess` is provided.
 #' 9.  Creates a temporary `ImmunData` object in memory.
 #' 10. Determines the `output_folder` path.
-#' 11. If `repertoire_schema` is provided, calls [agg_repertoires()] to define and summarize repertoires.
+#' 11. If `repertoire_schema` resolves to columns, calls [agg_repertoires()] to define and summarize repertoires.
 #' 12. Saves the processed annotation table and metadata using [write_immundata()] to the `output_folder`.
 #' 13. Loads the data back from the saved Parquet files using [read_immundata()] to create the final `ImmunData` object. This ensures the returned object is backed by efficient storage.
 #' 14. Returns the final `ImmunData` object.
 #'
 #' @return An `ImmunData` object containing the processed receptor annotations.
-#'   If `repertoire_schema` was provided, the object will also contain repertoire
+#'   If `repertoire_schema` resolves to columns, the object will also contain repertoire
 #'   definitions and summaries calculated by [agg_repertoires()].
 #'
 #' @seealso [ImmunData], [read_immundata()], [write_immundata()], [read_manifest()],
@@ -185,7 +226,7 @@ read_repertoires <- function(path,
                              enforce_schema = TRUE,
                              manifest_file_col = "file",
                              output_folder = NULL,
-                             repertoire_schema = NULL) {
+                             repertoire_schema = "<auto>") {
   start_time <- Sys.time()
 
   checkmate::assert_character(path)
@@ -239,18 +280,20 @@ read_repertoires <- function(path,
   applied_rename_columns <- requested_rename_columns[0]
   missing_rename_columns <- requested_rename_columns[0]
   dropped_columns <- character()
+  repertoire_schema_was_special <- is_special_repertoire_schema(repertoire_schema)
 
   #
   # Preprocessing the manifest
   #
   # TODO: define "<manifest>" in globals.R
   immundata_filename_col <- IMD_GLOBALS$schema$manifest_filename
+  path_from_manifest <- identical(path[1], "<manifest>")
 
   if (path[1] == "<metadata>") {
     cli::cli_abort("Input repertoire metadata tables are now manifests. Use {.code path = '<manifest>'}, {.arg manifest}, and {.arg manifest_file_col}. Snapshot metadata.json is not affected.")
   }
 
-  if (path[1] == "<manifest>") {
+  if (path_from_manifest) {
     if (!is.null(manifest)) {
       if (!manifest_file_col %in% colnames(manifest)) {
         cli::cli_abort("Passed {.code path = '<manifest>'}, but the manifest has no column {.field {manifest_file_col}}. Available manifest columns: [{colnames(manifest)}].")
@@ -269,6 +312,13 @@ read_repertoires <- function(path,
     path <- normalizePath(Sys.glob(path), mustWork = FALSE)
   }
   checkmate::assert_file_exists(path)
+
+  resolved_repertoire_schema <- resolve_repertoire_schema(
+    repertoire_schema = repertoire_schema,
+    manifest = manifest,
+    path_from_manifest = path_from_manifest,
+    filename_col = immundata_filename_col
+  )
 
   # Read the dataset
   cli::cli_h3("Reading repertoire data")
@@ -325,10 +375,10 @@ read_repertoires <- function(path,
       }
     }
 
-    if (!is.null(repertoire_schema)) {
-      for (i in seq_along(repertoire_schema)) {
-        if (repertoire_schema[i] %in% rename_columns) {
-          repertoire_schema[i] <- names(rename_columns)[repertoire_schema[i] == rename_columns]
+    if (!is.null(resolved_repertoire_schema) && !repertoire_schema_was_special && is.character(resolved_repertoire_schema)) {
+      for (i in seq_along(resolved_repertoire_schema)) {
+        if (resolved_repertoire_schema[i] %in% rename_columns) {
+          resolved_repertoire_schema[i] <- names(rename_columns)[resolved_repertoire_schema[i] == rename_columns]
         }
       }
     }
@@ -425,9 +475,9 @@ read_repertoires <- function(path,
   #
   # Create repertoires
   #
-  if (!is.null(repertoire_schema)) {
+  if (!is.null(resolved_repertoire_schema)) {
     cli::cli_h3("Aggregating repertoires...")
-    idata <- agg_repertoires(idata, repertoire_schema)
+    idata <- agg_repertoires(idata, resolved_repertoire_schema)
     cli_alert_success("Aggregation is finished")
   }
 
@@ -488,8 +538,8 @@ read_repertoires <- function(path,
 
   cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
 
-  if (!is.null(repertoire_schema)) {
-    cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
+  if (!is.null(resolved_repertoire_schema)) {
+    cli_alert_success("Loaded ImmunData with the repertoire schema: [{resolved_repertoire_schema}]")
   }
 
   if (idata_size == 0) {

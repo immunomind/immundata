@@ -159,6 +159,108 @@ test_that("read_repertoires() works with <manifest> directive", {
   expect_true("Prefix" %in% colnames(annotations))
 })
 
+test_that("read_repertoires() creates one repertoire per manifest row with <manifest> repertoire_schema", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
+
+  idata <- read_repertoires(
+    path = "<manifest>",
+    schema = c("cdr3_aa", "v_call"),
+    manifest = manifest_df,
+    manifest_file_col = "file",
+    repertoire_schema = "<manifest>",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  expect_s3_class(idata, "ImmunData")
+  expect_false(is.null(idata$repertoires))
+
+  annotations <- idata$annotations |> collect()
+  repertoires <- idata$repertoires |> collect()
+
+  expect_equal(nrow(repertoires), nrow(manifest_df))
+  expect_true("imd_filename" %in% colnames(repertoires))
+  expect_true("imd_filename" %in% idata$schema_repertoire)
+  expect_true(all(colnames(manifest_df) %in% idata$schema_repertoire))
+  expect_true(all(colnames(manifest_df) %in% colnames(repertoires)))
+
+  file_to_repertoire <- annotations |>
+    dplyr::summarise(
+      n_repertoires = dplyr::n_distinct(imd_repertoire_id),
+      .by = imd_filename
+    )
+
+  expect_equal(nrow(file_to_repertoire), nrow(manifest_df))
+  expect_true(all(file_to_repertoire$n_repertoires == 1))
+})
+
+test_that("read_repertoires() <auto> uses all manifest columns when path is <manifest>", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
+
+  idata <- read_repertoires(
+    path = "<manifest>",
+    schema = c("cdr3_aa", "v_call"),
+    manifest = manifest_df,
+    manifest_file_col = "file",
+    repertoire_schema = "<auto>",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  repertoires <- idata$repertoires |> collect()
+
+  expect_equal(nrow(repertoires), nrow(manifest_df))
+  expect_true(all(colnames(manifest_df) %in% idata$schema_repertoire))
+  expect_true(all(colnames(manifest_df) %in% colnames(repertoires)))
+  expect_true("imd_filename" %in% idata$schema_repertoire)
+})
+
+test_that("read_repertoires() <auto> creates one repertoire per file without manifest", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  inp_file1 <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  inp_file2 <- system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+  file_vec <- c(inp_file1, inp_file2)
+
+  idata <- read_repertoires(
+    path = file_vec,
+    schema = c("cdr3_aa", "v_call"),
+    repertoire_schema = "<auto>",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  expect_s3_class(idata, "ImmunData")
+  expect_equal(idata$schema_repertoire, "imd_filename")
+
+  annotations <- idata$annotations |> collect()
+  repertoires <- idata$repertoires |> collect()
+
+  expect_equal(nrow(repertoires), length(file_vec))
+  expect_true("imd_filename" %in% colnames(repertoires))
+
+  file_to_repertoire <- annotations |>
+    dplyr::summarise(
+      n_repertoires = dplyr::n_distinct(imd_repertoire_id),
+      .by = imd_filename
+    )
+
+  expect_equal(nrow(file_to_repertoire), length(file_vec))
+  expect_true(all(file_to_repertoire$n_repertoires == 1))
+})
+
 test_that("read_manifest() rejects old metadata filenames", {
   manifest_dir <- tempfile("old_manifest_name_")
   dir.create(manifest_dir)
