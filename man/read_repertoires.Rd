@@ -18,7 +18,7 @@ read_repertoires(
   enforce_schema = TRUE,
   manifest_file_col = "file",
   output_folder = NULL,
-  repertoire_schema = NULL
+  repertoire_schema = "<auto>"
 )
 }
 \arguments{
@@ -94,14 +94,16 @@ processed annotation data will be saved as \code{annotations.parquet} and
 first input file specified in \code{path}. The final \code{ImmunData} object reads
 from these saved files. Default: \code{NULL}.}
 
-\item{repertoire_schema}{Character vector or Function. Defines columns used to
-group annotations into distinct repertoires (e.g., by sample or donor).
-If provided, \code{\link[=agg_repertoires]{agg_repertoires()}} is called after loading to add repertoire-level
-summaries and metrics. Default: \code{NULL}.}
+\item{repertoire_schema}{Character vector, Function, \code{NULL}, or a special
+string. Defines columns used to group annotations into distinct repertoires
+(e.g., by sample or donor). \code{"<manifest>"} means group by input file /
+manifest row. \code{"<auto>"} chooses \code{"<manifest>"} behavior when
+\code{path = "<manifest>"}, otherwise it groups by the internal input filename
+column. If \code{NULL}, no repertoires are created. Default: \code{"<auto>"}.}
 }
 \value{
 An \code{ImmunData} object containing the processed receptor annotations.
-If \code{repertoire_schema} was provided, the object will also contain repertoire
+If \code{repertoire_schema} resolves to columns, the object will also contain repertoire
 definitions and summaries calculated by \code{\link[=agg_repertoires]{agg_repertoires()}}.
 }
 \description{
@@ -130,7 +132,7 @@ The function executes the following steps:
 \item Applies postprocessing steps sequentially if \code{postprocess} is provided.
 \item Creates a temporary \code{ImmunData} object in memory.
 \item Determines the \code{output_folder} path.
-\item If \code{repertoire_schema} is provided, calls \code{\link[=agg_repertoires]{agg_repertoires()}} to define and summarize repertoires.
+\item If \code{repertoire_schema} resolves to columns, calls \code{\link[=agg_repertoires]{agg_repertoires()}} to define and summarize repertoires.
 \item Saves the processed annotation table and metadata using \code{\link[=write_immundata]{write_immundata()}} to the \code{output_folder}.
 \item Loads the data back from the saved Parquet files using \code{\link[=read_immundata]{read_immundata()}} to create the final \code{ImmunData} object. This ensures the returned object is backed by efficient storage.
 \item Returns the final \code{ImmunData} object.

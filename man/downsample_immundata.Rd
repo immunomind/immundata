@@ -24,8 +24,9 @@ If repertoire schema is not defined, the entire dataset is treated as one repert
 The function uses a single parameter \code{n}:
 \itemize{
 \item If \verb{0 < n < 1}, \code{n} is treated as a proportion of repertoire size.
-\item If \code{n > 1}, \code{n} is treated as an absolute target count.
-\item If \code{n == 1}, an error is raised.
+\item If \code{n >= 1}, \code{n} is treated as an absolute target count. In particular,
+\code{n = 1} retains one barcode/receptor unit per repertoire for cell-level
+data, or one count per repertoire for bulk data.
 }
 
 Downsampling is barcode-based. For count-based inputs (e.g. bulk),
@@ -34,5 +35,7 @@ Existing repertoire-derived metrics (\code{imd_count}, \code{imd_proportion},
 \code{n_repertoires}, \code{n_receptors}, \code{n_barcodes}) are dropped and recalculated
 for the downsampled object when a repertoire schema is present. Original
 metrics are not retained because they describe the pre-downsampled universe.
+If the input has a strata schema, the strata layer is rebuilt from that
+schema after repertoire aggregation. Existing strata labels are retained.
 }
 \concept{filtering}

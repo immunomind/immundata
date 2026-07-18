@@ -32,8 +32,7 @@ Default \code{"stingy"} likely implies stricter type checking or safer inference
 using \code{cli} during loading. Set to \code{FALSE} for quiet operation.}
 }
 \value{
-A new \code{ImmunData} object reconstructed from the saved files. If
-repertoire information was saved, it will be recalculated and included.
+A new \code{ImmunData} object reconstructed from the saved files.
 }
 \description{
 Reconstructs an \code{ImmunData} object from files previously saved to a directory
@@ -46,8 +45,9 @@ This function expects a directory structure created by \code{\link[=write_immund
 containing at least:
 \itemize{
 \item \code{annotations.parquet}: The main annotation data table.
-\item \code{metadata.json}: Contains package version, receptor/repertoire schema,
-current \code{snapshot_id}, lineage events, and provenance paths.
+\item \code{metadata.json}: Contains package version, receptor/repertoire/strata
+schemas, the repertoire table, current \code{snapshot_id}, lineage events, and
+provenance paths.
 }
 
 The loading process involves:
@@ -57,13 +57,10 @@ required \code{annotations.parquet} and \code{metadata.json} files.
 \item Reading \code{metadata.json} using \code{jsonlite::read_json()}.
 \item Reading \code{annotations.parquet} using \code{duckplyr::read_parquet_duckdb()} with
 the specified \code{prudence} level.
-\item Extracting the \code{receptor_schema} and \code{repertoire_schema} from the loaded
-metadata.
-\item Instantiating a new \code{ImmunData} object using the loaded \code{annotations} data
-and the \code{receptor_schema}.
-\item If a non-empty \code{repertoire_schema} was found in the metadata, it calls
-\code{\link[=agg_repertoires]{agg_repertoires()}} on the newly created object to recalculate and
-attach repertoire-level information based on that schema.
+\item Restoring the receptor, repertoire, and strata schemas and the serialized
+repertoire table from metadata.
+\item Instantiating a new \code{ImmunData} object directly, without re-aggregating
+repertoires or strata.
 }
 }
 \examples{

@@ -13,81 +13,93 @@ and provides tools for filtering, aggregation, and receptor-to-repertoire mappin
 }
 \concept{core_immundata}
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{schema_receptor}}{A named list describing how to interpret receptor-level data.
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{schema_receptor}}{A named list describing how to interpret receptor-level data.
 This includes the fields used for aggregation (e.g., \code{CDR3}, \code{V_gene}, \code{J_gene}),
 and optionally unique identifiers for each receptor row. Used to ensure consistency
 across processing steps.}
 
-\item{\code{schema_repertoire}}{A named list defining how barcodes or annotations should be
+    \item{\code{schema_repertoire}}{A character vector defining how barcodes or annotations should be
 grouped into repertoires. This may include sample-level metadata (e.g., \code{sample_id},
 \code{donor_id}) used to define unique repertoires.}
-}
-\if{html}{\out{</div>}}
+
+    \item{\code{schema_strata}}{A character vector naming repertoire-level columns
+used to group repertoires into strata.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{receptors}}{Accessor for the dynamically-created table with receptors.}
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{receptors}}{Accessor for the dynamically-created table with receptors.}
 
-\item{\code{annotations}}{Accessor for the annotation-level table (\code{.annotations}).}
+    \item{\code{annotations}}{Accessor for the annotation-level table (\code{.annotations}).}
 
-\item{\code{repertoires}}{Get a table of repertoires and their basic statistics.}
+    \item{\code{repertoires}}{Get a table of repertoires and their basic statistics.}
 
-\item{\code{metadata}}{Get a table of repertoires without their basic statistics.}
+    \item{\code{stratas}}{Get one row per stratum with its schema values and label.}
 
-\item{\code{provenance}}{Read-only accessor for snapshot provenance metadata.}
-}
-\if{html}{\out{</div>}}
+    \item{\code{provenance}}{Read-only accessor for snapshot provenance metadata.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-ImmunData-new}{\code{ImmunData$new()}}
-\item \href{#method-ImmunData-clone}{\code{ImmunData$clone()}}
-}
+  \itemize{
+    \item \href{#method-ImmunData-initialize}{\code{ImmunData$new()}}
+    \item \href{#method-ImmunData-clone}{\code{ImmunData$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ImmunData-new"></a>}}
-\if{latex}{\out{\hypertarget{method-ImmunData-new}{}}}
-\subsection{Method \code{new()}}{
-Creates a new \code{ImmunData} object.
+\if{html}{\out{<a id="method-ImmunData-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-ImmunData-initialize}{}}}
+\subsection{\code{ImmunData$new()}}{
+  Creates a new \code{ImmunData} object.
 This constructor expects receptor-level and barcode-level data,
 along with a receptor schema defining aggregation and identity fields.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$new(schema, annotations, repertoires = NULL, provenance = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ImmunData$new(
+  schema,
+  annotations,
+  repertoires = NULL,
+  provenance = NULL,
+  stratas = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{schema}}{A character vector specifying the receptor schema (e.g., aggregate fields, ID columns).}
+      \item{\code{annotations}}{A cell/barcode-level dataset mapping barcodes to receptor rows.}
+      \item{\code{repertoires}}{A repertoire table, created inside the body of \link{agg_repertoires}.}
+      \item{\code{provenance}}{Internal provenance metadata for snapshot lineage.}
+      \item{\code{stratas}}{An optional strata table containing the strata ID, name, and
+columns defining the strata schema.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{schema}}{A character vector specifying the receptor schema (e.g., aggregate fields, ID columns).}
-
-\item{\code{annotations}}{A cell/barcode-level dataset mapping barcodes to receptor rows.}
-
-\item{\code{repertoires}}{A repertoire table, created inside the body of \link{agg_repertoires}.}
-
-\item{\code{provenance}}{Internal provenance metadata for snapshot lineage.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ImmunData-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-ImmunData-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ImmunData$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ImmunData$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ImmunData$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

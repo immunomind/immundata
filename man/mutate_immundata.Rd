@@ -15,7 +15,8 @@ mutate_immundata(idata, ..., seq_options = NULL)
 \item{...}{\code{dplyr::mutate}-style named expressions (e.g., \code{new_col = existing_col * 2},
 \code{category = ifelse(value > 10, "high", "low")}). These are applied first.
 \strong{Important}: You cannot use names for new or modified columns that conflict
-with the core \code{ImmunData} schema columns (retrieved via \code{imd_schema()}).}
+with internal \code{ImmunData} columns, receptor features, or repertoire-defining
+columns.}
 
 \item{seq_options}{Optional named list specifying sequence-based annotation options.
 Use \code{\link[=make_seq_options]{make_seq_options()}} for convenient creation. See \code{filter_immundata}
@@ -40,8 +41,8 @@ The function operates in two main steps:
 \enumerate{
 \item \strong{Standard Mutations (\code{...})}: Applies the standard \code{dplyr::mutate}-style
 expressions provided in \code{...} to the \verb{$annotations} table. You can create
-new columns or modify existing ones, but you \emph{cannot} modify columns
-defined in the core \code{ImmunData} schema (e.g., \code{receptor_id}, \code{cell_id}).
+new columns or modify existing ones, but you \emph{cannot} modify internal
+system columns, receptor features, or repertoire-defining columns.
 An error will occur if you attempt to do so.
 \item \strong{Sequence-based Annotations (\code{seq_options})}: If \code{seq_options} is provided,
 the function calculates sequence similarities or distances and adds corresponding

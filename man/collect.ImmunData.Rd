@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{ImmunData object.}
 
-\item{...}{Additional arguments passed to \code{\link[dplyr:compute]{dplyr::collect()}} for
+\item{...}{Additional arguments passed to \code{\link[dplyr:collect]{dplyr::collect()}} for
 \code{x$annotations}.}
 }
 \value{

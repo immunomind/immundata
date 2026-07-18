@@ -4,13 +4,13 @@
 \alias{agg_strata}
 \title{Aggregate repertoires into strata}
 \usage{
-agg_strata(idata, by, strata_name_prefix = "Strata")
+agg_strata(idata, schema, strata_name_prefix = "Strata")
 }
 \arguments{
 \item{idata}{An \code{ImmunData} object with repertoire aggregation already
 available (run \code{\link[=agg_repertoires]{agg_repertoires()}} first).}
 
-\item{by}{Character vector of columns in \code{idata$repertoires} used to define
+\item{schema}{Character vector of columns in \code{idata$repertoires} used to define
 strata.}
 
 \item{strata_name_prefix}{Character(1). Prefix for automatic strata labels in
@@ -32,6 +32,20 @@ with user-selected metadata columns.
 
 This enables a hierarchy of
 \code{chains -> barcodes -> receptors -> repertoires -> strata}.
+}
+\details{
+Strata are derived from the current repertoire definition. Calling
+\code{agg_strata()} on an already stratified object replaces the previous strata
+mapping, and the generated \code{imd_strata_id} values should be treated as
+internal identifiers rather than stable identifiers.
+
+Calling \code{\link[=agg_repertoires]{agg_repertoires()}} after \code{agg_strata()} intentionally rebuilds the
+repertoire identifiers and statistics. Because the previous strata mapping
+is tied to the old repertoire state, \code{imd_strata_id}, \code{strata_name}, and the
+strata schema are removed rather than carried forward. To retain a strata
+layer after redefining or recomputing repertoires, call \code{agg_strata()} again
+with the desired schema. The same rule applies when another operation
+re-aggregates repertoires internally.
 }
 \seealso{
 \code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=rename_strata]{rename_strata()}}, \link{ImmunData}

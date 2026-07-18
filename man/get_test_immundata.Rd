@@ -4,7 +4,7 @@
 \alias{get_test_immundata}
 \title{Get test datasets from \code{immundata}}
 \usage{
-get_test_immundata()
+get_test_immundata(repertoire_schema = "<auto>")
 }
 \description{
 Get test datasets from \code{immundata}

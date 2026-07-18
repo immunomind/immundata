@@ -16,7 +16,7 @@ write_immundata(
 \arguments{
 \item{idata}{The \code{ImmunData} object to save. Must be an R6 object of class
 \code{ImmunData} containing at least the \verb{$annotations} table and schema information
-(\verb{$schema_receptor}, optionally \verb{$schema_repertoire}).}
+(\verb{$schema_receptor}, optionally \verb{$schema_repertoire} and \verb{$schema_strata}).}
 
 \item{output_folder}{Character(1) or \code{NULL}. Path to the directory where the
 output files will be written. If \code{NULL}, a snapshot directory is created as
@@ -50,7 +50,7 @@ Read more about snapshots on our website in the \href{https://immunomind.github.
 Serializes the essential components of an \code{ImmunData} object to disk for
 efficient storage and later retrieval. It saves the core annotation data
 (\code{idata$annotations}) as a compressed Parquet file and accompanying metadata
-(including receptor/repertoire schemas and package version) as a JSON file
+(including schemas, repertoire data, and package version) as a JSON file
 within a specified directory.
 }
 \details{
@@ -63,8 +63,8 @@ The function performs the following actions:
 \item creates an auto-snapshot folder under
 \verb{home_path/snapshots/<tag>/vNNN} when \code{output_folder = NULL}.
 }
-\item Constructs metadata including schemas, \code{snapshot_id}, lineage, and
-provenance paths.
+\item Constructs metadata including schemas, the repertoire table, \code{snapshot_id},
+lineage, and provenance paths.
 \item Writes metadata to \code{metadata.json} within the resolved output folder.
 \item Writes the \code{idata$annotations} table (a \code{duckplyr_df} or similar) to
 \code{annotations.parquet} within \code{output_folder}.
@@ -84,9 +84,8 @@ compression-related arguments are ignored and DuckDB defaults are used.
 (\code{metadata.json}, \code{annotations.parquet}).
 }
 
-The receptor data itself (if stored separately in future versions) is not
-saved by this function; only the annotations linking to receptors are saved,
-along with the schema needed to reconstruct/interpret them.
+The receptor data itself is not stored separately; receptors remain a view
+derived from annotations and the receptor schema.
 }
 \examples{
 \dontrun{
