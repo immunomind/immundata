@@ -1,3 +1,41 @@
+imd_protected_annotation_columns <- function(idata) {
+  unique(c(
+    unname(unlist(imd_schema(), use.names = FALSE)),
+    imd_receptor_features(idata$schema_receptor),
+    idata$schema_repertoire
+  ))
+}
+
+imd_assert_mutable_annotation_columns <- function(idata, columns) {
+  protected_cols <- imd_protected_annotation_columns(idata)
+  bad <- intersect(unique(columns), protected_cols)
+
+  if (length(bad) == 0) {
+    return(invisible(TRUE))
+  }
+
+  system_cols <- unique(unname(unlist(imd_schema(), use.names = FALSE)))
+  bad_system <- intersect(bad, system_cols)
+  bad_schema <- setdiff(bad, system_cols)
+  messages <- "You cannot create or overwrite protected ImmunData columns."
+
+  if (length(bad_system) > 0) {
+    messages <- c(
+      messages,
+      "x" = "You cannot create or overwrite system columns. Offending names: {.val {bad_system}}"
+    )
+  }
+
+  if (length(bad_schema) > 0) {
+    messages <- c(
+      messages,
+      "x" = "You cannot create or overwrite receptor or repertoire schema columns. Offending names: {.val {bad_schema}}"
+    )
+  }
+
+  cli::cli_abort(messages)
+}
+
 #' @title Modify or Add Columns to ImmunData Annotations
 #'
 #' @description
@@ -11,8 +49,8 @@
 #' The function operates in two main steps:
 #' 1.  **Standard Mutations (`...`)**: Applies the standard `dplyr::mutate`-style
 #'     expressions provided in `...` to the `$annotations` table. You can create
-#'     new columns or modify existing ones, but you *cannot* modify columns
-#'     defined in the core `ImmunData` schema (e.g., `receptor_id`, `cell_id`).
+#'     new columns or modify existing ones, but you *cannot* modify internal
+#'     system columns, receptor features, or repertoire-defining columns.
 #'     An error will occur if you attempt to do so.
 #' 2.  **Sequence-based Annotations (`seq_options`)**: If `seq_options` is provided,
 #'     the function calculates sequence similarities or distances and adds corresponding
@@ -42,7 +80,8 @@
 #' @param ... `dplyr::mutate`-style named expressions (e.g., `new_col = existing_col * 2`,
 #'   `category = ifelse(value > 10, "high", "low")`). These are applied first.
 #'   **Important**: You cannot use names for new or modified columns that conflict
-#'   with the core `ImmunData` schema columns (retrieved via `imd_schema()`).
+#'   with internal `ImmunData` columns, receptor features, or repertoire-defining
+#'   columns.
 #' @param seq_options Optional named list specifying sequence-based annotation options.
 #'   Use [make_seq_options()] for convenient creation. See `filter_immundata`
 #'   documentation (`?filter_immundata`) or the details section here for the list
@@ -121,12 +160,25 @@ mutate_immundata <- function(idata,
   checkmate::assert_list(seq_options, null.ok = TRUE)
 
   dots <- rlang::enquos(..., .named = TRUE) # keep names exactly as passed
-  bad <- names(dots)[names(dots) %in% imd_schema()]
+  imd_assert_mutable_annotation_columns(idata, names(dots))
 
-  if (length(bad)) {
-    cli::cli_abort(
-      "You cannot create or overwrite system columns. Offending names: {.val {bad}}"
+  sequence_annotation_cols <- NULL
+  if (!is.null(seq_options)) {
+    seq_options <- check_seq_options(seq_options, mode = "mutate")
+    sequence_col_prefix <- switch(
+      seq_options$method,
+      exact = imd_schema("sim_exact"),
+      regex = imd_schema("sim_regex"),
+      lev = imd_schema("sim_lev"),
+      hamm = imd_schema("sim_hamm")
     )
+    sequence_annotation_cols <- make_pattern_columns(
+      patterns = seq_options$patterns,
+      col_prefix = sequence_col_prefix,
+      name_type = seq_options$name_type
+    )
+
+    imd_assert_mutable_annotation_columns(idata, sequence_annotation_cols)
   }
 
   # Run "basic" mutate first
@@ -139,24 +191,16 @@ mutate_immundata <- function(idata,
 
   # Run the sequence-based mutations
   if (!is.null(seq_options)) {
-    seq_options <- check_seq_options(seq_options, mode = "mutate")
-
     col_sym <- rlang::sym(seq_options$query_col)
 
     #
     # Exact
     #
     if (seq_options$method == "exact") {
-      dist_cols <- make_pattern_columns(
-        patterns = seq_options$patterns,
-        col_prefix = imd_schema("sim_exact"),
-        name_type = seq_options$name_type
-      )
-
       for (p_index in seq_along(seq_options$patterns)) {
         p_seq <- seq_options$patterns[p_index]
         new_annotations <- new_annotations |>
-          mutate(!!rlang::sym(dist_cols[p_index]) := !!col_sym == p_seq)
+          mutate(!!rlang::sym(sequence_annotation_cols[p_index]) := !!col_sym == p_seq)
       }
     } else {
       #

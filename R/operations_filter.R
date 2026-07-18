@@ -1,3 +1,18 @@
+imd_drop_repertoire_state <- function(annotations) {
+  repertoire_state_cols <- c(
+    imd_schema("repertoire"),
+    imd_schema("strata"),
+    imd_schema("strata_name"),
+    imd_schema("count"),
+    imd_schema("proportion"),
+    imd_schema("n_receptors"),
+    imd_schema("n_barcodes"),
+    imd_schema("n_repertoires")
+  )
+
+  annotations |> select(-any_of(repertoire_state_cols))
+}
+
 #' @title Filter ImmunData by receptor features, barcodes or any annotations
 #'
 #' @description
@@ -169,11 +184,14 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     # Exact
     #
     if (seq_options$method == "exact") {
-      new_annotations <- new_annotations |> filter(!!col_sym %in% seq_options$patterns)
+      filtered_universe <- new_annotations
 
-      keep_ids <- new_annotations |> select({{ receptor_id }})
+      keep_ids <- filtered_universe |>
+        filter(!!col_sym %in% seq_options$patterns) |>
+        select(all_of(receptor_id)) |>
+        distinct()
 
-      new_annotations <- idata$annotations |>
+      new_annotations <- filtered_universe |>
         semi_join(keep_ids, by = receptor_id)
     }
 
@@ -210,8 +228,13 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     # TODO: Refactor, but I'm not sure how to do it properly. Simply split to separate functions <compute distance> + <filter immundata>?
     # TODO: looks like a case for <move_annotations> from receptors to annotations
     if (seq_options$method != "exact") {
+      keep_ids <- new_annotations |>
+        semi_join(distance_data, by = seq_options$query_col) |>
+        select(all_of(receptor_id)) |>
+        distinct()
+
       new_annotations <- new_annotations |>
-        semi_join(distance_data, by = seq_options$query_col)
+        semi_join(keep_ids, by = receptor_id)
     }
   }
 
@@ -225,13 +248,18 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
       semi_join(keep_ids, by = receptor_id)
   }
 
+  preserve_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!preserve_repertoires) {
+    new_annotations <- imd_drop_repertoire_state(new_annotations)
+  }
+
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
     provenance = imd_get_provenance(idata)
   )
 
-  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
+  if (preserve_repertoires) {
     new_idata |> agg_repertoires(idata$schema_repertoire)
   } else {
     new_idata
@@ -261,13 +289,18 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)
 
+  preserve_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!preserve_repertoires) {
+    new_annotations <- imd_drop_repertoire_state(new_annotations)
+  }
+
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
     provenance = imd_get_provenance(idata)
   )
 
-  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
+  if (preserve_repertoires) {
     new_idata |> agg_repertoires(idata$schema_repertoire)
   } else {
     new_idata
@@ -292,13 +325,18 @@ filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
 
   new_annotations <- idata$annotations |> semi_join(receptors_table, by = receptors_col_id)
 
+  preserve_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!preserve_repertoires) {
+    new_annotations <- imd_drop_repertoire_state(new_annotations)
+  }
+
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
     provenance = imd_get_provenance(idata)
   )
 
-  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
+  if (preserve_repertoires) {
     new_idata |> agg_repertoires(idata$schema_repertoire)
   } else {
     new_idata

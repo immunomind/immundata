@@ -199,6 +199,71 @@ test_that("read_repertoires() creates one repertoire per manifest row with <mani
   expect_true(all(file_to_repertoire$n_repertoires == 1))
 })
 
+test_that("read_repertoires() rejects repeated manifest paths", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  input_file <- tempfile(fileext = ".tsv")
+  on.exit(unlink(input_file), add = TRUE)
+  readr::write_tsv(
+    data.frame(cdr3_aa = "AAA", v_call = "V1"),
+    input_file
+  )
+
+  normalized_input_file <- normalizePath(input_file)
+  equivalent_input_file <- file.path(
+    dirname(normalized_input_file),
+    ".",
+    basename(normalized_input_file)
+  )
+
+  manifests <- list(
+    exact = data.frame(
+      file = rep(normalized_input_file, 2),
+      sample_id = c("S1", "S2")
+    ),
+    normalized = data.frame(
+      file = c(normalized_input_file, equivalent_input_file),
+      sample_id = c("S1", "S2")
+    )
+  )
+
+  for (manifest_name in names(manifests)) {
+    expect_error(
+      read_repertoires(
+        path = "<manifest>",
+        schema = c("cdr3_aa", "v_call"),
+        manifest = manifests[[manifest_name]],
+        repertoire_schema = "<manifest>",
+        output_folder = output_dir,
+        preprocess = NULL,
+        postprocess = NULL,
+        rename_columns = NULL
+      ),
+      "duplicated repertoire file paths after normalization",
+      info = manifest_name
+    )
+  }
+
+  explicit_path_manifest <- data.frame(
+    imd_filename = rep(normalized_input_file, 2),
+    sample_id = c("S1", "S2")
+  )
+
+  expect_error(
+    read_repertoires(
+      path = normalized_input_file,
+      schema = c("cdr3_aa", "v_call"),
+      manifest = explicit_path_manifest,
+      output_folder = output_dir,
+      preprocess = NULL,
+      postprocess = NULL,
+      rename_columns = NULL
+    ),
+    "duplicated repertoire file paths after normalization"
+  )
+})
+
 test_that("read_repertoires() <auto> uses all manifest columns when path is <manifest>", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))

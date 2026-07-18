@@ -107,12 +107,29 @@ annotate_tbl_distance <- function(tbl_data,
     distinct(!!rlang::sym(query_col)) |>
     as_tbl()
 
+  con <- dbplyr::remote_con(uniq)
+  query_col_sql <- dbplyr::escape(
+    dbplyr::ident(query_col),
+    con = con
+  )
+
   # TODO: settings for kmers
   if (!is.na(max_dist)) {
+    kmer_left_sql <- dbplyr::build_sql(
+      query_col_sql,
+      "[:3]",
+      con = con
+    )
+    kmer_right_sql <- dbplyr::build_sql(
+      query_col_sql,
+      "[-2:]",
+      con = con
+    )
+
     uniq <- uniq |>
       mutate(
-        kmer_left = dbplyr::sql(cli::format_inline("{query_col}[:3]")),
-        kmer_right = dbplyr::sql(cli::format_inline("{query_col}[-2:]"))
+        kmer_left = dbplyr::sql(kmer_left_sql),
+        kmer_right = dbplyr::sql(kmer_right_sql)
       )
   }
 
@@ -132,6 +149,7 @@ annotate_tbl_distance <- function(tbl_data,
   # TODO: lump together multiple patterns in batches
   for (i in seq_along(patterns)) {
     p <- patterns[[i]]
+    pattern_sql <- dbplyr::escape(p, con = con)
     col_name_out <- dist_cols[i]
 
     #
@@ -140,17 +158,19 @@ annotate_tbl_distance <- function(tbl_data,
     if (method == "lev") {
       if (!is.na(max_dist)) {
         len_p <- nchar(p)
-        sql_expr <- cli::format_inline(
-          "CASE WHEN ",
-          " kmer_left = {query_col}[:3] AND kmer_right = {query_col}[-2:] AND",
-          " length({query_col}) >= {len_p - max_dist} AND length({query_col}) <= {len_p + max_dist}",
-          " THEN levenshtein({query_col}, '{p}')",
-          " ELSE NULL END"
+        sql_expr <- dbplyr::build_sql(
+          "CASE WHEN kmer_left = ", query_col_sql, "[:3]",
+          " AND kmer_right = ", query_col_sql, "[-2:]",
+          " AND length(", query_col_sql, ") >= ", len_p - max_dist,
+          " AND length(", query_col_sql, ") <= ", len_p + max_dist,
+          " THEN levenshtein(", query_col_sql, ", ", pattern_sql, ")",
+          " ELSE NULL END",
+          con = con
         )
       } else {
-        len_p <- nchar(p)
-        sql_expr <- cli::format_inline(
-          "levenshtein({query_col}, '{p}')"
+        sql_expr <- dbplyr::build_sql(
+          "levenshtein(", query_col_sql, ", ", pattern_sql, ")",
+          con = con
         )
       }
 
@@ -163,10 +183,11 @@ annotate_tbl_distance <- function(tbl_data,
     #
     else {
       len_p <- nchar(p)
-      sql_expr <- cli::format_inline(
-        "CASE WHEN length({query_col}) = {len_p}",
-        " THEN hamming({query_col}, '{p}')",
-        " ELSE NULL END"
+      sql_expr <- dbplyr::build_sql(
+        "CASE WHEN length(", query_col_sql, ") = ", len_p,
+        " THEN hamming(", query_col_sql, ", ", pattern_sql, ")",
+        " ELSE NULL END",
+        con = con
       )
 
       uniq <- uniq |>
@@ -194,7 +215,15 @@ annotate_tbl_distance <- function(tbl_data,
     uniq <- uniq |>
       as_duckdb_tibble()
   } else {
-    sql_expr <- sprintf("LEAST(%s) <= %d", paste(dist_cols, collapse = ", "), max_dist)
+    dist_cols_sql <- dbplyr::escape(
+      dbplyr::ident(dist_cols),
+      collapse = ", ",
+      con = con
+    )
+    sql_expr <- dbplyr::build_sql(
+      "LEAST(", dist_cols_sql, ") <= ", max_dist,
+      con = con
+    )
 
     uniq <- uniq |>
       filter(dbplyr::sql(sql_expr)) |>

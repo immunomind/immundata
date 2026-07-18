@@ -147,6 +147,19 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
     )
   }
 
+  if (!is.null(count_col)) {
+    negative_count_summary <- dataset |>
+      filter(!!rlang::sym(count_col) < 0) |>
+      summarise(n_negative = n()) |>
+      collect()
+
+    if (negative_count_summary$n_negative[[1]] > 0) {
+      cli::cli_abort(
+        "Bulk counts in {.field {count_col}} must be non-negative."
+      )
+    }
+  }
+
   # TODO:
   #   if (checkmate::test_r6(idata, "ImmunData")) {
   #     dataset <- idata$annotations
@@ -162,13 +175,22 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
 
   # TODO: refactor
   if (!is.null(locus_col)) {
-    if (locus_col != imd_schema("locus")) {
-      cli::cli_alert_info("Renaming {locus_col} to {imd_schema('locus')}")
+    canonical_locus_col <- imd_schema("locus")
 
-      locus_col <- imd_schema("locus")
-      names(locus_col) <- locus_col
+    if (locus_col != canonical_locus_col) {
+      original_locus_col <- locus_col
 
-      dataset <- rename(locus_col)
+      if (canonical_locus_col %in% colnames(dataset)) {
+        cli::cli_abort(
+          "Cannot standardize {.arg locus_col}: the dataset contains both the custom locus column {.field {original_locus_col}} and the canonical locus column {.field {canonical_locus_col}}."
+        )
+      }
+
+      cli::cli_alert_info("Renaming {original_locus_col} to {canonical_locus_col}")
+
+      dataset <- dataset |>
+        rename(!!canonical_locus_col := all_of(original_locus_col))
+      locus_col <- canonical_locus_col
     }
   }
 

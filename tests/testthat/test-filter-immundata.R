@@ -33,3 +33,50 @@ test_that("filter() filters ImmunData by annotation-level conditions (locus)", {
   # The receptor table should be smaller or the same size, never bigger
   expect_lte(filtered$receptors |> collect() |> nrow(), idata$receptors |> collect() |> nrow())
 })
+
+test_that("filters discard repertoire state when not preserving repertoires", {
+  annotations <- duckplyr::as_duckdb_tibble(
+    tibble::tibble(
+      imd_receptor_id = 1:4,
+      imd_barcode = paste0("bc", 1:4),
+      imd_chain_id = 1:4,
+      imd_n_chains = 1L,
+      cdr3_aa = c("AAA", "AAT", "AAA", "BBB"),
+      sample_id = c("S1", "S1", "S2", "S2")
+    )
+  )
+  idata <- ImmunData$new(schema = "cdr3_aa", annotations = annotations) |>
+    agg_repertoires("sample_id") |>
+    agg_strata("sample_id")
+
+  repertoire_state_cols <- c(
+    imd_schema("repertoire"),
+    imd_schema("strata"),
+    imd_schema("strata_name"),
+    imd_schema("count"),
+    imd_schema("proportion"),
+    imd_schema("n_receptors"),
+    imd_schema("n_barcodes"),
+    imd_schema("n_repertoires")
+  )
+  expect_true(all(c(
+    imd_schema("repertoire"),
+    imd_schema("strata"),
+    imd_schema("count"),
+    imd_schema("proportion"),
+    imd_schema("n_repertoires")
+  ) %in% names(idata$annotations)))
+
+  filtered <- list(
+    filter_immundata(idata, sample_id == "S1", keep_repertoires = FALSE),
+    filter_barcodes(idata, "bc1", keep_repertoires = FALSE),
+    filter_receptors(idata, 1L, keep_repertoires = FALSE)
+  )
+
+  for (out in filtered) {
+    expect_null(out$repertoires)
+    expect_null(out$schema_repertoire)
+    expect_null(out$schema_strata)
+    expect_false(any(repertoire_state_cols %in% names(out$annotations)))
+  }
+})

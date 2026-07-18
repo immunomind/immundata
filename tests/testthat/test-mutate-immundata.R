@@ -70,6 +70,41 @@ test_that("mutate_immundata blocks system column writes", {
   )
 })
 
+test_that("mutate_immundata blocks receptor and repertoire schema writes", {
+  idata <- make_mutate_test_idata() |>
+    agg_repertoires("sample_id")
+
+  expect_error(
+    mutate_immundata(idata, cdr3_aa = "changed"),
+    "schema columns.*cdr3_aa"
+  )
+  expect_error(
+    mutate_immundata(idata, sample_id = "changed"),
+    "schema columns.*sample_id"
+  )
+})
+
+test_that("mutate_immundata blocks generated sequence schema writes", {
+  idata <- make_mutate_test_idata()
+  collision_idata <- ImmunData$new(
+    schema = c("cdr3_aa", "imd_sim_exact_1"),
+    annotations = idata$annotations |>
+      dplyr::mutate(imd_sim_exact_1 = 0L)
+  )
+
+  expect_error(
+    mutate_immundata(
+      collision_idata,
+      seq_options = make_seq_options(
+        query_col = "cdr3_aa",
+        patterns = "AAA",
+        method = "exact"
+      )
+    ),
+    "schema columns.*imd_sim_exact_1"
+  )
+})
+
 test_that("mutate_immundata preserves repertoires, repertoire schema, and provenance", {
   idata <- make_mutate_test_idata() |>
     agg_repertoires("sample_id")

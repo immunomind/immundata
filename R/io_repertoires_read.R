@@ -10,6 +10,34 @@ is_special_repertoire_schema <- function(repertoire_schema, value = NULL) {
   is_special && identical(repertoire_schema, value)
 }
 
+assert_unique_manifest_paths <- function(paths) {
+  duplicated_paths <- unique(paths[duplicated(paths)])
+
+  if (length(duplicated_paths) == 0) {
+    return(invisible(TRUE))
+  }
+
+  duplicated_path_details <- vapply(
+    duplicated_paths,
+    function(duplicated_path) {
+      duplicated_rows <- which(paths == duplicated_path)
+      paste0(
+        duplicated_path,
+        " (rows ",
+        paste(duplicated_rows, collapse = ", "),
+        ")"
+      )
+    },
+    character(1)
+  )
+
+  cli::cli_abort(c(
+    "Manifest contains duplicated repertoire file paths after normalization.",
+    "!" = "Each repertoire file must appear only once.",
+    "x" = "Duplicated paths: {paste(duplicated_path_details, collapse = '; ')}"
+  ))
+}
+
 resolve_repertoire_schema <- function(repertoire_schema,
                                       manifest,
                                       path_from_manifest,
@@ -310,6 +338,17 @@ read_repertoires <- function(path,
     }
   } else {
     path <- normalizePath(Sys.glob(path), mustWork = FALSE)
+
+    if (!is.null(manifest) && immundata_filename_col %in% colnames(manifest)) {
+      manifest[[immundata_filename_col]] <- normalizePath(
+        manifest[[immundata_filename_col]],
+        mustWork = FALSE
+      )
+    }
+  }
+
+  if (!is.null(manifest) && immundata_filename_col %in% colnames(manifest)) {
+    assert_unique_manifest_paths(manifest[[immundata_filename_col]])
   }
   checkmate::assert_file_exists(path)
 
@@ -490,31 +529,33 @@ read_repertoires <- function(path,
     idata = idata,
     output_folder = output_folder,
     producer_function = "read_repertoires",
-    metadata_lineage_inputs = list(
-      files = path,
-      manifest_joined = !is.null(manifest),
-      enforce_schema = enforce_schema
-    ),
-    metadata_lineage_args = list(
-      barcode_col = barcode_col,
-      count_col = count_col,
-      locus_col = locus_col,
-      umi_col = umi_col,
-      manifest_file_col = manifest_file_col
-    ),
-    metadata_lineage_columns = list(
-      renamed = list(
-        requested = requested_rename_columns,
-        applied = applied_rename_columns,
-        not_found = missing_rename_columns
+    ingestion_payload = list(
+      inputs = list(
+        files = path,
+        manifest_joined = !is.null(manifest),
+        enforce_schema = enforce_schema
       ),
-      dropped = list(
-        applied = dropped_columns
+      args = list(
+        barcode_col = barcode_col,
+        count_col = count_col,
+        locus_col = locus_col,
+        umi_col = umi_col,
+        manifest_file_col = manifest_file_col
+      ),
+      column_lineage = list(
+        renamed = list(
+          requested = requested_rename_columns,
+          applied = applied_rename_columns,
+          not_found = missing_rename_columns
+        ),
+        dropped = list(
+          applied = dropped_columns
+        )
+      ),
+      pipeline = list(
+        preprocess = names(preprocess),
+        postprocess = names(postprocess)
       )
-    ),
-    metadata_lineage_pipeline = list(
-      preprocess = names(preprocess),
-      postprocess = names(postprocess)
     )
   )
 

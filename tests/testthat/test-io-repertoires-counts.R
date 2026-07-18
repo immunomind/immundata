@@ -371,6 +371,26 @@ test_that("Bulk data: correct receptor counts without barcodes", {
   expect_equal(annotations$imd_n_chains, test_data$clone_count)
 })
 
+test_that("agg_receptors rejects negative bulk counts", {
+  dataset <- duckplyr::as_duckdb_tibble(
+    tibble::tibble(
+      v_call = c("IGHV1", "IGHV2"),
+      j_call = c("IGHJ1", "IGHJ2"),
+      junction_aa = c("CARW", "CBRW"),
+      clone_count = c(10, -1)
+    )
+  )
+
+  expect_error(
+    agg_receptors(
+      dataset = dataset,
+      schema = c("v_call", "j_call", "junction_aa"),
+      count_col = "clone_count"
+    ),
+    "non-negative|negative"
+  )
+})
+
 # ============================================================================
 # COMPARISON TESTS
 # ============================================================================
