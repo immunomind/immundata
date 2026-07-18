@@ -53,6 +53,8 @@ IMD_GLOBALS <- list(
     package_version = "package_version",
     schema_receptor = "schema_receptor",
     schema_repertoire = "schema_repertoire",
+    schema_strata = "schema_strata",
+    repertoires = "repertoires",
     producer = "producer",
     snapshot_id = "snapshot_id",
     lineage = "lineage",

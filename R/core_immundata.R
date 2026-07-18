@@ -21,6 +21,9 @@ ImmunData <- R6Class(
     # .repertoire_table A duckplyr table with repertoire names and receptor counts.
     .repertoire_table = NULL,
 
+    # .strata_table A duckplyr table with one row per stratum.
+    .strata_table = NULL,
+
     # .provenance Internal snapshot/provenance metadata used by IO helpers.
     .provenance = NULL
   ),
@@ -31,10 +34,14 @@ ImmunData <- R6Class(
     #'   across processing steps.
     schema_receptor = NULL,
 
-    #' @field schema_repertoire A named list defining how barcodes or annotations should be
+    #' @field schema_repertoire A character vector defining how barcodes or annotations should be
     #'   grouped into repertoires. This may include sample-level metadata (e.g., `sample_id`,
     #'   `donor_id`) used to define unique repertoires.
     schema_repertoire = NULL,
+
+    #' @field schema_strata A character vector naming repertoire-level columns
+    #'   used to group repertoires into strata.
+    schema_strata = NULL,
 
     #' @description Creates a new `ImmunData` object.
     #' This constructor expects receptor-level and barcode-level data,
@@ -44,11 +51,16 @@ ImmunData <- R6Class(
     #' @param annotations A cell/barcode-level dataset mapping barcodes to receptor rows.
     #' @param repertoires A repertoire table, created inside the body of [agg_repertoires].
     #' @param provenance Internal provenance metadata for snapshot lineage.
+    #' @param stratas An optional strata table containing the strata ID, name, and
+    #'   columns defining the strata schema.
     initialize = function(schema,
                           annotations,
                           repertoires = NULL,
-                          provenance = NULL) {
-      checkmate::check_data_frame(annotations)
+                          provenance = NULL,
+                          stratas = NULL) {
+      checkmate::assert_data_frame(annotations)
+      checkmate::assert_data_frame(repertoires, null.ok = TRUE)
+      checkmate::assert_data_frame(stratas, null.ok = TRUE)
       checkmate::assert_list(provenance, null.ok = TRUE)
 
       if (checkmate::test_character(schema)) {
@@ -72,6 +84,47 @@ ImmunData <- R6Class(
           )
         )
         private$.repertoire_table <- repertoires
+      }
+
+      if (!is.null(stratas)) {
+        if (is.null(repertoires)) {
+          cli::cli_abort("A {.field stratas} table requires a non-null {.field repertoires} table.")
+        }
+
+        internal_strata_columns <- c(
+          imd_schema("strata"),
+          imd_schema("strata_name")
+        )
+        missing_internal_columns <- setdiff(internal_strata_columns, colnames(stratas))
+        if (length(missing_internal_columns) > 0) {
+          cli::cli_abort(
+            "Strata table is missing required column(s): [{missing_internal_columns}]."
+          )
+        }
+
+        self$schema_strata <- setdiff(colnames(stratas), internal_strata_columns)
+        if (length(self$schema_strata) == 0) {
+          cli::cli_abort("Strata table must contain at least one strata schema column.")
+        }
+
+        missing_repertoire_schema <- setdiff(
+          self$schema_strata,
+          self$schema_repertoire
+        )
+        if (length(missing_repertoire_schema) > 0) {
+          cli::cli_abort(
+            "Strata schema column(s) [{missing_repertoire_schema}] are not part of the inferred repertoire schema."
+          )
+        }
+
+        missing_repertoire_columns <- setdiff(colnames(stratas), colnames(repertoires))
+        if (length(missing_repertoire_columns) > 0) {
+          cli::cli_abort(
+            "Strata column(s) [{missing_repertoire_columns}] are missing from {.field repertoires}."
+          )
+        }
+
+        private$.strata_table <- stratas
       }
     }
   ),
@@ -147,13 +200,18 @@ ImmunData <- R6Class(
       }
     },
 
-    #' @field metadata Get a table of repertoires without their basic statistics.
-    metadata = function() {
-      if (!is.null(private$.repertoire_table)) {
-        private$.repertoire_table |>
-          select(c(imd_schema("repertoire"), self$schema_repertoire)) |>
-          collect() |>
-          arrange(.data[[imd_schema("repertoire")]])
+    #' @field stratas Get one row per stratum with its schema values and label.
+    stratas = function() {
+      if (!is.null(private$.strata_table)) {
+        strata_table <- private$.strata_table |>
+          collect()
+
+        if (imd_schema("strata") %in% colnames(strata_table)) {
+          strata_table <- strata_table |>
+            arrange(.data[[imd_schema("strata")]])
+        }
+
+        strata_table
       } else {
         NULL
       }
