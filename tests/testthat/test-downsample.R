@@ -236,17 +236,16 @@ test_that("downsample_immundata works on IG test data with proportion n", {
   expect_true(all(chain_stats$n_loci == 2))
 })
 
-test_that("downsample_immundata rejects ambiguous n = 1", {
+test_that("downsample_immundata retains one sampling unit per repertoire for n = 1", {
   idata <- get_test_idata_tsv_no_manifest()
+  ds <- downsample_immundata(idata, n = 1, seed = 321)
 
-  expect_error(
-    downsample_immundata(idata, n = 1, seed = 321),
-    "ambiguous"
-  )
+  expect_true(all(ds$repertoires$n_barcodes == 1))
+  expect_true(all(ds$repertoires$n_receptors == 1))
 })
 
 test_that("downsample_immundata validates n and handles no-repertoire fallback", {
-  idata <- get_test_idata_tsv_no_manifest()
+  idata <- get_test_idata_tsv_no_manifest(repertoire_schema = NULL)
 
   expect_error(
     downsample_immundata(idata, n = 2.5),
@@ -482,4 +481,57 @@ test_that("downsample_immundata produces consistent imd_count and imd_proportion
 
   expect_equal(receptor_stats$sum_count, reps$n_barcodes)
   expect_true(all(abs(receptor_stats$sum_prop - 1) < 1e-8))
+})
+
+test_that("downsample_immundata uses schema_repertoire rather than stale repertoire ids", {
+  annotations <- duckplyr::as_duckdb_tibble(data.frame(
+    sample_id = rep(c("S1", "S2"), each = 3),
+    junction_aa = paste0("C", seq_len(6)),
+    imd_barcode = seq_len(6),
+    imd_chain_id = seq_len(6),
+    imd_receptor_id = seq_len(6),
+    imd_n_chains = rep(1L, 6)
+  ))
+
+  aggregated <- ImmunData$new(schema = "junction_aa", annotations = annotations) |>
+    agg_repertoires("sample_id")
+  detached <- ImmunData$new(
+    schema = aggregated$schema_receptor,
+    annotations = aggregated$annotations
+  )
+
+  ds <- downsample_immundata(detached, n = 2, seed = 1)
+  sampled_barcodes <- ds$annotations |>
+    distinct(imd_barcode) |>
+    collect()
+
+  expect_null(detached$schema_repertoire)
+  expect_null(ds$repertoires)
+  expect_equal(nrow(sampled_barcodes), 2)
+})
+
+test_that("downsample_immundata rebuilds strata and retains strata labels", {
+  strata_col <- imd_schema("strata")
+  strata_name_col <- imd_schema("strata_name")
+
+  idata <- get_test_immundata() |>
+    agg_repertoires(c("Response", "Therapy")) |>
+    agg_strata("Response")
+  idata <- rename_strata(
+    idata,
+    names = stats::setNames(
+      paste0("Response_", idata$stratas[[strata_col]]),
+      as.character(idata$stratas[[strata_col]])
+    )
+  )
+
+  ds <- downsample_immundata(idata, n = 1, seed = 99)
+
+  expect_equal(ds$schema_strata, "Response")
+  expect_true(strata_col %in% names(ds$annotations))
+  expect_true(all(c(strata_col, strata_name_col) %in% names(ds$repertoires)))
+  expect_equal(
+    sort(ds$stratas[[strata_name_col]]),
+    sort(idata$stratas[[strata_name_col]])
+  )
 })

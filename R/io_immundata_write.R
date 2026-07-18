@@ -4,12 +4,12 @@
 #' Serializes the essential components of an `ImmunData` object to disk for
 #' efficient storage and later retrieval. It saves the core annotation data
 #' (`idata$annotations`) as a compressed Parquet file and accompanying metadata
-#' (including receptor/repertoire schemas and package version) as a JSON file
+#' (including schemas, repertoire data, and package version) as a JSON file
 #' within a specified directory.
 #'
 #' @param idata The `ImmunData` object to save. Must be an R6 object of class
 #'   `ImmunData` containing at least the `$annotations` table and schema information
-#'   (`$schema_receptor`, optionally `$schema_repertoire`).
+#'   (`$schema_receptor`, optionally `$schema_repertoire` and `$schema_strata`).
 #' @param output_folder Character(1) or `NULL`. Path to the directory where the
 #'   output files will be written. If `NULL`, a snapshot directory is created as
 #'   `home_path/snapshots/<tag>/vNNN`, where `home_path` is read from internal
@@ -34,8 +34,8 @@
 #'    - uses `output_folder` when explicitly provided, or
 #'    - creates an auto-snapshot folder under
 #'      `home_path/snapshots/<tag>/vNNN` when `output_folder = NULL`.
-#' 3. Constructs metadata including schemas, `snapshot_id`, lineage, and
-#'    provenance paths.
+#' 3. Constructs metadata including schemas, the repertoire table, `snapshot_id`,
+#'    lineage, and provenance paths.
 #' 4. Writes metadata to `metadata.json` within the resolved output folder.
 #' 5. Writes the `idata$annotations` table (a `duckplyr_df` or similar) to
 #'    `annotations.parquet` within `output_folder`.
@@ -52,9 +52,8 @@
 #' 6. Uses internal helper `imd_files()` to determine the standard filenames
 #'    (`metadata.json`, `annotations.parquet`).
 #'
-#' The receptor data itself (if stored separately in future versions) is not
-#' saved by this function; only the annotations linking to receptors are saved,
-#' along with the schema needed to reconstruct/interpret them.
+#' The receptor data itself is not stored separately; receptors remain a view
+#' derived from annotations and the receptor schema.
 #'
 #' @return
 #' Invisibly returns the input `idata` object, saved to disk.

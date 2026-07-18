@@ -1,82 +1,3 @@
-is_snapshot_version_path <- function(path) {
-  base <- basename(path)
-  if (!grepl("^v[0-9]+$", base)) {
-    return(FALSE)
-  }
-
-  snapshots_dir <- basename(dirname(dirname(path)))
-  identical(snapshots_dir, "snapshots")
-}
-
-list_available_snapshot_tags <- function(home_path) {
-  snapshots_root <- file.path(home_path, "snapshots")
-  if (!dir.exists(snapshots_root)) {
-    return(character())
-  }
-
-  tags <- list.files(snapshots_root, full.names = FALSE, recursive = FALSE, all.files = FALSE)
-  tags <- tags[file.info(file.path(snapshots_root, tags))$isdir %in% TRUE]
-  sort(tags)
-}
-
-resolve_snapshot_input_path <- function(path, tag = NULL, version = NULL) {
-  checkmate::assert_character(path, len = 1, null.ok = FALSE)
-  checkmate::assert_character(tag, len = 1, null.ok = TRUE)
-  checkmate::assert_count(version, null.ok = TRUE)
-
-  path <- normalizePath(path, mustWork = FALSE)
-
-  if (!is.null(version) && is.null(tag)) {
-    cli::cli_abort("`version` can only be used together with {.arg tag}.")
-  }
-
-  if (is.null(tag)) {
-    return(path)
-  }
-
-  if (is_snapshot_version_path(path)) {
-    cli::cli_abort(
-      "Path [{path}] already points to a concrete snapshot version folder; do not combine it with {.arg tag}/{.arg version}."
-    )
-  }
-
-  tag <- imd_validate_snapshot_tag(tag)
-  tag_dir <- file.path(path, "snapshots", tag)
-
-  if (!dir.exists(tag_dir)) {
-    available_tags <- list_available_snapshot_tags(path)
-    if (length(available_tags) == 0) {
-      cli::cli_abort(
-        "Snapshot tag [{tag}] was not found under [{path}/snapshots]. No snapshot tags are available."
-      )
-    }
-
-    cli::cli_abort(
-      "Snapshot tag [{tag}] was not found under [{path}/snapshots]. Available tags: [{available_tags}]."
-    )
-  }
-
-  available_versions <- imd_list_snapshot_versions(tag_dir)
-  if (length(available_versions) == 0) {
-    cli::cli_abort(
-      "Snapshot tag [{tag}] exists under [{tag_dir}] but has no version directories (expected vNNN)."
-    )
-  }
-
-  if (is.null(version)) {
-    version <- max(available_versions)
-  }
-
-  if (!version %in% available_versions) {
-    formatted <- imd_format_snapshot_version(available_versions)
-    cli::cli_abort(
-      "Snapshot version [{imd_format_snapshot_version(version)}] was not found for tag [{tag}]. Available versions: [{formatted}]."
-    )
-  }
-
-  file.path(tag_dir, imd_format_snapshot_version(version))
-}
-
 normalize_json_character_field <- function(x) {
   if (is.null(x)) {
     return(NULL)
@@ -124,8 +45,9 @@ upgrade_metadata_v1_to_v2 <- function(meta_raw) {
     package_version = package_version,
     schema_receptor = receptor_schema,
     schema_repertoire = normalize_json_character_field(meta_raw$repertoire_schema),
+    schema_strata = NULL,
     producer = list("function" = "metadata_upgrade_v1"),
-    snapshot_id = imd_generate_snapshot_id(),
+    snapshot_id = NULL,
     lineage = list(),
     provenance = list(),
     extensions = list(
@@ -137,13 +59,7 @@ upgrade_metadata_v1_to_v2 <- function(meta_raw) {
   )
 }
 
-normalize_metadata_json <- function(meta_raw) {
-  checkmate::assert_list(meta_raw)
-
-  if (is_legacy_metadata_v1(meta_raw)) {
-    meta_raw <- upgrade_metadata_v1_to_v2(meta_raw)
-  }
-
+normalize_metadata_v2 <- function(meta_raw) {
   required_fields <- c(
     "format_version", "package_version", "schema_receptor", "schema_repertoire",
     "producer", "snapshot_id", "lineage", "provenance", "extensions"
@@ -155,7 +71,7 @@ normalize_metadata_json <- function(meta_raw) {
     )
   }
 
-  checkmate::assert_count(meta_raw$format_version)
+  checkmate::assert_number(meta_raw$format_version, lower = 2, upper = 2)
   checkmate::assert_character(meta_raw$package_version, len = 1)
   checkmate::assert_list(meta_raw$schema_receptor)
   checkmate::assert(
@@ -163,7 +79,11 @@ normalize_metadata_json <- function(meta_raw) {
     checkmate::test_character(meta_raw$schema_repertoire, null.ok = TRUE)
   )
   checkmate::assert_list(meta_raw$producer)
-  checkmate::assert_character(meta_raw$snapshot_id, len = 1)
+  is_legacy_upgrade <- !is.null(meta_raw$extensions$legacy)
+  if (is.null(meta_raw$snapshot_id) && !is_legacy_upgrade) {
+    cli::cli_abort("metadata.json field [snapshot_id] must be a character scalar.")
+  }
+  checkmate::assert_character(meta_raw$snapshot_id, len = 1, null.ok = is_legacy_upgrade)
   checkmate::assert_list(meta_raw$lineage)
   checkmate::assert_list(meta_raw$provenance)
   checkmate::assert_list(meta_raw$extensions)
@@ -180,11 +100,162 @@ normalize_metadata_json <- function(meta_raw) {
   meta_raw$schema_receptor <- schema_receptor
 
   meta_raw$schema_repertoire <- normalize_json_character_field(meta_raw$schema_repertoire)
+  has_serialized_repertoires <- "repertoires" %in% names(meta_raw)
+  meta_raw$schema_strata <- normalize_json_character_field(meta_raw$schema_strata)
+  if (!"schema_strata" %in% names(meta_raw)) {
+    meta_raw$schema_strata <- NULL
+  }
+  if (!is.null(meta_raw$schema_strata)) {
+    checkmate::assert_character(meta_raw$schema_strata)
+  }
 
-  meta_raw$provenance <- normalize_provenance(
-    meta_raw$provenance,
-    fallback_snapshot_id = meta_raw$snapshot_id,
-    fallback_lineage = meta_raw$lineage
-  )
+  if (has_serialized_repertoires) {
+    checkmate::assert_list(meta_raw$repertoires, null.ok = TRUE)
+  } else {
+    meta_raw$repertoires <- NULL
+  }
+  if (!is.null(meta_raw$repertoires)) {
+    meta_raw$repertoires <- as.data.frame(
+      meta_raw$repertoires,
+      stringsAsFactors = FALSE,
+      optional = TRUE,
+      check.names = FALSE
+    )
+  }
+
+  if (!is.null(meta_raw$schema_repertoire) && has_serialized_repertoires && is.null(meta_raw$repertoires)) {
+    cli::cli_abort(
+      "Snapshot declares a repertoire schema but does not contain serialized repertoire data."
+    )
+  }
+  if (is.null(meta_raw$schema_repertoire) && !is.null(meta_raw$repertoires)) {
+    cli::cli_abort(
+      "Snapshot contains serialized repertoire data but does not declare a repertoire schema."
+    )
+  }
+  if (!is.null(meta_raw$schema_strata) && is.null(meta_raw$schema_repertoire)) {
+    cli::cli_abort(
+      "Snapshot declares a strata schema but does not declare a repertoire schema."
+    )
+  }
+
+  # Old v2 snapshots can contain duplicated snapshot state in provenance.
+  # Preserve path information only; top-level metadata remains canonical.
+  meta_raw$provenance <- imd_path_provenance(meta_raw$provenance)
+  meta_raw$rebuild_repertoires <- !has_serialized_repertoires &&
+    !is.null(meta_raw$schema_repertoire)
   meta_raw
+}
+
+normalize_metadata_json <- function(meta_raw) {
+  checkmate::assert_list(meta_raw)
+
+  if (is_legacy_metadata_v1(meta_raw)) {
+    return(normalize_metadata_v2(upgrade_metadata_v1_to_v2(meta_raw)))
+  }
+
+  if (!"format_version" %in% names(meta_raw)) {
+    cli::cli_abort("metadata.json is missing required field(s): [format_version].")
+  }
+  checkmate::assert_count(meta_raw$format_version)
+  if (!identical(as.integer(meta_raw$format_version), 2L)) {
+    cli::cli_abort(
+      "Unsupported ImmunData snapshot format version [{meta_raw$format_version}]. Supported versions: [1, 2]."
+    )
+  }
+
+  normalize_metadata_v2(meta_raw)
+}
+
+validate_snapshot_columns <- function(metadata_json, annotation_data, snapshot_path) {
+  annotation_columns <- colnames(annotation_data)
+  issues <- character()
+
+  add_missing_issue <- function(missing, location) {
+    if (length(missing) > 0) {
+      issues <<- c(
+        issues,
+        paste0(location, " is missing required column(s): ", paste(missing, collapse = ", "), ".")
+      )
+    }
+  }
+
+  receptor_schema <- metadata_json$schema_receptor
+  required_annotation_columns <- c(
+    imd_schema("receptor"),
+    imd_schema("barcode"),
+    imd_schema("chain"),
+    imd_schema("chain_count"),
+    imd_receptor_features(receptor_schema)
+  )
+  if (length(imd_receptor_chains(receptor_schema)) == 2) {
+    required_annotation_columns <- c(required_annotation_columns, imd_schema("locus"))
+  }
+
+  add_missing_issue(
+    setdiff(unique(required_annotation_columns), annotation_columns),
+    "annotations.parquet"
+  )
+
+  repertoire_schema <- metadata_json$schema_repertoire
+  repertoire_data <- metadata_json$repertoires
+  if (!is.null(repertoire_schema)) {
+    add_missing_issue(
+      setdiff(
+        c(
+          repertoire_schema,
+          imd_schema("repertoire"),
+          imd_schema("count"),
+          imd_schema("proportion"),
+          imd_schema("n_repertoires")
+        ),
+        annotation_columns
+      ),
+      "annotations.parquet for the declared repertoire schema"
+    )
+    if (!isTRUE(metadata_json$rebuild_repertoires)) {
+      add_missing_issue(
+        setdiff(
+          c(
+            repertoire_schema,
+            imd_schema("repertoire"),
+            imd_schema("n_barcodes"),
+            imd_schema("n_receptors")
+          ),
+          colnames(repertoire_data)
+        ),
+        "metadata.json repertoires"
+      )
+    }
+  }
+
+  strata_schema <- metadata_json$schema_strata
+  if (!is.null(strata_schema)) {
+    add_missing_issue(
+      setdiff(imd_schema("strata"), annotation_columns),
+      "annotations.parquet for the declared strata schema"
+    )
+    add_missing_issue(
+      setdiff(
+        c(
+          strata_schema,
+          imd_schema("strata"),
+          imd_schema("strata_name")
+        ),
+        colnames(repertoire_data)
+      ),
+      "metadata.json repertoires for the declared strata schema"
+    )
+  }
+
+  if (length(issues) > 0) {
+    cli::cli_abort(c(
+      "Cannot load ImmunData snapshot because its schema is inconsistent.",
+      stats::setNames(issues, rep("x", length(issues))),
+      "i" = "Snapshot: {.path {snapshot_path}}",
+      "i" = "No data was loaded. Recreate the snapshot or correct its declared schema."
+    ))
+  }
+
+  invisible(TRUE)
 }

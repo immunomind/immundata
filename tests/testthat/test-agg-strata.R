@@ -5,7 +5,7 @@ test_that("agg_strata adds id and name to repertoires, id only to annotations", 
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy"))
 
-  stratified <- agg_strata(idata, by = "Response")
+  stratified <- agg_strata(idata, schema = "Response")
   rep_tbl <- stratified$repertoires
 
   expect_s3_class(rep_tbl, "tbl_df")
@@ -13,6 +13,11 @@ test_that("agg_strata adds id and name to repertoires, id only to annotations", 
   expect_true(strata_name_col %in% names(rep_tbl))
   expect_true(strata_col %in% names(stratified$annotations))
   expect_false(strata_name_col %in% names(stratified$annotations))
+  expect_equal(stratified$schema_strata, "Response")
+  expect_equal(
+    names(stratified$stratas),
+    c(strata_col, strata_name_col, "Response")
+  )
 
   expected_n <- length(unique(rep_tbl$Response))
   observed_n <- length(unique(rep_tbl[[strata_col]]))
@@ -28,7 +33,7 @@ test_that("agg_strata validates grouping columns", {
     agg_repertoires("Response")
 
   expect_error(
-    agg_strata(idata, by = "not_a_metadata_column"),
+    agg_strata(idata, schema = "not_a_metadata_column"),
     "not found in idata\\$repertoires"
   )
 })
@@ -40,7 +45,7 @@ test_that("agg_strata keeps repertoire-strata mapping consistent", {
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy"))
 
-  stratified <- agg_strata(idata, by = c("Response", "Therapy"))
+  stratified <- agg_strata(idata, schema = c("Response", "Therapy"))
 
   rep_map <- unique(stratified$repertoires[c(repertoire_col, strata_col)])
   rep_map <- rep_map[order(rep_map[[repertoire_col]]), , drop = FALSE]
@@ -77,7 +82,7 @@ test_that("agg_strata handles NA group values", {
     repertoires = rep_tbl
   )
 
-  stratified <- agg_strata(idata_with_na, by = "Response")
+  stratified <- agg_strata(idata_with_na, schema = "Response")
   strat_rep <- stratified$repertoires
 
   expect_equal(
@@ -100,10 +105,10 @@ test_that("agg_strata handles NA group values", {
 })
 
 test_that("agg_strata requires repertoire aggregation", {
-  idata <- get_test_immundata()
+  idata <- get_test_immundata(repertoire_schema = NULL)
 
   expect_error(
-    agg_strata(idata, by = "Response"),
+    agg_strata(idata, schema = "Response"),
     "agg_repertoires"
   )
 })
@@ -115,9 +120,10 @@ test_that("agg_strata keeps repertoire schema and strata metadata are dropped on
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy"))
 
-  stratified <- agg_strata(idata, by = "Response")
+  stratified <- agg_strata(idata, schema = "Response")
 
   expect_equal(stratified$schema_repertoire, idata$schema_repertoire)
+  expect_equal(stratified$schema_strata, "Response")
   expect_true(strata_col %in% names(stratified$annotations))
   expect_true(strata_col %in% names(stratified$repertoires))
   expect_true(strata_name_col %in% names(stratified$repertoires))
@@ -128,6 +134,8 @@ test_that("agg_strata keeps repertoire schema and strata metadata are dropped on
   expect_false(strata_name_col %in% names(reaggregated$annotations))
   expect_false(strata_col %in% names(reaggregated$repertoires))
   expect_false(strata_name_col %in% names(reaggregated$repertoires))
+  expect_null(reaggregated$schema_strata)
+  expect_null(reaggregated$stratas)
 })
 
 test_that("re-aggregation rebuilds repertoire ids and removes strata metadata", {
@@ -137,7 +145,7 @@ test_that("re-aggregation rebuilds repertoire ids and removes strata metadata", 
 
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy")) |>
-    agg_strata(by = "Response")
+    agg_strata(schema = "Response")
 
   poisoned_annotations <- idata$annotations |>
     dplyr::mutate(!!repertoire_col := 999999L, !!strata_col := 999999L)
@@ -190,23 +198,23 @@ test_that("agg_strata can be re-run and overwrites previous strata assignment", 
     repertoires = rep_tbl
   )
 
-  stratified_once <- agg_strata(mutated, by = "Response")
+  stratified_once <- agg_strata(mutated, schema = "Response")
   expect_equal(length(unique(stratified_once$repertoires[[strata_col]])), 1)
 
-  stratified_twice <- agg_strata(stratified_once, by = "Therapy")
+  stratified_twice <- agg_strata(stratified_once, schema = "Therapy")
   expect_equal(length(unique(stratified_twice$repertoires[[strata_col]])), 2)
   expect_true(strata_name_col %in% names(stratified_twice$repertoires))
   expect_false(strata_name_col %in% names(stratified_twice$annotations))
 })
 
-test_that("agg_strata validates by argument contract", {
+test_that("agg_strata validates schema argument contract", {
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy"))
 
-  expect_error(agg_strata(idata, by = character()), "Assertion on 'by' failed")
-  expect_error(agg_strata(idata, by = NA_character_), "Assertion on 'by' failed")
-  expect_error(agg_strata(idata, by = c("Response", "Response")), "Assertion on 'by' failed")
-  expect_error(agg_strata(idata, by = 1), "Assertion on 'by' failed")
+  expect_error(agg_strata(idata, schema = character()), "Assertion on 'schema' failed")
+  expect_error(agg_strata(idata, schema = NA_character_), "Assertion on 'schema' failed")
+  expect_error(agg_strata(idata, schema = c("Response", "Response")), "Assertion on 'schema' failed")
+  expect_error(agg_strata(idata, schema = 1), "Assertion on 'schema' failed")
 })
 
 test_that("agg_strata errors clearly when repertoire id column is missing", {
@@ -225,7 +233,7 @@ test_that("agg_strata errors clearly when repertoire id column is missing", {
   )
 
   expect_error(
-    agg_strata(bad_ann_idata, by = "Response"),
+    agg_strata(bad_ann_idata, schema = "Response"),
     "missing in .*idata\\$annotations"
   )
 
@@ -239,7 +247,7 @@ test_that("agg_strata errors clearly when repertoire id column is missing", {
   )
 
   expect_error(
-    agg_strata(bad_rep_idata, by = "Response"),
+    agg_strata(bad_rep_idata, schema = "Response"),
     "missing in .*idata\\$repertoires"
   )
 })
@@ -250,7 +258,7 @@ test_that("rename_strata renames using a full named vector mapping", {
 
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy")) |>
-    agg_strata(by = "Response")
+    agg_strata(schema = "Response")
 
   strata_ids <- sort(unique(idata$repertoires[[strata_col]]))
   new_labels <- paste0("Group_", strata_ids)
@@ -259,11 +267,23 @@ test_that("rename_strata renames using a full named vector mapping", {
   renamed <- rename_strata(idata, names = new_labels)
   rep_tbl <- renamed$repertoires
 
+  expect_equal(renamed$schema_strata, idata$schema_strata)
   expect_equal(
     sort(unique(rep_tbl[[strata_name_col]])),
     sort(unname(new_labels))
   )
   expect_false(strata_name_col %in% names(renamed$annotations))
+})
+
+test_that("print.ImmunData shows strata schema and strata table", {
+  idata <- get_test_immundata() |>
+    agg_repertoires(c("Response", "Therapy")) |>
+    agg_strata(schema = "Response")
+
+  output <- testthat::capture_messages(print(idata))
+
+  expect_true(any(grepl("Strata schema", output, fixed = TRUE)))
+  expect_true(any(grepl("List of strata", output, fixed = TRUE)))
 })
 
 test_that("rename_strata supports partial renaming with unnamed policy", {
@@ -272,7 +292,7 @@ test_that("rename_strata supports partial renaming with unnamed policy", {
 
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy")) |>
-    agg_strata(by = "Response")
+    agg_strata(schema = "Response")
 
   strata_ids <- sort(unique(idata$repertoires[[strata_col]]))
   partial_map <- c("CustomA")
@@ -300,7 +320,7 @@ test_that("rename_strata validates mapping integrity", {
 
   idata <- get_test_immundata() |>
     agg_repertoires(c("Response", "Therapy")) |>
-    agg_strata(by = "Response")
+    agg_strata(schema = "Response")
 
   strata_ids <- sort(unique(idata$repertoires[[strata_col]]))
 

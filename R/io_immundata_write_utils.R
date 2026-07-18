@@ -32,8 +32,8 @@ normalize_nullable_path <- function(path) {
 normalize_provenance <- function(provenance = NULL,
                                  fallback_home_path = NULL,
                                  fallback_current_path = NULL,
-                                 fallback_snapshot_id = NULL,
-                                 fallback_lineage = NULL) {
+                                 snapshot_id = NULL,
+                                 lineage = NULL) {
   if (is.null(provenance)) {
     provenance <- list()
   }
@@ -63,13 +63,6 @@ normalize_provenance <- function(provenance = NULL,
   if (is.null(defaults$current_path) && !is.null(fallback_current_path)) {
     defaults$current_path <- fallback_current_path
   }
-  if (is.null(defaults$snapshot_id) && !is.null(fallback_snapshot_id)) {
-    defaults$snapshot_id <- fallback_snapshot_id
-  }
-  if (length(defaults$lineage) == 0 && !is.null(fallback_lineage)) {
-    defaults$lineage <- fallback_lineage
-  }
-
   defaults$home_path <- normalize_nullable_path(defaults$home_path)
   defaults$current_path <- normalize_nullable_path(defaults$current_path)
   defaults$snapshot_root <- normalize_nullable_path(defaults$snapshot_root)
@@ -77,10 +70,16 @@ normalize_provenance <- function(provenance = NULL,
     defaults$snapshot_root <- normalizePath(file.path(defaults$home_path, "snapshots"), mustWork = FALSE)
   }
 
-  if (is.null(defaults$snapshot_id)) {
-    defaults$snapshot_id <- imd_generate_snapshot_id()
+  # `snapshot_id` and `lineage` are canonical snapshot state.  They are
+  # deliberately optional for in-memory objects that have not been written.
+  if (!is.null(snapshot_id)) {
+    defaults$snapshot_id <- snapshot_id
   }
-  checkmate::assert_character(defaults$snapshot_id, len = 1, null.ok = FALSE)
+  if (!is.null(lineage)) {
+    defaults$lineage <- lineage
+  }
+
+  checkmate::assert_character(defaults$snapshot_id, len = 1, null.ok = TRUE)
 
   checkmate::assert_list(defaults$lineage)
   for (event in defaults$lineage) {
@@ -90,11 +89,21 @@ normalize_provenance <- function(provenance = NULL,
   defaults
 }
 
+imd_path_provenance <- function(provenance) {
+  path_fields <- c("home_path", "current_path", "snapshot_root")
+  path_provenance <- provenance[path_fields]
+  normalize_provenance(path_provenance)[path_fields]
+}
+
 imd_get_provenance <- function(idata) {
   checkmate::assert_r6(idata, "ImmunData")
   private_env <- idata$.__enclos_env__$private
   raw <- private_env$.provenance
-  normalize_provenance(raw)
+  if (is.null(raw)) {
+    return(imd_default_provenance())
+  }
+
+  raw
 }
 
 imd_set_provenance <- function(idata, provenance) {
@@ -156,6 +165,89 @@ imd_next_snapshot_version <- function(tag_dir) {
   max(versions) + 1L
 }
 
+imd_is_snapshot_version_path <- function(path) {
+  grepl("^v[0-9]+$", basename(path)) &&
+    identical(basename(dirname(dirname(path))), "snapshots")
+}
+
+imd_list_snapshot_tags <- function(home_path) {
+  snapshot_root <- file.path(home_path, "snapshots")
+  if (!dir.exists(snapshot_root)) {
+    return(character())
+  }
+
+  tags <- list.files(snapshot_root, full.names = FALSE, recursive = FALSE, all.files = FALSE)
+  tags[file.info(file.path(snapshot_root, tags))$isdir %in% TRUE] |> sort()
+}
+
+imd_resolve_snapshot_version <- function(home_path, tag, version = NULL, allocate = FALSE) {
+  checkmate::assert_character(home_path, len = 1, null.ok = FALSE)
+  checkmate::assert_character(tag, len = 1, null.ok = FALSE)
+  checkmate::assert_count(version, null.ok = TRUE)
+  checkmate::assert_flag(allocate)
+
+  home_path <- normalizePath(home_path, mustWork = FALSE)
+  tag <- imd_validate_snapshot_tag(tag)
+  tag_dir <- file.path(home_path, "snapshots", tag)
+
+  if (allocate) {
+    dir.create(tag_dir, recursive = TRUE, showWarnings = FALSE)
+    return(file.path(tag_dir, imd_format_snapshot_version(imd_next_snapshot_version(tag_dir))))
+  }
+
+  if (!dir.exists(tag_dir)) {
+    available_tags <- imd_list_snapshot_tags(home_path)
+    if (length(available_tags) == 0) {
+      cli::cli_abort(
+        "Snapshot tag [{tag}] was not found under [{home_path}/snapshots]. No snapshot tags are available."
+      )
+    }
+    cli::cli_abort(
+      "Snapshot tag [{tag}] was not found under [{home_path}/snapshots]. Available tags: [{available_tags}]."
+    )
+  }
+
+  available_versions <- imd_list_snapshot_versions(tag_dir)
+  if (length(available_versions) == 0) {
+    cli::cli_abort(
+      "Snapshot tag [{tag}] exists under [{tag_dir}] but has no version directories (expected vNNN)."
+    )
+  }
+
+  if (is.null(version)) {
+    version <- max(available_versions)
+  }
+  if (!version %in% available_versions) {
+    formatted <- imd_format_snapshot_version(available_versions)
+    cli::cli_abort(
+      "Snapshot version [{imd_format_snapshot_version(version)}] was not found for tag [{tag}]. Available versions: [{formatted}]."
+    )
+  }
+
+  file.path(tag_dir, imd_format_snapshot_version(version))
+}
+
+imd_resolve_snapshot_input <- function(path, tag = NULL, version = NULL) {
+  checkmate::assert_character(path, len = 1, null.ok = FALSE)
+  checkmate::assert_character(tag, len = 1, null.ok = TRUE)
+  checkmate::assert_count(version, null.ok = TRUE)
+
+  path <- normalizePath(path, mustWork = FALSE)
+  if (!is.null(version) && is.null(tag)) {
+    cli::cli_abort("`version` can only be used together with {.arg tag}.")
+  }
+  if (is.null(tag)) {
+    return(path)
+  }
+  if (imd_is_snapshot_version_path(path)) {
+    cli::cli_abort(
+      "Path [{path}] already points to a concrete snapshot version folder; do not combine it with {.arg tag}/{.arg version}."
+    )
+  }
+
+  imd_resolve_snapshot_version(path, tag, version, allocate = FALSE)
+}
+
 imd_resolve_snapshot_output_folder <- function(idata,
                                                output_folder = NULL,
                                                tag = NULL,
@@ -191,16 +283,11 @@ imd_resolve_snapshot_output_folder <- function(idata,
   }
   tag <- imd_validate_snapshot_tag(tag)
 
-  snapshot_root <- provenance$snapshot_root
-  if (is.null(snapshot_root)) {
-    snapshot_root <- normalizePath(file.path(provenance$home_path, "snapshots"), mustWork = FALSE)
-  }
-
-  tag_dir <- file.path(snapshot_root, tag)
-  dir.create(tag_dir, recursive = TRUE, showWarnings = FALSE)
-
-  next_version <- imd_next_snapshot_version(tag_dir)
-  snapshot_folder <- file.path(tag_dir, imd_format_snapshot_version(next_version))
+  snapshot_folder <- imd_resolve_snapshot_version(
+    home_path = provenance$home_path,
+    tag = tag,
+    allocate = TRUE
+  )
 
   list(
     output_folder = normalizePath(snapshot_folder, mustWork = FALSE),
@@ -210,206 +297,76 @@ imd_resolve_snapshot_output_folder <- function(idata,
   )
 }
 
-validate_metadata_lineage_inputs <- function(metadata_lineage_inputs) {
-  checkmate::assert_list(metadata_lineage_inputs)
-
-  required_fields <- c("files", "manifest_joined", "enforce_schema")
-  checkmate::assert_names(
-    names(metadata_lineage_inputs),
-    must.include = required_fields,
-    subset.of = required_fields
-  )
-
-  checkmate::assert_character(metadata_lineage_inputs$files, min.len = 1)
-  checkmate::assert_logical(metadata_lineage_inputs$manifest_joined, len = 1)
-  checkmate::assert_logical(metadata_lineage_inputs$enforce_schema, len = 1)
-
-  metadata_lineage_inputs
-}
-
-validate_metadata_lineage_args <- function(metadata_lineage_args) {
-  checkmate::assert_list(metadata_lineage_args)
-
-  required_fields <- c("barcode_col", "count_col", "locus_col", "umi_col", "manifest_file_col")
-  checkmate::assert_names(
-    names(metadata_lineage_args),
-    must.include = required_fields,
-    subset.of = required_fields
-  )
-
-  checkmate::assert_character(metadata_lineage_args$barcode_col, max.len = 1, null.ok = TRUE)
-  checkmate::assert_character(metadata_lineage_args$count_col, max.len = 1, null.ok = TRUE)
-  checkmate::assert_character(metadata_lineage_args$locus_col, max.len = 1, null.ok = TRUE)
-  checkmate::assert_character(metadata_lineage_args$umi_col, max.len = 1, null.ok = TRUE)
-  checkmate::assert_character(metadata_lineage_args$manifest_file_col, len = 1, null.ok = FALSE)
-
-  metadata_lineage_args
-}
-
-validate_metadata_lineage_columns <- function(metadata_lineage_columns) {
-  checkmate::assert_list(metadata_lineage_columns)
-
-  required_top_fields <- c("renamed", "dropped")
-  checkmate::assert_names(
-    names(metadata_lineage_columns),
-    must.include = required_top_fields,
-    subset.of = required_top_fields
-  )
-
-  renamed <- metadata_lineage_columns$renamed
-  checkmate::assert_list(renamed)
-  checkmate::assert_names(
-    names(renamed),
-    must.include = c("requested", "applied", "not_found"),
-    subset.of = c("requested", "applied", "not_found")
-  )
-  checkmate::assert_character(renamed$requested, null.ok = TRUE)
-  checkmate::assert_character(renamed$applied, null.ok = TRUE)
-  checkmate::assert_character(renamed$not_found, null.ok = TRUE)
-
-  dropped <- metadata_lineage_columns$dropped
-  checkmate::assert_list(dropped)
-  checkmate::assert_names(
-    names(dropped),
-    must.include = c("applied"),
-    subset.of = c("applied")
-  )
-  checkmate::assert_character(dropped$applied, null.ok = TRUE)
-
-  metadata_lineage_columns
-}
-
-validate_metadata_lineage_pipeline <- function(metadata_lineage_pipeline) {
-  checkmate::assert_list(metadata_lineage_pipeline)
-
-  required_fields <- c("preprocess", "postprocess")
-  checkmate::assert_names(
-    names(metadata_lineage_pipeline),
-    must.include = required_fields,
-    subset.of = required_fields
-  )
-
-  checkmate::assert_character(metadata_lineage_pipeline$preprocess, null.ok = TRUE)
-  checkmate::assert_character(metadata_lineage_pipeline$postprocess, null.ok = TRUE)
-
-  metadata_lineage_pipeline
-}
-
-validate_metadata_extensions <- function(metadata_extensions) {
-  if (is.null(metadata_extensions)) {
-    return(list())
-  }
-
-  checkmate::assert_list(metadata_extensions)
-  if (!is.null(names(metadata_extensions))) {
-    checkmate::assert_true(all(names(metadata_extensions) != ""))
-  }
-
-  metadata_extensions
-}
-
-build_metadata_lineage <- function(metadata_lineage_inputs = NULL,
-                                   metadata_lineage_args = NULL,
-                                   metadata_lineage_columns = NULL,
-                                   metadata_lineage_pipeline = NULL) {
-  lineage_fields <- c(
-    !is.null(metadata_lineage_inputs),
-    !is.null(metadata_lineage_args),
-    !is.null(metadata_lineage_columns),
-    !is.null(metadata_lineage_pipeline)
-  )
-
-  if (any(lineage_fields) && !all(lineage_fields)) {
-    cli::cli_abort(
-      "Lineage metadata must be passed as a complete set: inputs, args, columns, and pipeline."
-    )
-  }
-
-  if (!any(lineage_fields)) {
-    return(NULL)
-  }
-
-  list(
-    inputs = validate_metadata_lineage_inputs(metadata_lineage_inputs),
-    args = validate_metadata_lineage_args(metadata_lineage_args),
-    column_lineage = validate_metadata_lineage_columns(metadata_lineage_columns),
-    pipeline = validate_metadata_lineage_pipeline(metadata_lineage_pipeline)
-  )
-}
-
-validate_lineage_events <- function(lineage) {
-  if (is.null(lineage)) {
-    return(list())
-  }
-
-  checkmate::assert_list(lineage)
-  for (event in lineage) {
-    checkmate::assert_list(event)
-  }
-
-  lineage
-}
-
-build_lineage_event <- function(event,
-                                producer_function,
-                                snapshot_id,
-                                ingestion_payload = NULL,
-                                source_path = NULL,
-                                snapshot_path = NULL,
-                                tag = NULL) {
-  checkmate::assert_choice(event, c("ingestion", "snapshot"))
-  checkmate::assert_character(producer_function, len = 1, null.ok = FALSE)
-  checkmate::assert_character(snapshot_id, len = 1, null.ok = FALSE)
-  checkmate::assert_character(source_path, len = 1, null.ok = TRUE)
-  checkmate::assert_character(snapshot_path, len = 1, null.ok = TRUE)
-  checkmate::assert_character(tag, len = 1, null.ok = TRUE)
-
-  out <- list(
-    event = event,
+build_snapshot_metadata <- function(idata,
+                                    producer_function,
+                                    provenance_before,
+                                    output_folder,
+                                    snapshot_tag = NULL,
+                                    rehome = FALSE,
+                                    ingestion_payload = NULL,
+                                    metadata_extensions = NULL) {
+  snapshot_id <- imd_generate_snapshot_id()
+  is_ingestion <- identical(producer_function, "read_repertoires")
+  event <- list(
+    event = if (is_ingestion) "ingestion" else "snapshot",
     created_at = imd_now_utc_iso(),
     snapshot_id = snapshot_id,
     producer = list("function" = producer_function)
   )
-
-  if (event == "ingestion") {
-    if (is.null(ingestion_payload)) {
-      cli::cli_abort("Ingestion lineage event requires ingestion payload.")
-    }
-
-    out$inputs <- ingestion_payload$inputs
-    out$args <- ingestion_payload$args
-    out$column_lineage <- ingestion_payload$column_lineage
-    out$pipeline <- ingestion_payload$pipeline
-    return(out)
+  if (is_ingestion) {
+    event <- c(event, ingestion_payload)
+  } else {
+    event$source_path <- provenance_before$current_path
+    event$snapshot_path <- output_folder
+    event$tag <- snapshot_tag
   }
 
-  out$source_path <- source_path
-  out$snapshot_path <- snapshot_path
-  out$tag <- tag
-  out
-}
-
-build_write_metadata_json <- function(idata,
-                                      producer_function,
-                                      snapshot_id,
-                                      lineage,
-                                      provenance,
-                                      metadata_extensions = NULL) {
-  checkmate::assert_r6(idata, "ImmunData")
-  checkmate::assert_character(producer_function, len = 1, null.ok = FALSE)
-  checkmate::assert_character(snapshot_id, len = 1, null.ok = FALSE)
-
-  metadata_json <- list(
-    format_version = 2L,
-    package_version = as.character(packageVersion("immundata")),
-    schema_receptor = idata$schema_receptor,
-    schema_repertoire = idata$schema_repertoire,
-    producer = list("function" = producer_function),
+  lineage <- c(provenance_before$lineage, list(event))
+  home_path <- provenance_before$home_path
+  if (is.null(home_path) || is_ingestion || isTRUE(rehome)) {
+    home_path <- output_folder
+  }
+  provenance_after <- normalize_provenance(
+    provenance_before,
+    fallback_home_path = home_path,
+    fallback_current_path = output_folder,
     snapshot_id = snapshot_id,
-    lineage = validate_lineage_events(lineage),
-    provenance = normalize_provenance(provenance),
-    extensions = validate_metadata_extensions(metadata_extensions)
+    lineage = lineage
+  )
+  provenance_after$home_path <- normalizePath(home_path, mustWork = FALSE)
+  provenance_after$current_path <- normalizePath(output_folder, mustWork = FALSE)
+  provenance_after$snapshot_root <- normalizePath(
+    file.path(provenance_after$home_path, "snapshots"),
+    mustWork = FALSE
   )
 
-  metadata_json
+  list(
+    metadata = list(
+      format_version = 2L,
+      package_version = as.character(packageVersion("immundata")),
+      schema_receptor = idata$schema_receptor,
+      schema_repertoire = idata$schema_repertoire,
+      schema_strata = idata$schema_strata,
+      repertoires = serialize_repertoires_json(idata$repertoires),
+      producer = list("function" = producer_function),
+      snapshot_id = snapshot_id,
+      lineage = lineage,
+      provenance = imd_path_provenance(provenance_after),
+      extensions = if (is.null(metadata_extensions)) list() else metadata_extensions
+    ),
+    provenance = provenance_after
+  )
+}
+
+serialize_repertoires_json <- function(repertoires) {
+  if (is.null(repertoires)) {
+    return(NULL)
+  }
+
+  checkmate::assert_data_frame(repertoires)
+
+  columns <- as.list(repertoires)
+  factor_columns <- vapply(columns, is.factor, logical(1))
+  columns[factor_columns] <- lapply(columns[factor_columns], as.character)
+  columns
 }

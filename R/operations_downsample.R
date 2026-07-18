@@ -6,8 +6,9 @@
 #'
 #' The function uses a single parameter `n`:
 #' - If `0 < n < 1`, `n` is treated as a proportion of repertoire size.
-#' - If `n > 1`, `n` is treated as an absolute target count.
-#' - If `n == 1`, an error is raised.
+#' - If `n >= 1`, `n` is treated as an absolute target count. In particular,
+#'   `n = 1` retains one barcode/receptor unit per repertoire for cell-level
+#'   data, or one count per repertoire for bulk data.
 #'
 #' Downsampling is barcode-based. For count-based inputs (e.g. bulk),
 #' per-barcode counts (`imd_n_chains`) are trimmed when needed to reach the target.
@@ -15,6 +16,8 @@
 #' `n_repertoires`, `n_receptors`, `n_barcodes`) are dropped and recalculated
 #' for the downsampled object when a repertoire schema is present. Original
 #' metrics are not retained because they describe the pre-downsampled universe.
+#' If the input has a strata schema, the strata layer is rebuilt from that
+#' schema after repertoire aggregation. Existing strata labels are retained.
 #'
 #' @param idata An `ImmunData` object.
 #' @param n Numeric scalar controlling downsampling amount.
@@ -29,10 +32,6 @@ downsample_immundata <- function(idata, n, seed = NULL) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_number(n, lower = 0, finite = TRUE)
   checkmate::assert_integerish(seed, len = 1, null.ok = TRUE, lower = 0)
-
-  if (isTRUE(all.equal(n, 1))) {
-    cli::cli_abort("`n = 1` is ambiguous. Please use a proportion `< 1` or a count `> 1`.")
-  }
 
   if (n > 1 && abs(n - round(n)) > sqrt(.Machine$double.eps)) {
     cli::cli_abort("When `n > 1`, `n` must be an integer count.")
@@ -51,11 +50,18 @@ downsample_immundata <- function(idata, n, seed = NULL) {
   n_repertoires_col <- imd_schema("n_repertoires")
   n_receptors_col <- imd_schema("n_receptors")
   n_barcodes_col <- imd_schema("n_barcodes")
+  strata_col <- imd_schema("strata")
+  strata_name_col <- imd_schema("strata_name")
 
   annotations_base <- idata$annotations |>
     select(-any_of(c(count_col, prop_col, n_repertoires_col, n_receptors_col, n_barcodes_col)))
 
-  has_repertoire <- repertoire_col %in% colnames(annotations_base)
+  has_repertoire <- !is.null(idata$schema_repertoire)
+  if (has_repertoire && !(repertoire_col %in% colnames(annotations_base))) {
+    cli::cli_abort(
+      "Repertoire aggregation is incomplete: {.field {repertoire_col}} is missing from {.field idata$annotations}."
+    )
+  }
   unit_cols <- c(if (has_repertoire) repertoire_col else character(0), barcode_col)
 
   is_count_mode <- annotations_base |>
@@ -245,9 +251,34 @@ downsample_immundata <- function(idata, n, seed = NULL) {
     provenance = imd_get_provenance(idata)
   )
 
-  if (!is.null(idata$schema_repertoire)) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
-  } else {
-    new_idata
+  if (is.null(idata$schema_repertoire)) {
+    return(new_idata)
   }
+
+  downsampled <- new_idata |> agg_repertoires(idata$schema_repertoire)
+
+  if (is.null(idata$schema_strata) || is.null(idata$stratas)) {
+    return(downsampled)
+  }
+
+  rebuilt_strata <- downsampled |> agg_strata(idata$schema_strata)
+
+  old_strata_labels <- idata$stratas |>
+    select(all_of(c(idata$schema_strata, strata_name_col)))
+  rebuilt_strata_labels <- rebuilt_strata$stratas |>
+    select(all_of(c(strata_col, idata$schema_strata))) |>
+    left_join(old_strata_labels, by = idata$schema_strata, na_matches = "na")
+
+  strata_names <- rebuilt_strata_labels[[strata_name_col]]
+  if (all(!is.na(strata_names))) {
+    rebuilt_strata <- rename_strata(
+      rebuilt_strata,
+      names = stats::setNames(
+        as.character(strata_names),
+        as.character(rebuilt_strata_labels[[strata_col]])
+      )
+    )
+  }
+
+  rebuilt_strata
 }

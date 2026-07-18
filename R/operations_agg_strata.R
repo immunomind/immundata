@@ -9,7 +9,7 @@
 #'
 #' @param idata An `ImmunData` object with repertoire aggregation already
 #'   available (run [agg_repertoires()] first).
-#' @param by Character vector of columns in `idata$repertoires` used to define
+#' @param schema Character vector of columns in `idata$repertoires` used to define
 #'   strata.
 #' @param strata_name_prefix Character(1). Prefix for automatic strata labels in
 #'   `strata_name`. Default: `"Strata"`.
@@ -21,13 +21,27 @@
 #' `strata_name` is stored only in `$repertoires` and is not copied into
 #' `$annotations`.
 #'
+#' @details
+#' Strata are derived from the current repertoire definition. Calling
+#' `agg_strata()` on an already stratified object replaces the previous strata
+#' mapping, and the generated `imd_strata_id` values should be treated as
+#' internal identifiers rather than stable identifiers.
+#'
+#' Calling [agg_repertoires()] after `agg_strata()` intentionally rebuilds the
+#' repertoire identifiers and statistics. Because the previous strata mapping
+#' is tied to the old repertoire state, `imd_strata_id`, `strata_name`, and the
+#' strata schema are removed rather than carried forward. To retain a strata
+#' layer after redefining or recomputing repertoires, call `agg_strata()` again
+#' with the desired schema. The same rule applies when another operation
+#' re-aggregates repertoires internally.
+#'
 #' @seealso [agg_repertoires()], [rename_strata()], [ImmunData]
 #'
 #' @concept aggregation
 #' @export
-agg_strata <- function(idata, by, strata_name_prefix = "Strata") {
+agg_strata <- function(idata, schema, strata_name_prefix = "Strata") {
   checkmate::assert_r6(idata, "ImmunData")
-  checkmate::assert_character(by, min.len = 1, unique = TRUE, any.missing = FALSE)
+  checkmate::assert_character(schema, min.len = 1, unique = TRUE, any.missing = FALSE)
   checkmate::assert_string(strata_name_prefix, min.chars = 1)
 
   if (is.null(idata$repertoires) || is.null(idata$schema_repertoire)) {
@@ -54,28 +68,28 @@ agg_strata <- function(idata, by, strata_name_prefix = "Strata") {
   rep_tbl_clean <- idata$repertoires |>
     select(-any_of(c(strata_col, strata_name_col)))
 
-  missing_by_repertoires <- setdiff(by, colnames(rep_tbl_clean))
-  if (length(missing_by_repertoires) > 0) {
+  missing_schema_repertoires <- setdiff(schema, colnames(rep_tbl_clean))
+  if (length(missing_schema_repertoires) > 0) {
     cli::cli_abort(
-      "Column(s) [{missing_by_repertoires}] specified in {.arg by} are not found in {.field idata$repertoires}."
+      "Column(s) [{missing_schema_repertoires}] specified in {.arg schema} are not found in {.field idata$repertoires}."
     )
   }
 
   strata_defs <- rep_tbl_clean |>
-    select(all_of(by)) |>
+    select(all_of(schema)) |>
     distinct() |>
-    arrange(!!!rlang::syms(by)) |>
+    arrange(!!!rlang::syms(schema)) |>
     mutate(
       {{ strata_col }} := row_number(),
       {{ strata_name_col }} := paste0(strata_name_prefix, .data[[strata_col]])
     ) |>
-    select(all_of(c(strata_col, strata_name_col, by)))
+    select(all_of(c(strata_col, strata_name_col, schema)))
 
   rep_tbl_stratified <- rep_tbl_clean |>
     mutate(.__row_id = row_number()) |>
     left_join(
-      strata_defs |> select(all_of(c(by, strata_col, strata_name_col))),
-      by = by
+      strata_defs |> select(all_of(c(schema, strata_col, strata_name_col))),
+      by = schema
     ) |>
     arrange(.__row_id) |>
     select(-all_of(".__row_id"))
@@ -95,6 +109,7 @@ agg_strata <- function(idata, by, strata_name_prefix = "Strata") {
     schema = idata$schema_receptor,
     annotations = annotations_stratified,
     repertoires = rep_tbl_stratified,
+    stratas = duckplyr::as_duckdb_tibble(strata_defs),
     provenance = imd_get_provenance(idata)
   )
 }
@@ -223,10 +238,16 @@ rename_strata <- function(idata, names, unnamed = c("error", "auto", "keep"), au
     cli::cli_abort("Resulting strata labels are not unique across strata.")
   }
 
+  strata_table <- rep_tbl |>
+    select(all_of(c(strata_col, strata_name_col, idata$schema_strata))) |>
+    distinct() |>
+    duckplyr::as_duckdb_tibble()
+
   ImmunData$new(
     schema = idata$schema_receptor,
     annotations = idata$annotations,
     repertoires = rep_tbl,
+    stratas = strata_table,
     provenance = imd_get_provenance(idata)
   )
 }

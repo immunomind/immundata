@@ -17,7 +17,7 @@ test_that("read_immundata() upgrades legacy v1 metadata on the fly", {
       features = c("cdr3_aa", "v_call"),
       chains = "TCRB"
     ),
-    repertoire_schema = list()
+    repertoire_schema = "imd_filename"
   )
   jsonlite::write_json(
     legacy_metadata_v1,
@@ -33,11 +33,15 @@ test_that("read_immundata() upgrades legacy v1 metadata on the fly", {
 
   checkmate::expect_r6(idata, classes = "ImmunData")
   expect_true(length(names(idata$annotations)) > 0)
+  expect_equal(idata$schema_repertoire, "imd_filename")
+  expect_false(is.null(idata$repertoires))
 
   prov <- imd_get_provenance(idata)
   expect_equal(prov$current_path, normalizePath(legacy_path, mustWork = FALSE))
-  expect_true(is.character(prov$snapshot_id))
-  expect_gt(nchar(prov$snapshot_id), 0)
+  expect_null(prov$snapshot_id)
+
+  written <- write_immundata(idata, output_folder = legacy_path)
+  expect_true(is.character(imd_get_provenance(written)$snapshot_id))
 })
 
 test_that("ImmunData$provenance is read-only and matches helper output", {
@@ -86,6 +90,8 @@ test_that("read_repertoires() writes metadata with lineage array and provenance"
   expect_true(is.list(metadata_json$lineage))
   expect_length(metadata_json$lineage, 1)
   expect_true(is.list(metadata_json$provenance))
+  expect_false("snapshot_id" %in% names(metadata_json$provenance))
+  expect_false("lineage" %in% names(metadata_json$provenance))
 
   ingestion_event <- metadata_json$lineage[[1]]
   expect_equal(ingestion_event$event, "ingestion")
@@ -99,6 +105,40 @@ test_that("read_repertoires() writes metadata with lineage array and provenance"
   expect_equal(
     normalizePath(metadata_json$provenance$snapshot_root, mustWork = FALSE),
     normalizePath(file.path(normalized_out, "snapshots"), mustWork = FALSE)
+  )
+
+  loaded <- read_immundata(output_dir, verbose = FALSE)
+  loaded_provenance <- imd_get_provenance(loaded)
+  expect_equal(loaded_provenance$snapshot_id, metadata_json$snapshot_id)
+  expect_length(loaded_provenance$lineage, length(metadata_json$lineage))
+  expect_equal(
+    vapply(loaded_provenance$lineage, `[[`, character(1), "event"),
+    vapply(metadata_json$lineage, `[[`, character(1), "event")
+  )
+  expect_equal(
+    vapply(loaded_provenance$lineage, `[[`, character(1), "snapshot_id"),
+    vapply(metadata_json$lineage, `[[`, character(1), "snapshot_id")
+  )
+
+  metadata_json$provenance$snapshot_id <- "stale-duplicated-id"
+  metadata_json$provenance$lineage <- list(list(
+    event = "stale-duplicated-event",
+    snapshot_id = "stale-duplicated-id"
+  ))
+  jsonlite::write_json(
+    metadata_json,
+    metadata_path,
+    auto_unbox = TRUE,
+    null = "null",
+    pretty = TRUE
+  )
+
+  loaded_duplicated_v2 <- read_immundata(output_dir, verbose = FALSE)
+  duplicated_v2_provenance <- imd_get_provenance(loaded_duplicated_v2)
+  expect_equal(duplicated_v2_provenance$snapshot_id, metadata_json$snapshot_id)
+  expect_equal(
+    vapply(duplicated_v2_provenance$lineage, `[[`, character(1), "event"),
+    vapply(metadata_json$lineage, `[[`, character(1), "event")
   )
 })
 
@@ -294,24 +334,47 @@ test_that("snapshot path resolution validates missing tags and versions", {
     read_immundata(file.path(output_dir, "snapshots", "baseline", "v001"), tag = "baseline"),
     "already points"
   )
+
+  expect_error(
+    read_immundata(output_dir, tag = "../bad"),
+    "must not include path separators"
+  )
+
+  expect_error(
+    read_immundata(output_dir, tag = "bad tag"),
+    "may only contain"
+  )
 })
 
-test_that("write_immundata() validates tags and missing provenance for auto-snapshots", {
+test_that("in-memory provenance reads are stable and snapshot IDs are created by writes", {
   layout <- create_snapshot_test_layout()
   on.exit(cleanup_snapshot_test_root())
   output_dir <- layout$projectA
 
   idata <- get_test_idata_tsv_no_manifest()
-  annotations_tbl <- idata$annotations |> collect()
   idata_no_provenance <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = annotations_tbl
+    annotations = idata$annotations
   )
+
+  first_provenance <- imd_get_provenance(idata_no_provenance)
+  second_provenance <- imd_get_provenance(idata_no_provenance)
+  expect_identical(first_provenance, second_provenance)
+  expect_null(first_provenance$snapshot_id)
+  expect_null(idata_no_provenance$.__enclos_env__$private$.provenance)
 
   expect_error(
     write_immundata(idata_no_provenance, output_folder = NULL),
     "Cannot infer snapshot home path"
   )
+
+  written <- write_immundata(idata_no_provenance, output_folder = output_dir)
+  metadata_json <- jsonlite::read_json(
+    file.path(output_dir, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  expect_true(is.character(metadata_json$snapshot_id))
+  expect_equal(imd_get_provenance(written)$snapshot_id, metadata_json$snapshot_id)
 
   expect_error(
     write_immundata(idata, output_folder = NULL, tag = "../bad"),
@@ -385,57 +448,313 @@ test_that("operation outputs preserve provenance for auto-snapshots", {
   )
 })
 
-test_that("write_immundata_internal() validates lineage as complete set", {
-  layout <- create_snapshot_test_layout()
-  on.exit(cleanup_snapshot_test_root())
-  output_dir <- layout$projectA
+test_that("write/read roundtrip preserves repertoire and strata state from metadata.json", {
+  output_dir <- create_test_output_dir("strata_roundtrip_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
 
-  idata <- get_test_idata_tsv_no_manifest()
+  idata <- get_test_immundata() |>
+    agg_repertoires(c("Response", "Therapy")) |>
+    agg_strata(schema = "Response")
+
+  strata_ids <- sort(unique(idata$repertoires[[imd_schema("strata")]]))
+  custom_names <- paste0("Custom_", strata_ids)
+  names(custom_names) <- as.character(strata_ids)
+  idata <- rename_strata(idata, names = custom_names)
+
+  repertoire_col <- imd_schema("repertoire")
+  strata_col <- imd_schema("strata")
+  shifted_annotations <- idata$annotations |>
+    dplyr::mutate(
+      !!rlang::sym(repertoire_col) := !!rlang::sym(repertoire_col) + 1000L,
+      !!rlang::sym(strata_col) := !!rlang::sym(strata_col) + 100L
+    )
+  shifted_repertoires <- idata$repertoires
+  shifted_repertoires[[repertoire_col]] <- shifted_repertoires[[repertoire_col]] + 1000L
+  shifted_repertoires[[strata_col]] <- shifted_repertoires[[strata_col]] + 100L
+  shifted_repertoires$json_flag <- rep(c(TRUE, NA), length.out = nrow(shifted_repertoires))
+  shifted_repertoires$json_score <- rep(c(1.5, NA_real_), length.out = nrow(shifted_repertoires))
+  shifted_repertoires$json_label <- rep(c("A", NA_character_), length.out = nrow(shifted_repertoires))
+  shifted_annotations <- shifted_annotations |>
+    dplyr::left_join(
+      duckplyr::as_duckdb_tibble(
+        shifted_repertoires |>
+          dplyr::select(all_of(c(
+            repertoire_col,
+            "json_flag",
+            "json_score",
+            "json_label"
+          )))
+      ),
+      by = repertoire_col
+    )
+  shifted_stratas <- shifted_repertoires |>
+    dplyr::select(all_of(c(
+      strata_col,
+      imd_schema("strata_name"),
+      idata$schema_strata
+    ))) |>
+    dplyr::distinct() |>
+    duckplyr::as_duckdb_tibble()
+
+  original <- ImmunData$new(
+    schema = idata$schema_receptor,
+    annotations = shifted_annotations,
+    repertoires = duckplyr::as_duckdb_tibble(shifted_repertoires),
+    stratas = shifted_stratas,
+    provenance = imd_get_provenance(idata)
+  )
+
+  write_immundata(original, output_folder = output_dir)
+  loaded <- read_immundata(output_dir, verbose = FALSE)
+
+  metadata_json <- jsonlite::read_json(
+    file.path(output_dir, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  expect_equal(
+    unlist(metadata_json$schema_strata, use.names = FALSE),
+    original$schema_strata
+  )
+  expect_true(is.list(metadata_json$repertoires))
+  expect_equal(names(metadata_json$repertoires), names(original$repertoires))
+
+  expect_equal(loaded$schema_repertoire, original$schema_repertoire)
+  expect_equal(loaded$schema_strata, original$schema_strata)
+  expect_equal(
+    as.data.frame(loaded$repertoires),
+    as.data.frame(original$repertoires),
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    as.data.frame(loaded$stratas),
+    as.data.frame(original$stratas),
+    ignore_attr = TRUE
+  )
+
+  loaded_ids <- loaded$annotations |>
+    dplyr::select(all_of(c(repertoire_col, strata_col))) |>
+    dplyr::distinct() |>
+    dplyr::collect() |>
+    dplyr::arrange(.data[[repertoire_col]])
+  original_ids <- original$annotations |>
+    dplyr::select(all_of(c(repertoire_col, strata_col))) |>
+    dplyr::distinct() |>
+    dplyr::collect() |>
+    dplyr::arrange(.data[[repertoire_col]])
+  expect_equal(loaded_ids, original_ids, ignore_attr = TRUE)
+})
+
+test_that("read_immundata errors when repertoire schema lacks serialized repertoires", {
+  output_dir <- create_test_output_dir("missing_repertoires_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    repertoire_schema = NULL,
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  metadata_path <- file.path(output_dir, "metadata.json")
+  metadata_json <- jsonlite::read_json(metadata_path, simplifyVector = FALSE)
+  metadata_json$schema_repertoire <- "imd_filename"
+  metadata_json["repertoires"] <- list(NULL)
+  jsonlite::write_json(
+    metadata_json,
+    metadata_path,
+    auto_unbox = TRUE,
+    null = "null",
+    pretty = TRUE
+  )
 
   expect_error(
-    write_immundata_internal(
-      idata = idata,
-      output_folder = output_dir,
-      producer_function = "read_repertoires",
-      metadata_lineage_inputs = list(
-        files = c("/tmp/sample.tsv"),
-        manifest_joined = FALSE,
-        enforce_schema = TRUE
-      )
-    ),
-    "complete set"
+    read_immundata(output_dir, verbose = FALSE),
+    "declares a repertoire schema.*does not contain serialized repertoire data"
   )
 })
 
-test_that("write_immundata_internal() validates lineage fields", {
-  layout <- create_snapshot_test_layout()
-  on.exit(cleanup_snapshot_test_root())
-  output_dir <- layout$projectA
+test_that("read_immundata reports missing Parquet columns without collecting annotations", {
+  output_dir <- create_test_output_dir("snapshot_schema_source_")
+  broken_dir <- create_test_output_dir("snapshot_schema_broken_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+  on.exit(cleanup_output_dir(broken_dir), add = TRUE)
 
-  idata <- get_test_idata_tsv_no_manifest()
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    repertoire_schema = NULL,
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  dir.create(broken_dir, recursive = TRUE)
+  file.copy(file.path(output_dir, "metadata.json"), broken_dir)
+  duckplyr::read_parquet_duckdb(file.path(output_dir, "annotations.parquet")) |>
+    dplyr::select(-imd_receptor_id, -cdr3_aa) |>
+    duckplyr::compute_parquet(file.path(broken_dir, "annotations.parquet"))
+
+  error <- tryCatch(
+    read_immundata(broken_dir, verbose = FALSE),
+    error = identity
+  )
+  expect_s3_class(error, "error")
+  expect_match(conditionMessage(error), "Cannot load ImmunData snapshot", fixed = TRUE)
+  expect_match(conditionMessage(error), "imd_receptor_id", fixed = TRUE)
+  expect_match(conditionMessage(error), "cdr3_aa", fixed = TRUE)
+  expect_match(conditionMessage(error), "No data was loaded", fixed = TRUE)
+})
+
+test_that("read_immundata validates declared repertoire columns", {
+  output_dir <- create_test_output_dir("snapshot_repertoire_columns_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    repertoire_schema = "imd_filename",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  metadata_path <- file.path(output_dir, "metadata.json")
+  metadata_json <- jsonlite::read_json(metadata_path, simplifyVector = FALSE)
+  metadata_json$schema_repertoire <- c(metadata_json$schema_repertoire, "repertoire_only")
+  metadata_json$repertoires$repertoire_only <- metadata_json$repertoires$imd_filename
+  metadata_json$repertoires$n_receptors <- NULL
+  jsonlite::write_json(
+    metadata_json,
+    metadata_path,
+    auto_unbox = TRUE,
+    null = "null",
+    pretty = TRUE
+  )
+
+  error <- tryCatch(
+    read_immundata(output_dir, verbose = FALSE),
+    error = identity
+  )
+  expect_match(conditionMessage(error), "repertoire_only", fixed = TRUE)
+  expect_match(conditionMessage(error), "n_receptors", fixed = TRUE)
+})
+
+test_that("read_immundata validates malformed and incomplete metadata fields", {
+  output_dir <- create_test_output_dir("snapshot_metadata_boundary_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  metadata_path <- file.path(output_dir, "metadata.json")
+  valid_metadata <- jsonlite::read_json(metadata_path, simplifyVector = FALSE)
+
+  malformed_metadata <- valid_metadata
+  malformed_metadata$producer <- "not a metadata object"
+  jsonlite::write_json(
+    malformed_metadata,
+    metadata_path,
+    auto_unbox = TRUE,
+    null = "null",
+    pretty = TRUE
+  )
+  expect_error(read_immundata(output_dir, verbose = FALSE))
+
+  incomplete_metadata <- valid_metadata
+  incomplete_metadata$extensions <- NULL
+  jsonlite::write_json(
+    incomplete_metadata,
+    metadata_path,
+    auto_unbox = TRUE,
+    null = "null",
+    pretty = TRUE
+  )
+  expect_error(
+    read_immundata(output_dir, verbose = FALSE),
+    "missing required field"
+  )
+})
+
+test_that("read_immundata rejects unsupported snapshot format versions", {
+  output_dir <- create_test_output_dir("snapshot_unsupported_version_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  metadata_path <- file.path(output_dir, "metadata.json")
+  metadata_json <- jsonlite::read_json(metadata_path, simplifyVector = FALSE)
+  metadata_json$format_version <- 99L
+  jsonlite::write_json(
+    metadata_json,
+    metadata_path,
+    auto_unbox = TRUE,
+    null = "null",
+    pretty = TRUE
+  )
 
   expect_error(
-    write_immundata_internal(
-      idata = idata,
-      output_folder = output_dir,
-      producer_function = "read_repertoires",
-      metadata_lineage_inputs = list(
-        files = c("/tmp/sample.tsv"),
-        manifest_joined = FALSE,
-        enforce_schema = TRUE
-      ),
-      metadata_lineage_args = list(
-        barcode_col = NULL,
-        count_col = NULL,
-        locus_col = NULL,
-        umi_col = NULL
-      ),
-      metadata_lineage_columns = list(
-        renamed = list(requested = character(), applied = character(), not_found = character()),
-        dropped = list(applied = character())
-      ),
-      metadata_lineage_pipeline = list(preprocess = character(), postprocess = character())
-    ),
-    "manifest_file_col|must include"
+    read_immundata(output_dir, verbose = FALSE),
+    "Unsupported.*format version"
+  )
+})
+
+test_that("read_immundata rejects unreadable annotation snapshots", {
+  output_dir <- create_test_output_dir("snapshot_corrupt_annotations_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  writeLines("not a parquet file", file.path(output_dir, "annotations.parquet"))
+  expect_error(read_immundata(output_dir, verbose = FALSE))
+})
+
+test_that("read_immundata validates declared strata columns", {
+  output_dir <- create_test_output_dir("snapshot_strata_columns_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  idata <- get_test_immundata() |>
+    agg_repertoires(c("Response", "Therapy")) |>
+    agg_strata(schema = "Response")
+  write_immundata(idata, output_folder = output_dir)
+
+  metadata_path <- file.path(output_dir, "metadata.json")
+  metadata_json <- jsonlite::read_json(metadata_path, simplifyVector = FALSE)
+  metadata_json$repertoires[[imd_schema("strata")]] <- NULL
+  jsonlite::write_json(
+    metadata_json,
+    metadata_path,
+    auto_unbox = TRUE,
+    null = "null",
+    pretty = TRUE
+  )
+
+  expect_error(
+    read_immundata(output_dir, verbose = FALSE),
+    imd_schema("strata")
   )
 })

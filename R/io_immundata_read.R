@@ -24,8 +24,9 @@
 #' This function expects a directory structure created by [write_immundata()],
 #' containing at least:
 #' - `annotations.parquet`: The main annotation data table.
-#' - `metadata.json`: Contains package version, receptor/repertoire schema,
-#'   current `snapshot_id`, lineage events, and provenance paths.
+#' - `metadata.json`: Contains package version, receptor/repertoire/strata
+#'   schemas, the repertoire table, current `snapshot_id`, lineage events, and
+#'   provenance paths.
 #'
 #' The loading process involves:
 #' 1. Checking that the specified `path` is a directory and contains the
@@ -33,16 +34,12 @@
 #' 2. Reading `metadata.json` using `jsonlite::read_json()`.
 #' 3. Reading `annotations.parquet` using `duckplyr::read_parquet_duckdb()` with
 #'    the specified `prudence` level.
-#' 4. Extracting the `receptor_schema` and `repertoire_schema` from the loaded
-#'    metadata.
-#' 5. Instantiating a new `ImmunData` object using the loaded `annotations` data
-#'    and the `receptor_schema`.
-#' 6. If a non-empty `repertoire_schema` was found in the metadata, it calls
-#'    [agg_repertoires()] on the newly created object to recalculate and
-#'    attach repertoire-level information based on that schema.
+#' 4. Restoring the receptor, repertoire, and strata schemas and the serialized
+#'    repertoire table from metadata.
+#' 5. Instantiating a new `ImmunData` object directly, without re-aggregating
+#'    repertoires or strata.
 #'
-#' @return A new `ImmunData` object reconstructed from the saved files. If
-#'   repertoire information was saved, it will be recalculated and included.
+#' @return A new `ImmunData` object reconstructed from the saved files.
 #'
 #' @seealso [write_immundata()] for saving `ImmunData` objects,
 #'   [read_repertoires()] for the primary data loading pipeline, [ImmunData] class,
@@ -79,7 +76,7 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
   checkmate::assert_character(tag, len = 1, null.ok = TRUE)
   checkmate::assert_count(version, null.ok = TRUE)
 
-  resolved_path <- resolve_snapshot_input_path(path, tag = tag, version = version)
+  resolved_path <- imd_resolve_snapshot_input(path, tag = tag, version = version)
   cli_alert_info("Reading ImmunData files from [{.path {resolved_path}}]")
 
   assert_directory_exists(resolved_path)
@@ -87,42 +84,67 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
   assert_file_exists(file.path(resolved_path, imd_files()$metadata))
 
   metadata_path <- file.path(resolved_path, imd_files()$metadata)
-  meta_raw <- jsonlite::read_json(metadata_path, simplifyVector = FALSE)
+  meta_raw <- jsonlite::read_json(
+    metadata_path,
+    simplifyVector = TRUE,
+    simplifyDataFrame = FALSE,
+    simplifyMatrix = FALSE
+  )
   metadata_json <- normalize_metadata_json(meta_raw)
 
   annotation_data <- read_parquet_duckdb(file.path(resolved_path, imd_files()$annotations), prudence = prudence)
+  validate_snapshot_columns(metadata_json, annotation_data, resolved_path)
 
   receptor_schema <- metadata_json[["schema_receptor"]]
-  # TODO: run checks/repairs:
-  # 1) no receptor schema, need to aggregate;
-  # 2) wrong columns;
-  # 3) receptor schema but no imd_receptor_id
 
-  repertoire_schema <- metadata_json[["schema_repertoire"]]
+  strata_schema <- metadata_json[["schema_strata"]]
+  repertoire_data <- metadata_json[["repertoires"]]
+  if (!is.null(repertoire_data)) {
+    repertoire_data <- duckplyr::as_duckdb_tibble(repertoire_data)
+  }
+
+  stratas_data <- NULL
+  if (!is.null(strata_schema)) {
+    stratas_data <- repertoire_data |>
+      select(all_of(c(
+        imd_schema("strata"),
+        imd_schema("strata_name"),
+        strata_schema
+      ))) |>
+      distinct()
+  }
 
   idata <- ImmunData$new(
     schema = receptor_schema,
-    annotations = annotation_data
+    annotations = annotation_data,
+    repertoires = repertoire_data,
+    stratas = stratas_data
   )
+
+  if (isTRUE(metadata_json$rebuild_repertoires)) {
+    idata <- agg_repertoires(idata, metadata_json$schema_repertoire)
+  }
 
   if (verbose) {
     cli_alert_success("Loaded ImmunData with the receptor schema: [{receptor_schema}]")
   }
 
-  if (!is.null(repertoire_schema) && length(repertoire_schema) > 0) {
-    idata <- agg_repertoires(idata, repertoire_schema)
-
+  if (!is.null(idata$schema_repertoire) && length(idata$schema_repertoire) > 0) {
     if (verbose) {
-      cli_alert_success("Loaded ImmunData with the repertoire schema: [{repertoire_schema}]")
+      cli_alert_success("Loaded ImmunData with the repertoire schema: [{idata$schema_repertoire}]")
     }
+  }
+
+  if (!is.null(idata$schema_strata) && length(idata$schema_strata) > 0 && verbose) {
+    cli_alert_success("Loaded ImmunData with the strata schema: [{idata$schema_strata}]")
   }
 
   provenance <- normalize_provenance(
     metadata_json$provenance,
     fallback_home_path = if (is.null(metadata_json$provenance$home_path)) resolved_path else metadata_json$provenance$home_path,
     fallback_current_path = resolved_path,
-    fallback_snapshot_id = metadata_json$snapshot_id,
-    fallback_lineage = metadata_json$lineage
+    snapshot_id = metadata_json$snapshot_id,
+    lineage = metadata_json$lineage
   )
   provenance$current_path <- normalizePath(resolved_path, mustWork = FALSE)
   if (is.null(provenance$home_path)) {

@@ -45,10 +45,24 @@ print.ImmunData <- function(x, ...) {
     cli::cli_bullets(schema)
   }
 
+  if (!is.null(x$schema_strata)) {
+    cli::cat_line()
+    cli::cli_h2("{cli::col_br_blue('Strata schema:')}")
+    schema <- x$schema_strata
+    names(schema) <- rep(">", times = length(schema))
+    cli::cli_bullets(schema)
+  }
+
   if (!is.null(x$repertoires)) {
     cli::cat_line()
     cli::cli_h2("{cli::col_br_cyan('List of repertoires:')}")
     print(x$repertoires)
+  }
+
+  if (!is.null(x$stratas)) {
+    cli::cat_line()
+    cli::cli_h2("{cli::col_br_blue('List of strata:')}")
+    print(x$stratas)
   }
 
   invisible(x)
