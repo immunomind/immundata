@@ -103,9 +103,9 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
     repertoire_data <- duckplyr::as_duckdb_tibble(repertoire_data)
   }
 
-  stratas_data <- NULL
+  strata_data <- NULL
   if (!is.null(strata_schema)) {
-    stratas_data <- repertoire_data |>
+    strata_data <- repertoire_data |>
       select(all_of(c(
         imd_schema("strata"),
         imd_schema("strata_name"),
@@ -118,7 +118,7 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
     schema = receptor_schema,
     annotations = annotation_data,
     repertoires = repertoire_data,
-    stratas = stratas_data
+    strata = strata_data
   )
 
   if (isTRUE(metadata_json$rebuild_repertoires)) {

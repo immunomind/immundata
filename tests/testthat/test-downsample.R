@@ -520,8 +520,8 @@ test_that("downsample_immundata rebuilds strata and retains strata labels", {
   idata <- rename_strata(
     idata,
     names = stats::setNames(
-      paste0("Response_", idata$stratas[[strata_col]]),
-      as.character(idata$stratas[[strata_col]])
+      paste0("Response_", idata$strata[[strata_col]]),
+      as.character(idata$strata[[strata_col]])
     )
   )
 
@@ -531,7 +531,7 @@ test_that("downsample_immundata rebuilds strata and retains strata labels", {
   expect_true(strata_col %in% names(ds$annotations))
   expect_true(all(c(strata_col, strata_name_col) %in% names(ds$repertoires)))
   expect_equal(
-    sort(ds$stratas[[strata_name_col]]),
-    sort(idata$stratas[[strata_name_col]])
+    sort(ds$strata[[strata_name_col]]),
+    sort(idata$strata[[strata_name_col]])
   )
 })

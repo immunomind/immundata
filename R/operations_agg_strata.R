@@ -109,7 +109,7 @@ agg_strata <- function(idata, schema, strata_name_prefix = "Strata") {
     schema = idata$schema_receptor,
     annotations = annotations_stratified,
     repertoires = rep_tbl_stratified,
-    stratas = duckplyr::as_duckdb_tibble(strata_defs),
+    strata = duckplyr::as_duckdb_tibble(strata_defs),
     provenance = imd_get_provenance(idata)
   )
 }
@@ -247,7 +247,7 @@ rename_strata <- function(idata, names, unnamed = c("error", "auto", "keep"), au
     schema = idata$schema_receptor,
     annotations = idata$annotations,
     repertoires = rep_tbl,
-    stratas = strata_table,
+    strata = strata_table,
     provenance = imd_get_provenance(idata)
   )
 }

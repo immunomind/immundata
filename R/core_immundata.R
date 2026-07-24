@@ -51,16 +51,16 @@ ImmunData <- R6Class(
     #' @param annotations A cell/barcode-level dataset mapping barcodes to receptor rows.
     #' @param repertoires A repertoire table, created inside the body of [agg_repertoires].
     #' @param provenance Internal provenance metadata for snapshot lineage.
-    #' @param stratas An optional strata table containing the strata ID, name, and
+    #' @param strata An optional strata table containing the strata ID, name, and
     #'   columns defining the strata schema.
     initialize = function(schema,
                           annotations,
                           repertoires = NULL,
                           provenance = NULL,
-                          stratas = NULL) {
+                          strata = NULL) {
       checkmate::assert_data_frame(annotations)
       checkmate::assert_data_frame(repertoires, null.ok = TRUE)
-      checkmate::assert_data_frame(stratas, null.ok = TRUE)
+      checkmate::assert_data_frame(strata, null.ok = TRUE)
       checkmate::assert_list(provenance, null.ok = TRUE)
 
       if (checkmate::test_character(schema)) {
@@ -86,23 +86,23 @@ ImmunData <- R6Class(
         private$.repertoire_table <- repertoires
       }
 
-      if (!is.null(stratas)) {
+      if (!is.null(strata)) {
         if (is.null(repertoires)) {
-          cli::cli_abort("A {.field stratas} table requires a non-null {.field repertoires} table.")
+          cli::cli_abort("A {.field strata} table requires a non-null {.field repertoires} table.")
         }
 
         internal_strata_columns <- c(
           imd_schema("strata"),
           imd_schema("strata_name")
         )
-        missing_internal_columns <- setdiff(internal_strata_columns, colnames(stratas))
+        missing_internal_columns <- setdiff(internal_strata_columns, colnames(strata))
         if (length(missing_internal_columns) > 0) {
           cli::cli_abort(
             "Strata table is missing required column(s): [{missing_internal_columns}]."
           )
         }
 
-        self$schema_strata <- setdiff(colnames(stratas), internal_strata_columns)
+        self$schema_strata <- setdiff(colnames(strata), internal_strata_columns)
         if (length(self$schema_strata) == 0) {
           cli::cli_abort("Strata table must contain at least one strata schema column.")
         }
@@ -117,14 +117,14 @@ ImmunData <- R6Class(
           )
         }
 
-        missing_repertoire_columns <- setdiff(colnames(stratas), colnames(repertoires))
+        missing_repertoire_columns <- setdiff(colnames(strata), colnames(repertoires))
         if (length(missing_repertoire_columns) > 0) {
           cli::cli_abort(
             "Strata column(s) [{missing_repertoire_columns}] are missing from {.field repertoires}."
           )
         }
 
-        private$.strata_table <- stratas
+        private$.strata_table <- strata
       }
     }
   ),
@@ -200,8 +200,8 @@ ImmunData <- R6Class(
       }
     },
 
-    #' @field stratas Get one row per stratum with its schema values and label.
-    stratas = function() {
+    #' @field strata Get one row per stratum with its schema values and label.
+    strata = function() {
       if (!is.null(private$.strata_table)) {
         strata_table <- private$.strata_table |>
           collect()

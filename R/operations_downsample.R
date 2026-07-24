@@ -257,15 +257,15 @@ downsample_immundata <- function(idata, n, seed = NULL) {
 
   downsampled <- new_idata |> agg_repertoires(idata$schema_repertoire)
 
-  if (is.null(idata$schema_strata) || is.null(idata$stratas)) {
+  if (is.null(idata$schema_strata) || is.null(idata$strata)) {
     return(downsampled)
   }
 
   rebuilt_strata <- downsampled |> agg_strata(idata$schema_strata)
 
-  old_strata_labels <- idata$stratas |>
+  old_strata_labels <- idata$strata |>
     select(all_of(c(idata$schema_strata, strata_name_col)))
-  rebuilt_strata_labels <- rebuilt_strata$stratas |>
+  rebuilt_strata_labels <- rebuilt_strata$strata |>
     select(all_of(c(strata_col, idata$schema_strata))) |>
     left_join(old_strata_labels, by = idata$schema_strata, na_matches = "na")
 

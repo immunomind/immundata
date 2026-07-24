@@ -15,7 +15,7 @@ test_that("agg_strata adds id and name to repertoires, id only to annotations", 
   expect_false(strata_name_col %in% names(stratified$annotations))
   expect_equal(stratified$schema_strata, "Response")
   expect_equal(
-    names(stratified$stratas),
+    names(stratified$strata),
     c(strata_col, strata_name_col, "Response")
   )
 
@@ -135,7 +135,7 @@ test_that("agg_strata keeps repertoire schema and strata metadata are dropped on
   expect_false(strata_col %in% names(reaggregated$repertoires))
   expect_false(strata_name_col %in% names(reaggregated$repertoires))
   expect_null(reaggregated$schema_strata)
-  expect_null(reaggregated$stratas)
+  expect_null(reaggregated$strata)
 })
 
 test_that("re-aggregation rebuilds repertoire ids and removes strata metadata", {

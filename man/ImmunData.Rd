@@ -38,7 +38,7 @@ used to group repertoires into strata.}
 
     \item{\code{repertoires}}{Get a table of repertoires and their basic statistics.}
 
-    \item{\code{stratas}}{Get one row per stratum with its schema values and label.}
+    \item{\code{strata}}{Get one row per stratum with its schema values and label.}
 
     \item{\code{provenance}}{Read-only accessor for snapshot provenance metadata.}
   }
@@ -65,7 +65,7 @@ along with a receptor schema defining aggregation and identity fields.
   annotations,
   repertoires = NULL,
   provenance = NULL,
-  stratas = NULL
+  strata = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -76,7 +76,7 @@ along with a receptor schema defining aggregation and identity fields.
       \item{\code{annotations}}{A cell/barcode-level dataset mapping barcodes to receptor rows.}
       \item{\code{repertoires}}{A repertoire table, created inside the body of \link{agg_repertoires}.}
       \item{\code{provenance}}{Internal provenance metadata for snapshot lineage.}
-      \item{\code{stratas}}{An optional strata table containing the strata ID, name, and
+      \item{\code{strata}}{An optional strata table containing the strata ID, name, and
 columns defining the strata schema.}
     }
     \if{html}{\out{</div>}}

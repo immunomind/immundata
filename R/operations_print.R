@@ -59,10 +59,10 @@ print.ImmunData <- function(x, ...) {
     print(x$repertoires)
   }
 
-  if (!is.null(x$stratas)) {
+  if (!is.null(x$strata)) {
     cli::cat_line()
     cli::cli_h2("{cli::col_br_blue('List of strata:')}")
-    print(x$stratas)
+    print(x$strata)
   }
 
   invisible(x)

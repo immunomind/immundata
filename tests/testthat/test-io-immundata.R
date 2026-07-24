@@ -487,7 +487,7 @@ test_that("write/read roundtrip preserves repertoire and strata state from metad
       ),
       by = repertoire_col
     )
-  shifted_stratas <- shifted_repertoires |>
+  shifted_strata <- shifted_repertoires |>
     dplyr::select(all_of(c(
       strata_col,
       imd_schema("strata_name"),
@@ -500,7 +500,7 @@ test_that("write/read roundtrip preserves repertoire and strata state from metad
     schema = idata$schema_receptor,
     annotations = shifted_annotations,
     repertoires = duckplyr::as_duckdb_tibble(shifted_repertoires),
-    stratas = shifted_stratas,
+    strata = shifted_strata,
     provenance = imd_get_provenance(idata)
   )
 
@@ -526,8 +526,8 @@ test_that("write/read roundtrip preserves repertoire and strata state from metad
     ignore_attr = TRUE
   )
   expect_equal(
-    as.data.frame(loaded$stratas),
-    as.data.frame(original$stratas),
+    as.data.frame(loaded$strata),
+    as.data.frame(original$strata),
     ignore_attr = TRUE
   )
 
