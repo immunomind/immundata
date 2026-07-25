@@ -1,7 +1,3 @@
-imd_now_utc_iso <- function() {
-  format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
-}
-
 imd_generate_snapshot_id <- function() {
   suffix <- paste0(sample(c(letters, 0:9), 8L, replace = TRUE), collapse = "")
   paste0("imd_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC"), "_", suffix)
@@ -228,19 +224,6 @@ imd_list_snapshot_versions <- function(tag_dir) {
   sort(unique(versions))
 }
 
-imd_next_snapshot_version <- function(tag_dir) {
-  versions <- imd_list_snapshot_versions(tag_dir)
-  if (length(versions) == 0) {
-    return(1L)
-  }
-  max(versions) + 1L
-}
-
-imd_is_snapshot_version_path <- function(path) {
-  grepl("^v[0-9]+$", basename(path)) &&
-    identical(basename(dirname(dirname(path))), "snapshots")
-}
-
 imd_list_snapshot_tags <- function(home_path) {
   snapshot_root <- file.path(home_path, "snapshots")
   if (!dir.exists(snapshot_root)) {
@@ -263,7 +246,9 @@ imd_resolve_snapshot_version <- function(home_path, tag, version = NULL, allocat
 
   if (allocate) {
     dir.create(tag_dir, recursive = TRUE, showWarnings = FALSE)
-    return(file.path(tag_dir, imd_format_snapshot_version(imd_next_snapshot_version(tag_dir))))
+    versions <- imd_list_snapshot_versions(tag_dir)
+    next_version <- if (length(versions) == 0) 1L else max(versions) + 1L
+    return(file.path(tag_dir, imd_format_snapshot_version(next_version)))
   }
 
   if (!dir.exists(tag_dir)) {
@@ -310,7 +295,9 @@ imd_resolve_snapshot_input <- function(path, tag = NULL, version = NULL) {
   if (is.null(tag)) {
     return(path)
   }
-  if (imd_is_snapshot_version_path(path)) {
+  path_is_snapshot_version <- grepl("^v[0-9]+$", basename(path)) &&
+    identical(basename(dirname(dirname(path))), "snapshots")
+  if (path_is_snapshot_version) {
     cli::cli_abort(
       "Path [{path}] already points to a concrete snapshot version folder; do not combine it with {.arg tag}/{.arg version}."
     )
@@ -391,7 +378,7 @@ build_snapshot_metadata <- function(idata,
   is_ingestion <- identical(producer_function, "read_repertoires")
   event <- list(
     event = if (is_ingestion) "ingestion" else "snapshot",
-    created_at = imd_now_utc_iso(),
+    created_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
     snapshot_id = snapshot_id,
     producer = list("function" = producer_function)
   )
