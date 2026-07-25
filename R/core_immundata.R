@@ -262,3 +262,16 @@ ImmunData <- R6Class(
     }
   )
 )
+
+imd_clone_with_annotations <- function(idata, annotations) {
+  checkmate::assert_r6(idata, "ImmunData")
+  checkmate::assert_data_frame(annotations)
+
+  ImmunData$new(
+    schema = idata$schema_receptor,
+    annotations = annotations,
+    repertoires = idata$repertoires,
+    strata = idata$strata,
+    provenance = imd_get_provenance(idata)
+  )
+}

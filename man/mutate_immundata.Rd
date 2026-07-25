@@ -26,8 +26,9 @@ ignored for mutation. If \code{NULL} (the default), no sequence-based columns ar
 }
 \value{
 A \emph{new} \code{ImmunData} object with the \verb{$annotations} table modified according
-to the provided expressions and \code{seq_options}. The \verb{$repertoires} table (if present)
-is carried over unchanged from the input \code{idata}.
+to the provided expressions and \code{seq_options}. The \verb{$repertoires} and
+\verb{$strata} tables (if present) are carried over unchanged from the input
+\code{idata}.
 }
 \description{
 Applies transformations to the \verb{$annotations} table within an \code{ImmunData}
@@ -67,9 +68,9 @@ option within \code{seq_options} and internal helper functions like
 }
 }
 
-The \verb{$repertoires} table, if present in the input \code{idata}, is copied to the
-output object without modification. This function only affects the \verb{$annotations}
-table.
+The \verb{$repertoires} and \verb{$strata} tables, if present in the input \code{idata}, are
+copied to the output object without modification. This function only affects
+the \verb{$annotations} table.
 }
 \examples{
 # Basic setup (assuming idata_test is a valid ImmunData object)

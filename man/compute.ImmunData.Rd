@@ -13,7 +13,8 @@
 \code{x$annotations}.}
 }
 \value{
-A new \code{ImmunData} object with computed annotations.
+A new \code{ImmunData} object with computed annotations and the input
+repertoire, strata, schema, and provenance state preserved.
 }
 \description{
 Materializes the annotation table of an \code{ImmunData} object via

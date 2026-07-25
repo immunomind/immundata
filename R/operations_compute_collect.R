@@ -8,7 +8,8 @@
 #' @param ... Additional arguments passed to [dplyr::compute()] for
 #'   `x$annotations`.
 #'
-#' @return A new `ImmunData` object with computed annotations.
+#' @return A new `ImmunData` object with computed annotations and the input
+#'   repertoire, strata, schema, and provenance state preserved.
 #'
 #' @concept operations
 #' @exportS3Method dplyr::compute
@@ -18,12 +19,7 @@ compute.ImmunData <- function(x, ...) {
   new_annotations <- x$annotations |>
     compute(...)
 
-  ImmunData$new(
-    schema = x$schema_receptor,
-    annotations = new_annotations,
-    repertoires = x$repertoires,
-    provenance = imd_get_provenance(x)
-  )
+  imd_clone_with_annotations(x, new_annotations)
 }
 
 #' @title Collect ImmunData annotations

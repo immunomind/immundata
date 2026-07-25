@@ -72,9 +72,9 @@ imd_assert_mutable_annotation_columns <- function(idata, columns) {
 #'         `make_pattern_columns`. Prefixes like `sim_exact_`, `sim_regex_`,
 #'         `dist_lev_`, `dist_hamm_` are typically used based on the schema.
 #'
-#' The `$repertoires` table, if present in the input `idata`, is copied to the
-#' output object without modification. This function only affects the `$annotations`
-#' table.
+#' The `$repertoires` and `$strata` tables, if present in the input `idata`, are
+#' copied to the output object without modification. This function only affects
+#' the `$annotations` table.
 #'
 #' @param idata,.data An `ImmunData` object.
 #' @param ... `dplyr::mutate`-style named expressions (e.g., `new_col = existing_col * 2`,
@@ -89,8 +89,9 @@ imd_assert_mutable_annotation_columns <- function(idata, columns) {
 #'   ignored for mutation. If `NULL` (the default), no sequence-based columns are added.
 #'
 #' @return A *new* `ImmunData` object with the `$annotations` table modified according
-#'   to the provided expressions and `seq_options`. The `$repertoires` table (if present)
-#'   is carried over unchanged from the input `idata`.
+#'   to the provided expressions and `seq_options`. The `$repertoires` and
+#'   `$strata` tables (if present) are carried over unchanged from the input
+#'   `idata`.
 #'
 #' @seealso [dplyr::mutate()], [make_seq_options()], [filter_immundata()], [ImmunData],
 #'   `vignette("immundata-classes", package = "immunarch")` (replace with actual package name if different)
@@ -165,8 +166,7 @@ mutate_immundata <- function(idata,
   sequence_annotation_cols <- NULL
   if (!is.null(seq_options)) {
     seq_options <- check_seq_options(seq_options, mode = "mutate")
-    sequence_col_prefix <- switch(
-      seq_options$method,
+    sequence_col_prefix <- switch(seq_options$method,
       exact = imd_schema("sim_exact"),
       regex = imd_schema("sim_regex"),
       lev = imd_schema("sim_lev"),
@@ -238,14 +238,7 @@ mutate_immundata <- function(idata,
     }
   }
 
-  new_idata <- ImmunData$new(
-    schema = idata$schema_receptor,
-    annotations = new_annotations,
-    repertoires = idata$repertoires,
-    provenance = imd_get_provenance(idata)
-  )
-
-  new_idata
+  imd_clone_with_annotations(idata, new_annotations)
 }
 
 
