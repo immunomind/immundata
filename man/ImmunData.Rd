@@ -40,7 +40,39 @@ used to group repertoires into strata.}
 
     \item{\code{strata}}{Get one row per stratum with its schema values and label.}
 
-    \item{\code{provenance}}{Read-only accessor for snapshot provenance metadata.}
+    \item{\code{provenance}}{Read-only named list describing the snapshot origin
+and storage context carried by this object. Retrieve the complete list with
+\code{idata$provenance}, or one field with, for example,
+\code{idata$provenance$current_path}. The fields are:
+\itemize{
+\item \code{home_path}: project home used for managed snapshots and artifacts.
+The original ingestion snapshot is stored directly in this folder;
+it is \code{NULL} for an object with no persisted home.
+\item \code{current_path}: exact folder of the most recently loaded or written
+snapshot. Transformations preserve this source path until the
+transformed object is written as another snapshot; it is \code{NULL} for
+an object that has never been loaded from or written to disk.
+\item \code{snapshot_root}: derived managed-snapshot root,
+\code{home_path/snapshots}, or \code{NULL} when \code{home_path} is \code{NULL}.
+\item \code{artifacts_root}: derived project-level root for optional external
+tool outputs, \code{home_path/artifacts}, or \code{NULL} when \code{home_path} is
+\code{NULL}.
+\item \code{artifacts_path}: derived namespace for artifacts associated with the
+most recently loaded or written snapshot. It is
+\code{artifacts_root/root} for the original
+ingestion, \verb{artifacts_root/<tag>/vNNN} for a managed snapshot, and
+\verb{artifacts_root/by-id/<snapshot_id>} for a detached explicit snapshot.
+External tools can append \verb{<tool>/<run>} and create that directory;
+artifact contents are not part of \code{ImmunData}. Write a transformed
+object as a new snapshot before storing artifacts that should be
+associated with the transformed data.
+\item \code{snapshot_id}: unique identifier generated when the snapshot is
+written; \code{NULL} for an in-memory object that has never been written.
+\item \code{lineage}: ordered list of ingestion and snapshot events leading to
+the current snapshot.
+}
+
+The accessor is read-only; assigning to \code{idata$provenance} is an error.}
   }
   \if{html}{\out{</div>}}
 }

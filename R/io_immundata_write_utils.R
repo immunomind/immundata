@@ -15,6 +15,8 @@ imd_default_provenance <- function() {
     home_path = NULL,
     current_path = NULL,
     snapshot_root = NULL,
+    artifacts_root = NULL,
+    artifacts_path = NULL,
     snapshot_id = NULL,
     lineage = list()
   )
@@ -29,70 +31,144 @@ normalize_nullable_path <- function(path) {
   normalizePath(path, mustWork = FALSE)
 }
 
+imd_resolve_artifacts_path <- function(home_path,
+                                       current_path,
+                                       snapshot_root,
+                                       snapshot_id = NULL) {
+  if (is.null(home_path) || is.null(current_path) || is.null(snapshot_root)) {
+    return(NULL)
+  }
+
+  home_path <- normalizePath(home_path, mustWork = FALSE)
+  current_path <- normalizePath(current_path, mustWork = FALSE)
+  snapshot_root <- normalizePath(snapshot_root, mustWork = FALSE)
+  artifacts_root <- normalizePath(file.path(home_path, "artifacts"), mustWork = FALSE)
+
+  if (identical(current_path, home_path)) {
+    return(normalizePath(file.path(artifacts_root, "root"), mustWork = FALSE))
+  }
+
+  is_managed_snapshot <- grepl("^v[0-9]+$", basename(current_path)) &&
+    identical(
+      normalizePath(dirname(dirname(current_path)), mustWork = FALSE),
+      snapshot_root
+    )
+  if (is_managed_snapshot) {
+    return(normalizePath(
+      file.path(artifacts_root, basename(dirname(current_path)), basename(current_path)),
+      mustWork = FALSE
+    ))
+  }
+
+  if (!is.null(snapshot_id)) {
+    return(normalizePath(
+      file.path(artifacts_root, "by-id", snapshot_id),
+      mustWork = FALSE
+    ))
+  }
+
+  NULL
+}
+
 normalize_provenance <- function(provenance = NULL,
                                  fallback_home_path = NULL,
-                                 fallback_current_path = NULL,
+                                 home_path = NULL,
+                                 current_path = NULL,
                                  snapshot_id = NULL,
                                  lineage = NULL) {
   if (is.null(provenance)) {
     provenance <- list()
   }
 
+  # Validate every supplied value before resolving precedence or deriving paths.
   checkmate::assert_list(provenance)
-  defaults <- imd_default_provenance()
 
-  if (!is.null(provenance$home_path)) {
-    defaults$home_path <- provenance$home_path
+  path_fields <- c(
+    "home_path", "current_path", "snapshot_root",
+    "artifacts_root", "artifacts_path"
+  )
+  for (field in path_fields) {
+    checkmate::assert_character(provenance[[field]], len = 1, null.ok = TRUE)
   }
-  if (!is.null(provenance$current_path)) {
-    defaults$current_path <- provenance$current_path
-  }
-  if (!is.null(provenance$snapshot_root)) {
-    defaults$snapshot_root <- provenance$snapshot_root
-  }
-  if (!is.null(provenance$snapshot_id)) {
-    defaults$snapshot_id <- provenance$snapshot_id
-  }
-  if (!is.null(provenance$lineage)) {
-    defaults$lineage <- provenance$lineage
-  }
-
-  if (is.null(defaults$home_path) && !is.null(fallback_home_path)) {
-    defaults$home_path <- fallback_home_path
-  }
-  if (is.null(defaults$current_path) && !is.null(fallback_current_path)) {
-    defaults$current_path <- fallback_current_path
-  }
-  defaults$home_path <- normalize_nullable_path(defaults$home_path)
-  defaults$current_path <- normalize_nullable_path(defaults$current_path)
-  defaults$snapshot_root <- normalize_nullable_path(defaults$snapshot_root)
-  if (is.null(defaults$snapshot_root) && !is.null(defaults$home_path)) {
-    defaults$snapshot_root <- normalizePath(file.path(defaults$home_path, "snapshots"), mustWork = FALSE)
-  }
-
-  # `snapshot_id` and `lineage` are canonical snapshot state.  They are
-  # deliberately optional for in-memory objects that have not been written.
-  if (!is.null(snapshot_id)) {
-    defaults$snapshot_id <- snapshot_id
-  }
-  if (!is.null(lineage)) {
-    defaults$lineage <- lineage
-  }
-
-  checkmate::assert_character(defaults$snapshot_id, len = 1, null.ok = TRUE)
-
-  checkmate::assert_list(defaults$lineage)
-  for (event in defaults$lineage) {
+  checkmate::assert_character(fallback_home_path, len = 1, null.ok = TRUE)
+  checkmate::assert_character(home_path, len = 1, null.ok = TRUE)
+  checkmate::assert_character(current_path, len = 1, null.ok = TRUE)
+  checkmate::assert_character(provenance$snapshot_id, len = 1, null.ok = TRUE)
+  checkmate::assert_character(snapshot_id, len = 1, null.ok = TRUE)
+  checkmate::assert_list(provenance$lineage, null.ok = TRUE)
+  checkmate::assert_list(lineage, null.ok = TRUE)
+  for (event in c(provenance$lineage, lineage)) {
     checkmate::assert_list(event)
   }
 
-  defaults
+  # Explicit arguments override stored provenance. The fallback is used only
+  # when neither supplies a home path, as with legacy metadata.
+  resolved_home_path <- if (!is.null(home_path)) {
+    home_path
+  } else if (!is.null(provenance$home_path)) {
+    provenance$home_path
+  } else {
+    fallback_home_path
+  }
+  resolved_current_path <- if (!is.null(current_path)) {
+    current_path
+  } else {
+    provenance$current_path
+  }
+  resolved_snapshot_id <- if (!is.null(snapshot_id)) {
+    snapshot_id
+  } else {
+    provenance$snapshot_id
+  }
+  resolved_lineage <- if (!is.null(lineage)) {
+    lineage
+  } else if (!is.null(provenance$lineage)) {
+    provenance$lineage
+  } else {
+    list()
+  }
+
+  resolved_home_path <- normalize_nullable_path(resolved_home_path)
+  resolved_current_path <- normalize_nullable_path(resolved_current_path)
+
+  # These locations are derived from the canonical home/current state and are
+  # never accepted as independent sources of truth.
+  snapshot_root <- if (is.null(resolved_home_path)) {
+    NULL
+  } else {
+    normalizePath(file.path(resolved_home_path, "snapshots"), mustWork = FALSE)
+  }
+  artifacts_root <- if (is.null(resolved_home_path)) {
+    NULL
+  } else {
+    normalizePath(file.path(resolved_home_path, "artifacts"), mustWork = FALSE)
+  }
+  artifacts_path <- imd_resolve_artifacts_path(
+    home_path = resolved_home_path,
+    current_path = resolved_current_path,
+    snapshot_root = snapshot_root,
+    snapshot_id = resolved_snapshot_id
+  )
+
+  list(
+    home_path = resolved_home_path,
+    current_path = resolved_current_path,
+    snapshot_root = snapshot_root,
+    artifacts_root = artifacts_root,
+    artifacts_path = artifacts_path,
+    snapshot_id = resolved_snapshot_id,
+    lineage = resolved_lineage
+  )
 }
 
-imd_path_provenance <- function(provenance) {
-  path_fields <- c("home_path", "current_path", "snapshot_root")
-  path_provenance <- provenance[path_fields]
-  normalize_provenance(path_provenance)[path_fields]
+imd_provenance_paths_for_metadata <- function(provenance) {
+  # Snapshot identity and lineage are canonical top-level metadata fields.
+  # Keep only normalized location fields in metadata$provenance.
+  path_fields <- c(
+    "home_path", "current_path", "snapshot_root",
+    "artifacts_root", "artifacts_path"
+  )
+  normalize_provenance(provenance)[path_fields]
 }
 
 imd_get_provenance <- function(idata) {
@@ -106,9 +182,9 @@ imd_get_provenance <- function(idata) {
   raw
 }
 
-imd_set_provenance <- function(idata, provenance) {
+imd_set_provenance <- function(idata, provenance, ...) {
   checkmate::assert_r6(idata, "ImmunData")
-  normalized <- normalize_provenance(provenance)
+  normalized <- normalize_provenance(provenance, ...)
   idata$.__enclos_env__$private$.provenance <- normalized
   invisible(idata)
 }
@@ -122,6 +198,12 @@ imd_validate_snapshot_tag <- function(tag) {
 
   if (tag %in% c(".", "..") || grepl("[/\\\\]", tag)) {
     cli::cli_abort("Snapshot {.arg tag} must not include path separators or reserved values '.'/'..'.")
+  }
+
+  if (identical(tolower(tag), "root")) {
+    cli::cli_abort(
+      "Snapshot {.arg tag} [root] is reserved for the original ingestion state."
+    )
   }
 
   if (!grepl("^[A-Za-z0-9._-]+$", tag)) {
@@ -328,16 +410,10 @@ build_snapshot_metadata <- function(idata,
   }
   provenance_after <- normalize_provenance(
     provenance_before,
-    fallback_home_path = home_path,
-    fallback_current_path = output_folder,
+    home_path = home_path,
+    current_path = output_folder,
     snapshot_id = snapshot_id,
     lineage = lineage
-  )
-  provenance_after$home_path <- normalizePath(home_path, mustWork = FALSE)
-  provenance_after$current_path <- normalizePath(output_folder, mustWork = FALSE)
-  provenance_after$snapshot_root <- normalizePath(
-    file.path(provenance_after$home_path, "snapshots"),
-    mustWork = FALSE
   )
 
   list(
@@ -351,7 +427,7 @@ build_snapshot_metadata <- function(idata,
       producer = list("function" = producer_function),
       snapshot_id = snapshot_id,
       lineage = lineage,
-      provenance = imd_path_provenance(provenance_after),
+      provenance = imd_provenance_paths_for_metadata(provenance_after),
       extensions = if (is.null(metadata_extensions)) list() else metadata_extensions
     ),
     provenance = provenance_after

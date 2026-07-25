@@ -66,6 +66,181 @@ test_that("ImmunData$provenance is read-only and matches helper output", {
   )
 })
 
+test_that("normalize_provenance applies canonical overrides and derives all paths", {
+  old_home <- create_test_output_dir("old_provenance_home_")
+  new_home <- create_test_output_dir("new_provenance_home_")
+  dir.create(old_home, recursive = TRUE)
+  dir.create(new_home, recursive = TRUE)
+  on.exit(cleanup_output_dir(old_home), add = TRUE)
+  on.exit(cleanup_output_dir(new_home), add = TRUE)
+
+  current_path <- file.path(
+    new_home,
+    "snapshots",
+    "baseline",
+    "v003"
+  )
+  dir.create(current_path, recursive = TRUE)
+  canonical_lineage <- list(list(
+    event = "snapshot",
+    snapshot_id = "canonical-id"
+  ))
+  provenance <- normalize_provenance(
+    provenance = list(
+      home_path = old_home,
+      current_path = old_home,
+      snapshot_root = file.path(old_home, "stale-snapshots"),
+      artifacts_root = file.path(old_home, "stale-artifacts"),
+      artifacts_path = file.path(old_home, "stale-artifact-path"),
+      snapshot_id = "stale-id",
+      lineage = list(list(event = "stale"))
+    ),
+    home_path = new_home,
+    current_path = current_path,
+    snapshot_id = "canonical-id",
+    lineage = canonical_lineage
+  )
+
+  normalized_home <- normalizePath(new_home, mustWork = TRUE)
+  expect_equal(provenance$home_path, normalized_home)
+  expect_equal(
+    provenance$current_path,
+    file.path(normalized_home, "snapshots", "baseline", "v003")
+  )
+  expect_equal(
+    provenance$snapshot_root,
+    file.path(normalized_home, "snapshots")
+  )
+  expect_equal(
+    provenance$artifacts_root,
+    file.path(normalized_home, "artifacts")
+  )
+  expect_equal(
+    provenance$artifacts_path,
+    file.path(normalized_home, "artifacts", "baseline", "v003")
+  )
+  expect_equal(provenance$snapshot_id, "canonical-id")
+  expect_identical(provenance$lineage, canonical_lineage)
+
+  metadata_provenance <- imd_provenance_paths_for_metadata(provenance)
+  expect_named(
+    metadata_provenance,
+    c(
+      "home_path", "current_path", "snapshot_root",
+      "artifacts_root", "artifacts_path"
+    )
+  )
+  expect_false("snapshot_id" %in% names(metadata_provenance))
+  expect_false("lineage" %in% names(metadata_provenance))
+})
+
+test_that("root ingestion exposes a shared artifacts root and root artifact path", {
+  layout <- create_snapshot_test_layout()
+  on.exit(cleanup_snapshot_test_root())
+  output_dir <- layout$projectA
+
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  idata <- read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  normalized_output <- normalizePath(output_dir, mustWork = TRUE)
+  expected_root <- file.path(normalized_output, "artifacts")
+  expected_path <- file.path(expected_root, "root")
+  provenance <- idata$provenance
+
+  expect_equal(provenance$artifacts_root, expected_root)
+  expect_equal(provenance$artifacts_path, expected_path)
+  expect_false(dir.exists(expected_path))
+
+  simulated_run <- file.path(provenance$artifacts_path, "distance", "run-001")
+  expect_true(dir.create(simulated_run, recursive = TRUE))
+  expect_true(dir.exists(simulated_run))
+
+  metadata_json <- jsonlite::read_json(
+    file.path(output_dir, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  expect_equal(metadata_json$provenance$artifacts_root, expected_root)
+  expect_equal(metadata_json$provenance$artifacts_path, expected_path)
+
+  reloaded <- read_immundata(output_dir, verbose = FALSE)
+  expect_equal(reloaded$provenance$artifacts_root, expected_root)
+  expect_equal(reloaded$provenance$artifacts_path, expected_path)
+  expect_true(dir.exists(file.path(
+    reloaded$provenance$artifacts_path,
+    "distance",
+    "run-001"
+  )))
+})
+
+test_that("managed snapshots mirror tag and version beneath artifacts root", {
+  layout <- create_snapshot_test_layout()
+  on.exit(cleanup_snapshot_test_root())
+  output_dir <- layout$projectA
+
+  sample_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  root_idata <- read_repertoires(
+    path = sample_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+  snapshot <- write_immundata(
+    root_idata,
+    output_folder = NULL,
+    tag = "baseline"
+  )
+
+  normalized_output <- normalizePath(output_dir, mustWork = TRUE)
+  expected_root <- file.path(normalized_output, "artifacts")
+  expected_path <- file.path(expected_root, "baseline", "v001")
+
+  expect_equal(snapshot$provenance$artifacts_root, expected_root)
+  expect_equal(snapshot$provenance$artifacts_path, expected_path)
+  expect_false(dir.exists(expected_path))
+
+  simulated_run <- file.path(
+    snapshot$provenance$artifacts_path,
+    "distance",
+    "run-001"
+  )
+  expect_true(dir.create(simulated_run, recursive = TRUE))
+  expect_true(dir.exists(simulated_run))
+
+  snapshot_path <- file.path(
+    output_dir,
+    "snapshots",
+    "baseline",
+    "v001"
+  )
+  metadata_json <- jsonlite::read_json(
+    file.path(snapshot_path, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  expect_equal(metadata_json$provenance$artifacts_root, expected_root)
+  expect_equal(metadata_json$provenance$artifacts_path, expected_path)
+
+  reloaded <- read_immundata(
+    output_dir,
+    tag = "baseline",
+    version = 1,
+    verbose = FALSE
+  )
+  expect_equal(reloaded$provenance$artifacts_root, expected_root)
+  expect_equal(reloaded$provenance$artifacts_path, expected_path)
+  expect_true(dir.exists(file.path(
+    reloaded$provenance$artifacts_path,
+    "distance",
+    "run-001"
+  )))
+})
+
 test_that("read_repertoires() writes metadata with lineage array and provenance", {
   layout <- create_snapshot_test_layout()
   on.exit(cleanup_snapshot_test_root())
@@ -343,6 +518,16 @@ test_that("snapshot path resolution validates missing tags and versions", {
   expect_error(
     read_immundata(output_dir, tag = "bad tag"),
     "may only contain"
+  )
+
+  expect_error(
+    read_immundata(output_dir, tag = "root"),
+    "reserved for the original ingestion state"
+  )
+
+  expect_error(
+    read_immundata(output_dir, tag = "ROOT"),
+    "reserved for the original ingestion state"
   )
 })
 

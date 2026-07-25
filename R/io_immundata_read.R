@@ -139,20 +139,14 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
     cli_alert_success("Loaded ImmunData with the strata schema: [{idata$schema_strata}]")
   }
 
-  provenance <- normalize_provenance(
+  idata <- imd_set_provenance(
+    idata,
     metadata_json$provenance,
-    fallback_home_path = if (is.null(metadata_json$provenance$home_path)) resolved_path else metadata_json$provenance$home_path,
-    fallback_current_path = resolved_path,
+    fallback_home_path = resolved_path,
+    current_path = resolved_path,
     snapshot_id = metadata_json$snapshot_id,
     lineage = metadata_json$lineage
   )
-  provenance$current_path <- normalizePath(resolved_path, mustWork = FALSE)
-  if (is.null(provenance$home_path)) {
-    provenance$home_path <- provenance$current_path
-  }
-  provenance$snapshot_root <- normalizePath(file.path(provenance$home_path, "snapshots"), mustWork = FALSE)
-
-  idata <- imd_set_provenance(idata, provenance)
 
   idata
 }

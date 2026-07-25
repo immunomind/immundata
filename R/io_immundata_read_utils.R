@@ -141,7 +141,7 @@ normalize_metadata_v2 <- function(meta_raw) {
 
   # Old v2 snapshots can contain duplicated snapshot state in provenance.
   # Preserve path information only; top-level metadata remains canonical.
-  meta_raw$provenance <- imd_path_provenance(meta_raw$provenance)
+  meta_raw$provenance <- imd_provenance_paths_for_metadata(meta_raw$provenance)
   meta_raw$rebuild_repertoires <- !has_serialized_repertoires &&
     !is.null(meta_raw$schema_repertoire)
   meta_raw

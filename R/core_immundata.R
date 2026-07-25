@@ -69,7 +69,11 @@ ImmunData <- R6Class(
 
       private$.annotations <- annotations
       self$schema_receptor <- schema
-      private$.provenance <- provenance
+      private$.provenance <- if (is.null(provenance)) {
+        NULL
+      } else {
+        normalize_provenance(provenance)
+      }
 
       if (!is.null(repertoires)) {
         self$schema_repertoire <- setdiff(
@@ -217,7 +221,38 @@ ImmunData <- R6Class(
       }
     },
 
-    #' @field provenance Read-only accessor for snapshot provenance metadata.
+    #' @field provenance Read-only named list describing the snapshot origin
+    #'   and storage context carried by this object. Retrieve the complete list with
+    #'   `idata$provenance`, or one field with, for example,
+    #'   `idata$provenance$current_path`. The fields are:
+    #'
+    #'   * `home_path`: project home used for managed snapshots and artifacts.
+    #'     The original ingestion snapshot is stored directly in this folder;
+    #'     it is `NULL` for an object with no persisted home.
+    #'   * `current_path`: exact folder of the most recently loaded or written
+    #'     snapshot. Transformations preserve this source path until the
+    #'     transformed object is written as another snapshot; it is `NULL` for
+    #'     an object that has never been loaded from or written to disk.
+    #'   * `snapshot_root`: derived managed-snapshot root,
+    #'     `home_path/snapshots`, or `NULL` when `home_path` is `NULL`.
+    #'   * `artifacts_root`: derived project-level root for optional external
+    #'     tool outputs, `home_path/artifacts`, or `NULL` when `home_path` is
+    #'     `NULL`.
+    #'   * `artifacts_path`: derived namespace for artifacts associated with the
+    #'     most recently loaded or written snapshot. It is
+    #'     `artifacts_root/root` for the original
+    #'     ingestion, `artifacts_root/<tag>/vNNN` for a managed snapshot, and
+    #'     `artifacts_root/by-id/<snapshot_id>` for a detached explicit snapshot.
+    #'     External tools can append `<tool>/<run>` and create that directory;
+    #'     artifact contents are not part of `ImmunData`. Write a transformed
+    #'     object as a new snapshot before storing artifacts that should be
+    #'     associated with the transformed data.
+    #'   * `snapshot_id`: unique identifier generated when the snapshot is
+    #'     written; `NULL` for an in-memory object that has never been written.
+    #'   * `lineage`: ordered list of ingestion and snapshot events leading to
+    #'     the current snapshot.
+    #'
+    #'   The accessor is read-only; assigning to `idata$provenance` is an error.
     provenance = function(value) {
       if (missing(value)) {
         return(imd_get_provenance(self))
