@@ -2,12 +2,9 @@ imd_now_utc_iso <- function() {
   format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
 }
 
-imd_random_suffix <- function(n = 8L) {
-  paste0(sample(c(letters, 0:9), n, replace = TRUE), collapse = "")
-}
-
 imd_generate_snapshot_id <- function() {
-  paste0("imd_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC"), "_", imd_random_suffix())
+  suffix <- paste0(sample(c(letters, 0:9), 8L, replace = TRUE), collapse = "")
+  paste0("imd_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC"), "_", suffix)
 }
 
 imd_default_provenance <- function() {
@@ -220,22 +217,14 @@ imd_format_snapshot_version <- function(version) {
   sprintf("v%03d", as.integer(version))
 }
 
-imd_parse_snapshot_version <- function(version_dirname) {
-  if (!grepl("^v[0-9]+$", version_dirname)) {
-    return(NA_integer_)
-  }
-
-  as.integer(sub("^v", "", version_dirname))
-}
-
 imd_list_snapshot_versions <- function(tag_dir) {
   if (!dir.exists(tag_dir)) {
     return(integer())
   }
 
   children <- list.files(tag_dir, full.names = FALSE, recursive = FALSE, all.files = FALSE)
-  versions <- vapply(children, imd_parse_snapshot_version, integer(1))
-  versions <- versions[!is.na(versions)]
+  version_dirnames <- children[grepl("^v[0-9]+$", children)]
+  versions <- as.integer(sub("^v", "", version_dirnames))
   sort(unique(versions))
 }
 
@@ -387,6 +376,17 @@ build_snapshot_metadata <- function(idata,
                                     rehome = FALSE,
                                     ingestion_payload = NULL,
                                     metadata_extensions = NULL) {
+  serialized_repertoires <- idata$repertoires
+  if (!is.null(serialized_repertoires)) {
+    checkmate::assert_data_frame(serialized_repertoires)
+    serialized_repertoires <- as.list(serialized_repertoires)
+    factor_columns <- vapply(serialized_repertoires, is.factor, logical(1))
+    serialized_repertoires[factor_columns] <- lapply(
+      serialized_repertoires[factor_columns],
+      as.character
+    )
+  }
+
   snapshot_id <- imd_generate_snapshot_id()
   is_ingestion <- identical(producer_function, "read_repertoires")
   event <- list(
@@ -423,7 +423,7 @@ build_snapshot_metadata <- function(idata,
       schema_receptor = idata$schema_receptor,
       schema_repertoire = idata$schema_repertoire,
       schema_strata = idata$schema_strata,
-      repertoires = serialize_repertoires_json(idata$repertoires),
+      repertoires = serialized_repertoires,
       producer = list("function" = producer_function),
       snapshot_id = snapshot_id,
       lineage = lineage,
@@ -432,17 +432,4 @@ build_snapshot_metadata <- function(idata,
     ),
     provenance = provenance_after
   )
-}
-
-serialize_repertoires_json <- function(repertoires) {
-  if (is.null(repertoires)) {
-    return(NULL)
-  }
-
-  checkmate::assert_data_frame(repertoires)
-
-  columns <- as.list(repertoires)
-  factor_columns <- vapply(columns, is.factor, logical(1))
-  columns[factor_columns] <- lapply(columns[factor_columns], as.character)
-  columns
 }
