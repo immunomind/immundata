@@ -22,6 +22,10 @@
 #'   issues. Set to `TRUE` to disable this warning and allow joining of annotations
 #'   with an arbitrary number of columns. Use with caution, as joining wide dataframes
 #'   can be memory-intensive and slow.
+#' @param conflicts Character scalar controlling annotation value columns that
+#'   already exist in `idata$annotations`. `"error"` (default) rejects the
+#'   collision. `"replace"` drops the existing columns before joining the new
+#'   annotations.
 #'
 #' @return A new `ImmunData` object with the annotations joined to the `annotations` slot.
 #'
@@ -94,11 +98,13 @@ annotate_immundata <- function(idata,
                                annotations,
                                by,
                                keep_repertoires = TRUE,
-                               remove_limit = FALSE) {
+                               remove_limit = FALSE,
+                               conflicts = c("error", "replace")) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_data_frame(annotations)
   checkmate::assert_character(by, min.len = 1, names = "named")
   checkmate::assert_logical(keep_repertoires)
+  conflicts <- match.arg(conflicts)
 
   if (!remove_limit && ncol(annotations) >= 100) {
     rlang::abort(cli::format_inline(paste0(
@@ -123,19 +129,23 @@ annotate_immundata <- function(idata,
   }
 
   annotation_value_cols <- setdiff(colnames(ann_tbl), unname(by))
-  system_collisions <- intersect(annotation_value_cols, unname(imd_schema()))
-  annotation_collisions <- intersect(annotation_value_cols, colnames(idata$annotations))
-  collisions <- union(system_collisions, annotation_collisions)
-  if (length(collisions) > 0) {
+  collisions <- intersect(annotation_value_cols, colnames(idata$annotations))
+  if (length(collisions) > 0 && conflicts == "error") {
     cli_abort(
-      "Annotation column(s) collide with existing ImmunData annotation or system columns: {.field {collisions}}. Please rename them before calling {.fn annotate_immundata}."
+      "Annotation column(s) collide with existing ImmunData annotation columns: {.field {collisions}}. Please rename them before calling {.fn annotate_immundata}."
     )
   }
 
   ann_tbl <- ann_tbl |>
     rename(all_of(by))
 
-  new_annotations <- idata$annotations |>
+  existing_annotations <- idata$annotations
+  if (conflicts == "replace") {
+    existing_annotations <- existing_annotations |>
+      select(-all_of(collisions))
+  }
+
+  new_annotations <- existing_annotations |>
     left_join(ann_tbl, by = names(by))
 
   new_idata <- ImmunData$new(
@@ -163,7 +173,8 @@ annotate_receptors <- function(idata,
                                annotations,
                                annot_col = imd_schema("receptor"),
                                keep_repertoires = TRUE,
-                               remove_limit = FALSE) {
+                               remove_limit = FALSE,
+                               conflicts = c("error", "replace")) {
   if (annot_col == "<rownames>") {
     annotations[["imd_row_names"]] <- rownames(annotations)
     annot_col <- "imd_row_names"
@@ -175,7 +186,8 @@ annotate_receptors <- function(idata,
     annotations = annotations,
     by = match_col,
     keep_repertoires = keep_repertoires,
-    remove_limit = remove_limit
+    remove_limit = remove_limit,
+    conflicts = conflicts
   )
 }
 
@@ -186,7 +198,8 @@ annotate_barcodes <- function(idata,
                               annotations,
                               annot_col = "<rownames>",
                               keep_repertoires = TRUE,
-                              remove_limit = FALSE) {
+                              remove_limit = FALSE,
+                              conflicts = c("error", "replace")) {
   if (annot_col == "<rownames>") {
     annotations[["imd_row_names"]] <- rownames(annotations)
     annot_col <- "imd_row_names"
@@ -198,7 +211,8 @@ annotate_barcodes <- function(idata,
     annotations = annotations,
     by = match_col,
     keep_repertoires = keep_repertoires,
-    remove_limit = remove_limit
+    remove_limit = remove_limit,
+    conflicts = conflicts
   )
 }
 
@@ -209,7 +223,8 @@ annotate_chains <- function(idata,
                             annotations,
                             annot_col = imd_schema("chain"),
                             keep_repertoires = TRUE,
-                            remove_limit = FALSE) {
+                            remove_limit = FALSE,
+                            conflicts = c("error", "replace")) {
   if (annot_col == "<rownames>") {
     annotations[["imd_row_names"]] <- rownames(annotations)
     annot_col <- "imd_row_names"
@@ -221,6 +236,7 @@ annotate_chains <- function(idata,
     annotations = annotations,
     by = match_col,
     keep_repertoires = keep_repertoires,
-    remove_limit = remove_limit
+    remove_limit = remove_limit,
+    conflicts = conflicts
   )
 }

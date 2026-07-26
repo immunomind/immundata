@@ -13,17 +13,26 @@ annotate_immundata(
   annotations,
   by,
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 
-annotate(idata, annotations, by, keep_repertoires = TRUE, remove_limit = FALSE)
+annotate(
+  idata,
+  annotations,
+  by,
+  keep_repertoires = TRUE,
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
+)
 
 annotate_receptors(
   idata,
   annotations,
   annot_col = imd_schema("receptor"),
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 
 annotate_barcodes(
@@ -31,7 +40,8 @@ annotate_barcodes(
   annotations,
   annot_col = "<rownames>",
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 
 annotate_chains(
@@ -39,7 +49,8 @@ annotate_chains(
   annotations,
   annot_col = imd_schema("chain"),
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 }
 \arguments{
@@ -61,6 +72,11 @@ want to re-aggregate repertoires immediately.}
 issues. Set to \code{TRUE} to disable this warning and allow joining of annotations
 with an arbitrary number of columns. Use with caution, as joining wide dataframes
 can be memory-intensive and slow.}
+
+\item{conflicts}{Character scalar controlling annotation value columns that
+already exist in \code{idata$annotations}. \code{"error"} (default) rejects the
+collision. \code{"replace"} drops the existing columns before joining the new
+annotations.}
 
 \item{annot_col}{A character vector specifying the column with receptor, barcode or chain identifiers
 to annotate a corresponding receptors, barode or chains in \code{idata}.}

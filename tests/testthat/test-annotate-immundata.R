@@ -214,17 +214,31 @@ test_that("annotate_immundata validates join inputs", {
   )
 })
 
-test_that("annotate_immundata blocks annotation columns that collide with existing or system columns", {
+test_that("annotate_immundata allows absent schema-named annotation columns", {
   idata <- make_annotate_test_idata()
 
-  expect_error(
-    annotate_immundata(
-      idata,
-      annotations = tibble::tibble(v_call = "V1", imd_count = 1L),
-      by = c("v_call" = "v_call")
+  out <- annotate_immundata(
+    idata,
+    annotations = tibble::tibble(
+      v_call = c("V1", "V2", "V3"),
+      imd_group_id = c("group-1", "group-2", "group-3"),
+      j_gene = c("J1", "J2", "J3")
     ),
-    "collide"
+    by = c("v_call" = "v_call"),
+    keep_repertoires = FALSE
+  )$annotations |>
+    collect() |>
+    arrange(imd_receptor_id)
+
+  expect_equal(
+    out$imd_group_id,
+    c("group-1", "group-1", "group-2", "group-3")
   )
+  expect_equal(out$j_gene, c("J1", "J1", "J2", "J3"))
+})
+
+test_that("annotate_immundata blocks annotation columns that already exist", {
+  idata <- make_annotate_test_idata()
 
   expect_error(
     annotate_immundata(
@@ -233,6 +247,36 @@ test_that("annotate_immundata blocks annotation columns that collide with existi
       by = c("v_call" = "external_v")
     ),
     "collide"
+  )
+})
+
+test_that("annotate_immundata can replace annotation columns that already exist", {
+  idata <- annotate_immundata(
+    make_annotate_test_idata(),
+    annotations = tibble::tibble(
+      v_call = c("V1", "V2", "V3"),
+      imd_group_id = c("old-1", "old-2", "old-3")
+    ),
+    by = c("v_call" = "v_call"),
+    keep_repertoires = FALSE
+  )
+
+  out <- annotate_immundata(
+    idata,
+    annotations = tibble::tibble(
+      v_call = c("V1", "V2", "V3"),
+      imd_group_id = c("new-1", "new-2", "new-3")
+    ),
+    by = c("v_call" = "v_call"),
+    keep_repertoires = FALSE,
+    conflicts = "replace"
+  )$annotations |>
+    collect() |>
+    arrange(imd_receptor_id)
+
+  expect_equal(
+    out$imd_group_id,
+    c("new-1", "new-1", "new-2", "new-3")
   )
 })
 
