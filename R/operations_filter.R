@@ -236,17 +236,17 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
 
   keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
   if (!keep_repertoires) {
-    new_annotations <- imd_drop_repertoire_state(new_annotations)
+    new_annotations <- drop_repertoire_state(new_annotations)
   }
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
-    provenance = imd_get_provenance(idata)
+    provenance = get_provenance(idata)
   )
 
   if (keep_repertoires) {
-    imd_rebuild_repertoire_and_strata(new_idata, idata)
+    rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }
@@ -277,17 +277,17 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
 
   keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
   if (!keep_repertoires) {
-    new_annotations <- imd_drop_repertoire_state(new_annotations)
+    new_annotations <- drop_repertoire_state(new_annotations)
   }
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
-    provenance = imd_get_provenance(idata)
+    provenance = get_provenance(idata)
   )
 
   if (keep_repertoires) {
-    imd_rebuild_repertoire_and_strata(new_idata, idata)
+    rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }
@@ -313,17 +313,17 @@ filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
 
   keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
   if (!keep_repertoires) {
-    new_annotations <- imd_drop_repertoire_state(new_annotations)
+    new_annotations <- drop_repertoire_state(new_annotations)
   }
 
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
-    provenance = imd_get_provenance(idata)
+    provenance = get_provenance(idata)
   )
 
   if (keep_repertoires) {
-    imd_rebuild_repertoire_and_strata(new_idata, idata)
+    rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }

@@ -20,7 +20,7 @@ test_that("compute() preserves repertoire, strata, and provenance state", {
 
   reps_before <- idata$repertoires
   strata_before <- idata$strata
-  prov_before <- imd_get_provenance(idata)
+  prov_before <- get_provenance(idata)
   out <- compute(idata)
 
   checkmate::expect_r6(out, classes = "ImmunData")
@@ -35,7 +35,7 @@ test_that("compute() preserves repertoire, strata, and provenance state", {
   expect_equal(out$schema_repertoire, idata$schema_repertoire)
   expect_equal(out$schema_strata, idata$schema_strata)
   expect_equal(
-    imd_get_provenance(out)[sort(names(imd_get_provenance(out)))],
+    get_provenance(out)[sort(names(get_provenance(out)))],
     prov_before[sort(names(prov_before))]
   )
 })

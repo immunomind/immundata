@@ -19,7 +19,7 @@ compute.ImmunData <- function(x, ...) {
   new_annotations <- x$annotations |>
     compute(...)
 
-  imd_clone_with_annotations(x, new_annotations)
+  clone_with_annotations(x, new_annotations)
 }
 
 #' @title Collect ImmunData annotations

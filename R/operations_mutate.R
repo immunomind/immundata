@@ -1,4 +1,4 @@
-imd_protected_annotation_columns <- function(idata) {
+protected_annotation_columns <- function(idata) {
   unique(c(
     unname(unlist(imd_schema(), use.names = FALSE)),
     imd_receptor_features(idata$schema_receptor),
@@ -6,8 +6,8 @@ imd_protected_annotation_columns <- function(idata) {
   ))
 }
 
-imd_assert_mutable_annotation_columns <- function(idata, columns) {
-  protected_cols <- imd_protected_annotation_columns(idata)
+assert_mutable_annotation_columns <- function(idata, columns) {
+  protected_cols <- protected_annotation_columns(idata)
   bad <- intersect(unique(columns), protected_cols)
 
   if (length(bad) == 0) {
@@ -161,7 +161,7 @@ mutate_immundata <- function(idata,
   checkmate::assert_list(seq_options, null.ok = TRUE)
 
   dots <- rlang::enquos(..., .named = TRUE) # keep names exactly as passed
-  imd_assert_mutable_annotation_columns(idata, names(dots))
+  assert_mutable_annotation_columns(idata, names(dots))
 
   sequence_annotation_cols <- NULL
   if (!is.null(seq_options)) {
@@ -178,7 +178,7 @@ mutate_immundata <- function(idata,
       name_type = seq_options$name_type
     )
 
-    imd_assert_mutable_annotation_columns(idata, sequence_annotation_cols)
+    assert_mutable_annotation_columns(idata, sequence_annotation_cols)
   }
 
   # Run "basic" mutate first
@@ -238,7 +238,7 @@ mutate_immundata <- function(idata,
     }
   }
 
-  imd_clone_with_annotations(idata, new_annotations)
+  clone_with_annotations(idata, new_annotations)
 }
 
 

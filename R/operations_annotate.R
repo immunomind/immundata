@@ -151,7 +151,7 @@ annotate_immundata <- function(idata,
     # replaceable. Other protected system and schema columns define receptor,
     # repertoire, or strata state and cannot be replaced safely.
     protected_collisions <- setdiff(collisions, imd_schema("group"))
-    imd_assert_mutable_annotation_columns(idata, protected_collisions)
+    assert_mutable_annotation_columns(idata, protected_collisions)
   }
 
   ann_tbl <- ann_tbl |>
@@ -167,12 +167,12 @@ annotate_immundata <- function(idata,
     left_join(ann_tbl, by = names(by))
 
   if (keep_repertoires) {
-    imd_clone_with_annotations(idata, new_annotations)
+    clone_with_annotations(idata, new_annotations)
   } else {
     ImmunData$new(
       schema = idata$schema_receptor,
-      annotations = imd_drop_repertoire_state(new_annotations),
-      provenance = imd_get_provenance(idata)
+      annotations = drop_repertoire_state(new_annotations),
+      provenance = get_provenance(idata)
     )
   }
 }

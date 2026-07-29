@@ -212,7 +212,7 @@ test_that("annotate_immundata drops all repertoire state when keep_repertoires i
 
 test_that("annotate_immundata preserves provenance", {
   idata <- make_annotate_test_idata()
-  prov_before <- imd_get_provenance(idata)
+  prov_before <- get_provenance(idata)
 
   out <- annotate_immundata(
     idata,
@@ -222,7 +222,7 @@ test_that("annotate_immundata preserves provenance", {
   )
 
   expect_equal(
-    imd_get_provenance(out)[sort(names(imd_get_provenance(out)))],
+    get_provenance(out)[sort(names(get_provenance(out)))],
     prov_before[sort(names(prov_before))]
   )
 })

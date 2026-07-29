@@ -1,4 +1,4 @@
-imd_generate_snapshot_id <- function() {
+generate_snapshot_id <- function() {
   suffix <- paste0(sample(c(letters, 0:9), 8L, replace = TRUE), collapse = "")
   paste0("imd_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC"), "_", suffix)
 }
@@ -22,7 +22,7 @@ build_snapshot_metadata <- function(idata,
     )
   }
 
-  snapshot_id <- imd_generate_snapshot_id()
+  snapshot_id <- generate_snapshot_id()
   is_ingestion <- identical(producer_function, "read_repertoires")
   event <- list(
     event = if (is_ingestion) "ingestion" else "snapshot",
@@ -62,7 +62,7 @@ build_snapshot_metadata <- function(idata,
       producer = list("function" = producer_function),
       snapshot_id = snapshot_id,
       lineage = lineage,
-      provenance = imd_provenance_paths_for_metadata(provenance_after),
+      provenance = provenance_paths_for_metadata(provenance_after),
       extensions = if (is.null(metadata_extensions)) list() else metadata_extensions
     ),
     provenance = provenance_after

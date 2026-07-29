@@ -1,4 +1,4 @@
-imd_default_provenance <- function() {
+default_provenance <- function() {
   list(
     home_path = NULL,
     current_path = NULL,
@@ -19,10 +19,10 @@ normalize_nullable_path <- function(path) {
   normalizePath(path, mustWork = FALSE)
 }
 
-imd_resolve_artifacts_path <- function(home_path,
-                                       current_path,
-                                       snapshot_root,
-                                       snapshot_id = NULL) {
+resolve_artifacts_path <- function(home_path,
+                                   current_path,
+                                   snapshot_root,
+                                   snapshot_id = NULL) {
   if (is.null(home_path) || is.null(current_path) || is.null(snapshot_root)) {
     return(NULL)
   }
@@ -131,7 +131,7 @@ normalize_provenance <- function(provenance = NULL,
   } else {
     normalizePath(file.path(resolved_home_path, "artifacts"), mustWork = FALSE)
   }
-  artifacts_path <- imd_resolve_artifacts_path(
+  artifacts_path <- resolve_artifacts_path(
     home_path = resolved_home_path,
     current_path = resolved_current_path,
     snapshot_root = snapshot_root,
@@ -149,7 +149,7 @@ normalize_provenance <- function(provenance = NULL,
   )
 }
 
-imd_provenance_paths_for_metadata <- function(provenance) {
+provenance_paths_for_metadata <- function(provenance) {
   # Snapshot identity and lineage are canonical top-level metadata fields.
   # Keep only normalized location fields in metadata$provenance.
   path_fields <- c(
@@ -159,18 +159,18 @@ imd_provenance_paths_for_metadata <- function(provenance) {
   normalize_provenance(provenance)[path_fields]
 }
 
-imd_get_provenance <- function(idata) {
+get_provenance <- function(idata) {
   checkmate::assert_r6(idata, "ImmunData")
   private_env <- idata$.__enclos_env__$private
   raw <- private_env$.provenance
   if (is.null(raw)) {
-    return(imd_default_provenance())
+    return(default_provenance())
   }
 
   raw
 }
 
-imd_set_provenance <- function(idata, provenance, ...) {
+set_provenance <- function(idata, provenance, ...) {
   checkmate::assert_r6(idata, "ImmunData")
   normalized <- normalize_provenance(provenance, ...)
   idata$.__enclos_env__$private$.provenance <- normalized

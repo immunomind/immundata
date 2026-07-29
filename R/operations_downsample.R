@@ -246,12 +246,12 @@ downsample_immundata <- function(idata, n, seed = NULL) {
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
     annotations = new_annotations,
-    provenance = imd_get_provenance(idata)
+    provenance = get_provenance(idata)
   )
 
   if (is.null(idata$schema_repertoire)) {
     return(new_idata)
   }
 
-  imd_rebuild_repertoire_and_strata(new_idata, idata)
+  rebuild_repertoire_and_strata(new_idata, idata)
 }

@@ -1,4 +1,4 @@
-imd_drop_repertoire_state <- function(annotations) {
+drop_repertoire_state <- function(annotations) {
   repertoire_state_cols <- c(
     imd_schema("repertoire"),
     imd_schema("strata"),
@@ -13,7 +13,7 @@ imd_drop_repertoire_state <- function(annotations) {
   annotations |> select(-any_of(repertoire_state_cols))
 }
 
-imd_rebuild_repertoire_and_strata <- function(idata, source_idata) {
+rebuild_repertoire_and_strata <- function(idata, source_idata) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_r6(source_idata, "ImmunData")
 

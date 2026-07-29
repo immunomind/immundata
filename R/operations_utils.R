@@ -282,14 +282,6 @@ annotate_tbl_regex <- function(tbl_data,
 }
 
 
-to_sym <- function(val) {
-  if (length(val) == 1) {
-    rlang::sym(val)
-  } else {
-    rlang::syms(val)
-  }
-}
-
 #' @title Create or validate a receptor schema object
 #'
 #' @description

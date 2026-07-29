@@ -255,7 +255,7 @@ ImmunData <- R6Class(
     #'   The accessor is read-only; assigning to `idata$provenance` is an error.
     provenance = function(value) {
       if (missing(value)) {
-        return(imd_get_provenance(self))
+        return(get_provenance(self))
       }
 
       cli::cli_abort("`provenance` is read-only and cannot be assigned directly.")
@@ -263,7 +263,7 @@ ImmunData <- R6Class(
   )
 )
 
-imd_clone_with_annotations <- function(idata, annotations) {
+clone_with_annotations <- function(idata, annotations) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_data_frame(annotations)
 
@@ -272,6 +272,6 @@ imd_clone_with_annotations <- function(idata, annotations) {
     annotations = annotations,
     repertoires = idata$repertoires,
     strata = idata$strata,
-    provenance = imd_get_provenance(idata)
+    provenance = get_provenance(idata)
   )
 }

@@ -1,4 +1,4 @@
-imd_validate_snapshot_tag <- function(tag) {
+validate_snapshot_tag <- function(tag) {
   checkmate::assert_character(tag, len = 1, null.ok = FALSE)
   tag <- trimws(tag)
   if (identical(tag, "")) {
@@ -24,12 +24,12 @@ imd_validate_snapshot_tag <- function(tag) {
   tag
 }
 
-imd_format_snapshot_version <- function(version) {
+format_snapshot_version <- function(version) {
   checkmate::assert_count(version)
   sprintf("v%03d", as.integer(version))
 }
 
-imd_list_snapshot_versions <- function(tag_dir) {
+list_snapshot_versions <- function(tag_dir) {
   if (!dir.exists(tag_dir)) {
     return(integer())
   }
@@ -40,7 +40,7 @@ imd_list_snapshot_versions <- function(tag_dir) {
   sort(unique(versions))
 }
 
-imd_list_snapshot_tags <- function(home_path) {
+list_snapshot_tags <- function(home_path) {
   snapshot_root <- file.path(home_path, "snapshots")
   if (!dir.exists(snapshot_root)) {
     return(character())
@@ -50,25 +50,25 @@ imd_list_snapshot_tags <- function(home_path) {
   tags[file.info(file.path(snapshot_root, tags))$isdir %in% TRUE] |> sort()
 }
 
-imd_resolve_snapshot_version <- function(home_path, tag, version = NULL, allocate = FALSE) {
+resolve_snapshot_version <- function(home_path, tag, version = NULL, allocate = FALSE) {
   checkmate::assert_character(home_path, len = 1, null.ok = FALSE)
   checkmate::assert_character(tag, len = 1, null.ok = FALSE)
   checkmate::assert_count(version, null.ok = TRUE)
   checkmate::assert_flag(allocate)
 
   home_path <- normalizePath(home_path, mustWork = FALSE)
-  tag <- imd_validate_snapshot_tag(tag)
+  tag <- validate_snapshot_tag(tag)
   tag_dir <- file.path(home_path, "snapshots", tag)
 
   if (allocate) {
     dir.create(tag_dir, recursive = TRUE, showWarnings = FALSE)
-    versions <- imd_list_snapshot_versions(tag_dir)
+    versions <- list_snapshot_versions(tag_dir)
     next_version <- if (length(versions) == 0) 1L else max(versions) + 1L
-    return(file.path(tag_dir, imd_format_snapshot_version(next_version)))
+    return(file.path(tag_dir, format_snapshot_version(next_version)))
   }
 
   if (!dir.exists(tag_dir)) {
-    available_tags <- imd_list_snapshot_tags(home_path)
+    available_tags <- list_snapshot_tags(home_path)
     if (length(available_tags) == 0) {
       cli::cli_abort(
         "Snapshot tag [{tag}] was not found under [{home_path}/snapshots]. No snapshot tags are available."
@@ -79,7 +79,7 @@ imd_resolve_snapshot_version <- function(home_path, tag, version = NULL, allocat
     )
   }
 
-  available_versions <- imd_list_snapshot_versions(tag_dir)
+  available_versions <- list_snapshot_versions(tag_dir)
   if (length(available_versions) == 0) {
     cli::cli_abort(
       "Snapshot tag [{tag}] exists under [{tag_dir}] but has no version directories (expected vNNN)."
@@ -90,16 +90,16 @@ imd_resolve_snapshot_version <- function(home_path, tag, version = NULL, allocat
     version <- max(available_versions)
   }
   if (!version %in% available_versions) {
-    formatted <- imd_format_snapshot_version(available_versions)
+    formatted <- format_snapshot_version(available_versions)
     cli::cli_abort(
-      "Snapshot version [{imd_format_snapshot_version(version)}] was not found for tag [{tag}]. Available versions: [{formatted}]."
+      "Snapshot version [{format_snapshot_version(version)}] was not found for tag [{tag}]. Available versions: [{formatted}]."
     )
   }
 
-  file.path(tag_dir, imd_format_snapshot_version(version))
+  file.path(tag_dir, format_snapshot_version(version))
 }
 
-imd_resolve_snapshot_input <- function(path, tag = NULL, version = NULL) {
+resolve_snapshot_input <- function(path, tag = NULL, version = NULL) {
   checkmate::assert_character(path, len = 1, null.ok = FALSE)
   checkmate::assert_character(tag, len = 1, null.ok = TRUE)
   checkmate::assert_count(version, null.ok = TRUE)
@@ -119,24 +119,24 @@ imd_resolve_snapshot_input <- function(path, tag = NULL, version = NULL) {
     )
   }
 
-  imd_resolve_snapshot_version(path, tag, version, allocate = FALSE)
+  resolve_snapshot_version(path, tag, version, allocate = FALSE)
 }
 
-imd_resolve_snapshot_output_folder <- function(idata,
-                                               output_folder = NULL,
-                                               tag = NULL,
-                                               rehome = FALSE) {
+resolve_snapshot_output_folder <- function(idata,
+                                           output_folder = NULL,
+                                           tag = NULL,
+                                           rehome = FALSE) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_character(output_folder, len = 1, null.ok = TRUE)
   checkmate::assert_character(tag, len = 1, null.ok = TRUE)
   checkmate::assert_flag(rehome)
 
-  provenance <- imd_get_provenance(idata)
+  provenance <- get_provenance(idata)
 
   if (!is.null(output_folder)) {
     return(list(
       output_folder = normalizePath(output_folder, mustWork = FALSE),
-      tag = if (is.null(tag)) NULL else imd_validate_snapshot_tag(tag),
+      tag = if (is.null(tag)) NULL else validate_snapshot_tag(tag),
       provenance = provenance,
       output_was_auto = FALSE
     ))
@@ -155,9 +155,9 @@ imd_resolve_snapshot_output_folder <- function(idata,
   if (is.null(tag)) {
     tag <- "default"
   }
-  tag <- imd_validate_snapshot_tag(tag)
+  tag <- validate_snapshot_tag(tag)
 
-  snapshot_folder <- imd_resolve_snapshot_version(
+  snapshot_folder <- resolve_snapshot_version(
     home_path = provenance$home_path,
     tag = tag,
     allocate = TRUE

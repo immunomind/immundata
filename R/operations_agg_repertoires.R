@@ -126,7 +126,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
   repertoires_table <- single_chain_annotations |>
     summarise(
       .by = all_of(schema),
-      n_barcodes = sum(!!to_sym(chain_count_col))
+      n_barcodes = sum(!!rlang::sym(chain_count_col))
     ) |>
     mutate(
       {{ repertoire_id }} := row_number()
@@ -172,6 +172,6 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
     schema = idata$schema_receptor,
     annotations = new_annotations,
     repertoires = repertoires_table,
-    provenance = imd_get_provenance(idata)
+    provenance = get_provenance(idata)
   )
 }

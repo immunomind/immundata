@@ -39,7 +39,7 @@ test_that("downsample_immundata downsamples single-cell repertoires and is deter
   ds1 <- downsample_immundata(idata, n = 2, seed = 100)
   ds2 <- downsample_immundata(idata, n = 2, seed = 100)
 
-  expect_identical(imd_get_provenance(ds1), imd_get_provenance(idata))
+  expect_identical(get_provenance(ds1), get_provenance(idata))
 
   reps <- ds1$repertoires
   expect_true(all(reps$n_barcodes == 2))

@@ -40,7 +40,7 @@ write_immundata_internal <- function(idata,
   checkmate::assert_list(ingestion_payload, null.ok = TRUE)
   checkmate::assert_list(metadata_extensions, null.ok = TRUE)
 
-  resolved_output <- imd_resolve_snapshot_output_folder(
+  resolved_output <- resolve_snapshot_output_folder(
     idata = idata,
     output_folder = output_folder,
     tag = snapshot_tag,
@@ -106,5 +106,5 @@ write_immundata_internal <- function(idata,
   cli::cli_alert_success("ImmunData files saved to [{output_folder}]")
 
   written_idata <- read_immundata(output_folder, verbose = FALSE)
-  invisible(imd_set_provenance(written_idata, provenance_after))
+  invisible(set_provenance(written_idata, provenance_after))
 }

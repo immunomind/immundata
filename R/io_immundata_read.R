@@ -76,7 +76,7 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
   checkmate::assert_character(tag, len = 1, null.ok = TRUE)
   checkmate::assert_count(version, null.ok = TRUE)
 
-  resolved_path <- imd_resolve_snapshot_input(path, tag = tag, version = version)
+  resolved_path <- resolve_snapshot_input(path, tag = tag, version = version)
   cli_alert_info("Reading ImmunData files from [{.path {resolved_path}}]")
 
   assert_directory_exists(resolved_path)
@@ -139,7 +139,7 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
     cli_alert_success("Loaded ImmunData with the strata schema: [{idata$schema_strata}]")
   }
 
-  idata <- imd_set_provenance(
+  idata <- set_provenance(
     idata,
     metadata_json$provenance,
     fallback_home_path = resolved_path,

@@ -36,12 +36,12 @@ test_that("read_immundata() upgrades legacy v1 metadata on the fly", {
   expect_equal(idata$schema_repertoire, "imd_filename")
   expect_false(is.null(idata$repertoires))
 
-  prov <- imd_get_provenance(idata)
+  prov <- get_provenance(idata)
   expect_equal(prov$current_path, normalizePath(legacy_path, mustWork = FALSE))
   expect_null(prov$snapshot_id)
 
   written <- write_immundata(idata, output_folder = legacy_path)
-  expect_true(is.character(imd_get_provenance(written)$snapshot_id))
+  expect_true(is.character(get_provenance(written)$snapshot_id))
 })
 
 test_that("ImmunData$provenance is read-only and matches helper output", {
@@ -58,7 +58,7 @@ test_that("ImmunData$provenance is read-only and matches helper output", {
     postprocess = NULL
   )
 
-  expect_identical(idata$provenance, imd_get_provenance(idata))
+  expect_identical(idata$provenance, get_provenance(idata))
 
   expect_error(
     idata$provenance <- list(),
@@ -122,7 +122,7 @@ test_that("normalize_provenance applies canonical overrides and derives all path
   expect_equal(provenance$snapshot_id, "canonical-id")
   expect_identical(provenance$lineage, canonical_lineage)
 
-  metadata_provenance <- imd_provenance_paths_for_metadata(provenance)
+  metadata_provenance <- provenance_paths_for_metadata(provenance)
   expect_named(
     metadata_provenance,
     c(
@@ -283,7 +283,7 @@ test_that("read_repertoires() writes metadata with lineage array and provenance"
   )
 
   loaded <- read_immundata(output_dir, verbose = FALSE)
-  loaded_provenance <- imd_get_provenance(loaded)
+  loaded_provenance <- get_provenance(loaded)
   expect_equal(loaded_provenance$snapshot_id, metadata_json$snapshot_id)
   expect_length(loaded_provenance$lineage, length(metadata_json$lineage))
   expect_equal(
@@ -309,7 +309,7 @@ test_that("read_repertoires() writes metadata with lineage array and provenance"
   )
 
   loaded_duplicated_v2 <- read_immundata(output_dir, verbose = FALSE)
-  duplicated_v2_provenance <- imd_get_provenance(loaded_duplicated_v2)
+  duplicated_v2_provenance <- get_provenance(loaded_duplicated_v2)
   expect_equal(duplicated_v2_provenance$snapshot_id, metadata_json$snapshot_id)
   expect_equal(
     vapply(duplicated_v2_provenance$lineage, `[[`, character(1), "event"),
@@ -404,7 +404,7 @@ test_that("write_immundata() auto-creates snapshot folders and increments versio
   expect_true(dir.exists(file.path(output_dir, "snapshots", "baseline", "v001")))
   expect_true(dir.exists(file.path(output_dir, "snapshots", "baseline", "v002")))
 
-  prov_v2 <- imd_get_provenance(idata_v2)
+  prov_v2 <- get_provenance(idata_v2)
   expect_equal(
     prov_v2$current_path,
     normalizePath(file.path(output_dir, "snapshots", "baseline", "v002"), mustWork = FALSE)
@@ -461,14 +461,14 @@ test_that("read_immundata() resolves tag latest and specific versions", {
   write_immundata(read_immundata(output_dir, tag = "baseline", version = 1), output_folder = NULL, tag = "baseline")
 
   latest <- read_immundata(output_dir, tag = "baseline")
-  latest_prov <- imd_get_provenance(latest)
+  latest_prov <- get_provenance(latest)
   expect_equal(
     latest_prov$current_path,
     normalizePath(file.path(output_dir, "snapshots", "baseline", "v002"), mustWork = FALSE)
   )
 
   version1 <- read_immundata(output_dir, tag = "baseline", version = 1)
-  v1_prov <- imd_get_provenance(version1)
+  v1_prov <- get_provenance(version1)
   expect_equal(
     v1_prov$current_path,
     normalizePath(file.path(output_dir, "snapshots", "baseline", "v001"), mustWork = FALSE)
@@ -542,8 +542,8 @@ test_that("in-memory provenance reads are stable and snapshot IDs are created by
     annotations = idata$annotations
   )
 
-  first_provenance <- imd_get_provenance(idata_no_provenance)
-  second_provenance <- imd_get_provenance(idata_no_provenance)
+  first_provenance <- get_provenance(idata_no_provenance)
+  second_provenance <- get_provenance(idata_no_provenance)
   expect_identical(first_provenance, second_provenance)
   expect_null(first_provenance$snapshot_id)
   expect_null(idata_no_provenance$.__enclos_env__$private$.provenance)
@@ -559,7 +559,7 @@ test_that("in-memory provenance reads are stable and snapshot IDs are created by
     simplifyVector = FALSE
   )
   expect_true(is.character(metadata_json$snapshot_id))
-  expect_equal(imd_get_provenance(written)$snapshot_id, metadata_json$snapshot_id)
+  expect_equal(get_provenance(written)$snapshot_id, metadata_json$snapshot_id)
 
   expect_error(
     write_immundata(idata, output_folder = NULL, tag = "../bad"),
@@ -584,7 +584,7 @@ test_that("write_immundata() rehome controls future auto-snapshot root", {
 
   moved_without_rehome <- write_immundata(idata, output_folder = alt_output_dir, rehome = FALSE)
   auto_from_old_home <- write_immundata(moved_without_rehome, output_folder = NULL, tag = "baseline")
-  prov_old_home <- imd_get_provenance(auto_from_old_home)
+  prov_old_home <- get_provenance(auto_from_old_home)
   expect_equal(
     prov_old_home$current_path,
     normalizePath(file.path(output_dir, "snapshots", "baseline", "v001"), mustWork = FALSE)
@@ -592,7 +592,7 @@ test_that("write_immundata() rehome controls future auto-snapshot root", {
 
   moved_with_rehome <- write_immundata(idata, output_folder = alt_output_dir, rehome = TRUE)
   auto_from_new_home <- write_immundata(moved_with_rehome, output_folder = NULL, tag = "baseline")
-  prov_new_home <- imd_get_provenance(auto_from_new_home)
+  prov_new_home <- get_provenance(auto_from_new_home)
   expect_equal(
     prov_new_home$current_path,
     normalizePath(file.path(alt_output_dir, "snapshots", "baseline", "v001"), mustWork = FALSE)
@@ -615,7 +615,7 @@ test_that("operation outputs preserve provenance for auto-snapshots", {
 
   filtered <- filter_immundata(idata, TRUE)
   snap <- write_immundata(filtered, output_folder = NULL, tag = "ops")
-  prov <- imd_get_provenance(snap)
+  prov <- get_provenance(snap)
 
   expect_equal(
     prov$current_path,
@@ -625,7 +625,7 @@ test_that("operation outputs preserve provenance for auto-snapshots", {
   aggregated <- agg_repertoires(idata, "imd_filename")
   downsampled <- downsample_immundata(aggregated, n = 0.5, seed = 1)
   downsampled_snap <- write_immundata(downsampled, output_folder = NULL, tag = "downsample")
-  downsampled_prov <- imd_get_provenance(downsampled_snap)
+  downsampled_prov <- get_provenance(downsampled_snap)
 
   expect_equal(
     downsampled_prov$current_path,
@@ -686,7 +686,7 @@ test_that("write/read roundtrip preserves repertoire and strata state from metad
     annotations = shifted_annotations,
     repertoires = duckplyr::as_duckdb_tibble(shifted_repertoires),
     strata = shifted_strata,
-    provenance = imd_get_provenance(idata)
+    provenance = get_provenance(idata)
   )
 
   write_immundata(original, output_folder = output_dir)

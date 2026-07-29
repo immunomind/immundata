@@ -112,7 +112,7 @@ test_that("mutate_immundata preserves repertoire, strata, and provenance state",
 
   reps_before <- idata$repertoires
   strata_before <- idata$strata
-  prov_before <- imd_get_provenance(idata)
+  prov_before <- get_provenance(idata)
   annotation_state_before <- idata$annotations |>
     select(imd_receptor_id, imd_repertoire_id, imd_strata_id) |>
     collect() |>
@@ -132,7 +132,7 @@ test_that("mutate_immundata preserves repertoire, strata, and provenance state",
     annotation_state_before
   )
   expect_equal(
-    imd_get_provenance(out)[sort(names(imd_get_provenance(out)))],
+    get_provenance(out)[sort(names(get_provenance(out)))],
     prov_before[sort(names(prov_before))]
   )
 })
