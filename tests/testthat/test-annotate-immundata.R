@@ -103,7 +103,7 @@ test_that("annotate_immundata supports same-name and multi-column keys", {
   expect_equal(pair_out$pair_label, c("hit-1", "hit-2", NA, NA))
 })
 
-test_that("annotate_immundata preserves documented row expansion for non-unique annotation keys", {
+test_that("non-unique annotation keys violate the contract and expand rows", {
   idata <- make_annotate_test_idata()
   ann <- tibble::tibble(
     v_call = c("V1", "V1"),
@@ -130,14 +130,30 @@ test_that("annotate_immundata preserves documented row expansion for non-unique 
   expect_equal(actual, expected)
 })
 
-test_that("annotate_immundata re-aggregates repertoires when requested", {
+test_that("annotate_immundata preserves repertoire and strata state", {
   idata <- make_annotate_test_idata() |>
-    agg_repertoires("sample_id")
+    agg_repertoires("sample_id") |>
+    agg_strata("sample_id")
 
   ann <- tibble::tibble(
     v_call = c("V1", "V2", "V3"),
     receptor_family = c("alpha", "beta", "gamma")
   )
+
+  reps_before <- idata$repertoires
+  strata_before <- idata$strata
+  annotation_state_cols <- c(
+    "imd_receptor_id",
+    "imd_repertoire_id",
+    "imd_strata_id",
+    "imd_count",
+    "imd_proportion",
+    "n_repertoires"
+  )
+  annotation_state_before <- idata$annotations |>
+    select(all_of(annotation_state_cols)) |>
+    collect() |>
+    arrange(across(everything()))
 
   out <- annotate_immundata(
     idata,
@@ -147,13 +163,23 @@ test_that("annotate_immundata re-aggregates repertoires when requested", {
   )
 
   expect_true("receptor_family" %in% names(out$annotations))
+  expect_equal(out$repertoires, reps_before)
+  expect_equal(out$strata, strata_before)
   expect_equal(out$schema_repertoire, idata$schema_repertoire)
-  expect_agg_repertoires_integrity(out, context = "annotate_immundata re-aggregation")
+  expect_equal(out$schema_strata, idata$schema_strata)
+  expect_equal(
+    out$annotations |>
+      select(all_of(annotation_state_cols)) |>
+      collect() |>
+      arrange(across(everything())),
+    annotation_state_before
+  )
 })
 
-test_that("annotate_immundata drops repertoires when keep_repertoires is FALSE", {
+test_that("annotate_immundata drops all repertoire state when keep_repertoires is FALSE", {
   idata <- make_annotate_test_idata() |>
-    agg_repertoires("sample_id")
+    agg_repertoires("sample_id") |>
+    agg_strata("sample_id")
 
   out <- annotate_immundata(
     idata,
@@ -163,7 +189,25 @@ test_that("annotate_immundata drops repertoires when keep_repertoires is FALSE",
   )
 
   expect_null(out$repertoires)
+  expect_null(out$strata)
   expect_null(out$schema_repertoire)
+  expect_null(out$schema_strata)
+  expect_length(
+    intersect(
+      colnames(out$annotations),
+      c(
+        "imd_repertoire_id",
+        "imd_strata_id",
+        "strata_name",
+        "imd_count",
+        "imd_proportion",
+        "n_receptors",
+        "n_barcodes",
+        "n_repertoires"
+      )
+    ),
+    0
+  )
 })
 
 test_that("annotate_immundata preserves provenance", {
@@ -277,6 +321,38 @@ test_that("annotate_immundata can replace annotation columns that already exist"
   expect_equal(
     out$imd_group_id,
     c("new-1", "new-1", "new-2", "new-3")
+  )
+})
+
+test_that("annotate_immundata cannot replace protected state or schema columns", {
+  idata <- make_annotate_test_idata() |>
+    agg_repertoires("sample_id") |>
+    agg_strata("sample_id")
+
+  expect_error(
+    annotate_immundata(
+      idata,
+      annotations = tibble::tibble(
+        v_call = c("V1", "V2", "V3"),
+        imd_count = c(10L, 20L, 30L)
+      ),
+      by = c("v_call" = "v_call"),
+      conflicts = "replace"
+    ),
+    "protected ImmunData columns"
+  )
+
+  expect_error(
+    annotate_immundata(
+      idata,
+      annotations = tibble::tibble(
+        v_call = c("V1", "V2", "V3"),
+        sample_id = c("new-1", "new-2", "new-3")
+      ),
+      by = c("v_call" = "v_call"),
+      conflicts = "replace"
+    ),
+    "protected ImmunData columns"
   )
 })
 

@@ -13,10 +13,11 @@
 #'   the corresponding column names in the `annotations` data frame.
 #' @param annot_col A character vector specifying the column with receptor, barcode or chain identifiers
 #'   to annotate a corresponding receptors, barode or chains in `idata`.
-#' @param keep_repertoires Logical. If `TRUE` (default) and the `ImmunData` object
-#'   contains repertoire data (`idata$schema_repertoire` is not NULL), the repertoires
-#'   will be re-aggregated after joining the annotations. Set to `FALSE` if you do not
-#'   want to re-aggregate repertoires immediately.
+#' @param keep_repertoires Logical. If `TRUE` (default), the existing repertoire
+#'   and strata tables, schemas, identifiers, and derived metrics are preserved
+#'   without re-aggregation. Set to `FALSE` to return an annotations-only object;
+#'   repertoire- and strata-derived columns are then removed from the annotation
+#'   table as well.
 #' @param remove_limit Logical. If `FALSE` (default), a warning will be issued if the
 #'   `annotations` data frame has 100 or more columns, suggesting potential performance
 #'   issues. Set to `TRUE` to disable this warning and allow joining of annotations
@@ -25,15 +26,25 @@
 #' @param conflicts Character scalar controlling annotation value columns that
 #'   already exist in `idata$annotations`. `"error"` (default) rejects the
 #'   collision. `"replace"` drops the existing columns before joining the new
-#'   annotations.
+#'   annotations. Columns defining receptor, repertoire, or strata state cannot
+#'   be replaced.
 #'
 #' @return A new `ImmunData` object with the annotations joined to the `annotations` slot.
 #'
 #' @details The function performs a left join operation, keeping all rows from
 #'   `idata$annotations` and adding matching columns from the `annotations` data frame.
-#'   If there are multiple matches in `annotations` for a row in `idata$annotations`,
-#'   all combinations will be returned, potentially increasing the number of rows
-#'   in the resulting annotations table.
+#'
+#'   Annotation join keys are subject to a many-to-one contract: each combination
+#'   of the right-hand key columns specified by the values of `by` must occur at
+#'   most once in `annotations`. This contract is not checked at runtime because
+#'   validating a very large annotation source would require an additional full
+#'   aggregation. Supplying non-unique right-hand keys violates the contract and
+#'   may expand annotation rows, invalidating the preserved repertoire counts and
+#'   proportions.
+#'
+#'   With `keep_repertoires = TRUE`, annotation is treated as a metadata-only
+#'   transformation. The existing repertoire and strata state is carried forward
+#'   unchanged and `agg_repertoires()` is not called.
 #'
 #'   The function uses `checkmate` to validate the input types and structure.
 #'
@@ -135,6 +146,13 @@ annotate_immundata <- function(idata,
       "Annotation column(s) collide with existing ImmunData annotation columns: {.field {collisions}}. Please rename them before calling {.fn annotate_immundata}."
     )
   }
+  if (length(collisions) > 0 && conflicts == "replace") {
+    # `imd_group_id` is an annotation-level grouping label and is intentionally
+    # replaceable. Other protected system and schema columns define receptor,
+    # repertoire, or strata state and cannot be replaced safely.
+    protected_collisions <- setdiff(collisions, imd_schema("group"))
+    imd_assert_mutable_annotation_columns(idata, protected_collisions)
+  }
 
   ann_tbl <- ann_tbl |>
     rename(all_of(by))
@@ -148,16 +166,14 @@ annotate_immundata <- function(idata,
   new_annotations <- existing_annotations |>
     left_join(ann_tbl, by = names(by))
 
-  new_idata <- ImmunData$new(
-    schema = idata$schema_receptor,
-    annotations = new_annotations,
-    provenance = imd_get_provenance(idata)
-  )
-
-  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
+  if (keep_repertoires) {
+    imd_clone_with_annotations(idata, new_annotations)
   } else {
-    new_idata
+    ImmunData$new(
+      schema = idata$schema_receptor,
+      annotations = imd_drop_repertoire_state(new_annotations),
+      provenance = imd_get_provenance(idata)
+    )
   }
 }
 

@@ -62,10 +62,11 @@ annotate_chains(
 vector should be the column names in \code{idata$annotations} and the values should be
 the corresponding column names in the \code{annotations} data frame.}
 
-\item{keep_repertoires}{Logical. If \code{TRUE} (default) and the \code{ImmunData} object
-contains repertoire data (\code{idata$schema_repertoire} is not NULL), the repertoires
-will be re-aggregated after joining the annotations. Set to \code{FALSE} if you do not
-want to re-aggregate repertoires immediately.}
+\item{keep_repertoires}{Logical. If \code{TRUE} (default), the existing repertoire
+and strata tables, schemas, identifiers, and derived metrics are preserved
+without re-aggregation. Set to \code{FALSE} to return an annotations-only object;
+repertoire- and strata-derived columns are then removed from the annotation
+table as well.}
 
 \item{remove_limit}{Logical. If \code{FALSE} (default), a warning will be issued if the
 \code{annotations} data frame has 100 or more columns, suggesting potential performance
@@ -76,7 +77,8 @@ can be memory-intensive and slow.}
 \item{conflicts}{Character scalar controlling annotation value columns that
 already exist in \code{idata$annotations}. \code{"error"} (default) rejects the
 collision. \code{"replace"} drops the existing columns before joining the new
-annotations.}
+annotations. Columns defining receptor, repertoire, or strata state cannot
+be replaced.}
 
 \item{annot_col}{A character vector specifying the column with receptor, barcode or chain identifiers
 to annotate a corresponding receptors, barode or chains in \code{idata}.}
@@ -94,9 +96,18 @@ one or more columns.
 \details{
 The function performs a left join operation, keeping all rows from
 \code{idata$annotations} and adding matching columns from the \code{annotations} data frame.
-If there are multiple matches in \code{annotations} for a row in \code{idata$annotations},
-all combinations will be returned, potentially increasing the number of rows
-in the resulting annotations table.
+
+Annotation join keys are subject to a many-to-one contract: each combination
+of the right-hand key columns specified by the values of \code{by} must occur at
+most once in \code{annotations}. This contract is not checked at runtime because
+validating a very large annotation source would require an additional full
+aggregation. Supplying non-unique right-hand keys violates the contract and
+may expand annotation rows, invalidating the preserved repertoire counts and
+proportions.
+
+With \code{keep_repertoires = TRUE}, annotation is treated as a metadata-only
+transformation. The existing repertoire and strata state is carried forward
+unchanged and \code{agg_repertoires()} is not called.
 
 The function uses \code{checkmate} to validate the input types and structure.
 
