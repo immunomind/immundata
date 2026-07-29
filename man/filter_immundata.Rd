@@ -53,9 +53,10 @@ If \code{seq_options} is \code{NULL} (the default), no sequence-based filtering 
 \item{keep_repertoires}{Logical scalar. If \code{TRUE} (the default) and the input
 \code{idata} has repertoire information (\code{idata$schema_repertoire} is not \code{NULL}),
 the repertoire summaries will be recalculated based on the filtered data using
-\code{\link[=agg_repertoires]{agg_repertoires()}}. If \code{FALSE}, or if no repertoire schema exists, the
-returned \code{ImmunData} object will not contain repertoire summaries (\verb{$repertoires}
-will be \code{NULL}).}
+\code{\link[=agg_repertoires]{agg_repertoires()}}. If the input has strata, they are rebuilt from the
+existing strata schema and existing labels are retained. If \code{FALSE}, or if
+no repertoire schema exists, the returned \code{ImmunData} object will not contain
+repertoire summaries (\verb{$repertoires} will be \code{NULL}).}
 
 \item{.by}{Not used.}
 

@@ -1,18 +1,3 @@
-imd_drop_repertoire_state <- function(annotations) {
-  repertoire_state_cols <- c(
-    imd_schema("repertoire"),
-    imd_schema("strata"),
-    imd_schema("strata_name"),
-    imd_schema("count"),
-    imd_schema("proportion"),
-    imd_schema("n_receptors"),
-    imd_schema("n_barcodes"),
-    imd_schema("n_repertoires")
-  )
-
-  annotations |> select(-any_of(repertoire_state_cols))
-}
-
 #' @title Filter ImmunData by receptor features, barcodes or any annotations
 #'
 #' @description
@@ -81,9 +66,10 @@ imd_drop_repertoire_state <- function(annotations) {
 #' @param keep_repertoires Logical scalar. If `TRUE` (the default) and the input
 #'   `idata` has repertoire information (`idata$schema_repertoire` is not `NULL`),
 #'   the repertoire summaries will be recalculated based on the filtered data using
-#'   [agg_repertoires()]. If `FALSE`, or if no repertoire schema exists, the
-#'   returned `ImmunData` object will not contain repertoire summaries (`$repertoires`
-#'   will be `NULL`).
+#'   [agg_repertoires()]. If the input has strata, they are rebuilt from the
+#'   existing strata schema and existing labels are retained. If `FALSE`, or if
+#'   no repertoire schema exists, the returned `ImmunData` object will not contain
+#'   repertoire summaries (`$repertoires` will be `NULL`).
 #' @param barcodes For `filter_barcodes`, a vector of cell identifiers (barcodes)
 #'   to keep. Can be character, integer, or numeric.
 #' @param receptors For `filter_receptors`, a vector of receptor identifiers
@@ -248,8 +234,8 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
       semi_join(keep_ids, by = receptor_id)
   }
 
-  preserve_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
-  if (!preserve_repertoires) {
+  keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!keep_repertoires) {
     new_annotations <- imd_drop_repertoire_state(new_annotations)
   }
 
@@ -259,8 +245,8 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     provenance = imd_get_provenance(idata)
   )
 
-  if (preserve_repertoires) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
+  if (keep_repertoires) {
+    imd_rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }
@@ -289,8 +275,8 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)
 
-  preserve_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
-  if (!preserve_repertoires) {
+  keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!keep_repertoires) {
     new_annotations <- imd_drop_repertoire_state(new_annotations)
   }
 
@@ -300,8 +286,8 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
     provenance = imd_get_provenance(idata)
   )
 
-  if (preserve_repertoires) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
+  if (keep_repertoires) {
+    imd_rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }
@@ -325,8 +311,8 @@ filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
 
   new_annotations <- idata$annotations |> semi_join(receptors_table, by = receptors_col_id)
 
-  preserve_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
-  if (!preserve_repertoires) {
+  keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!keep_repertoires) {
     new_annotations <- imd_drop_repertoire_state(new_annotations)
   }
 
@@ -336,8 +322,8 @@ filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
     provenance = imd_get_provenance(idata)
   )
 
-  if (preserve_repertoires) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
+  if (keep_repertoires) {
+    imd_rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }

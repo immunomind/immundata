@@ -50,8 +50,6 @@ downsample_immundata <- function(idata, n, seed = NULL) {
   n_repertoires_col <- imd_schema("n_repertoires")
   n_receptors_col <- imd_schema("n_receptors")
   n_barcodes_col <- imd_schema("n_barcodes")
-  strata_col <- imd_schema("strata")
-  strata_name_col <- imd_schema("strata_name")
 
   annotations_base <- idata$annotations |>
     select(-any_of(c(count_col, prop_col, n_repertoires_col, n_receptors_col, n_barcodes_col)))
@@ -255,30 +253,5 @@ downsample_immundata <- function(idata, n, seed = NULL) {
     return(new_idata)
   }
 
-  downsampled <- new_idata |> agg_repertoires(idata$schema_repertoire)
-
-  if (is.null(idata$schema_strata) || is.null(idata$strata)) {
-    return(downsampled)
-  }
-
-  rebuilt_strata <- downsampled |> agg_strata(idata$schema_strata)
-
-  old_strata_labels <- idata$strata |>
-    select(all_of(c(idata$schema_strata, strata_name_col)))
-  rebuilt_strata_labels <- rebuilt_strata$strata |>
-    select(all_of(c(strata_col, idata$schema_strata))) |>
-    left_join(old_strata_labels, by = idata$schema_strata, na_matches = "na")
-
-  strata_names <- rebuilt_strata_labels[[strata_name_col]]
-  if (all(!is.na(strata_names))) {
-    rebuilt_strata <- rename_strata(
-      rebuilt_strata,
-      names = stats::setNames(
-        as.character(strata_names),
-        as.character(rebuilt_strata_labels[[strata_col]])
-      )
-    )
-  }
-
-  rebuilt_strata
+  imd_rebuild_repertoire_and_strata(new_idata, idata)
 }
