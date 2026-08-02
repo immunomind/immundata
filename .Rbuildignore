@@ -5,7 +5,6 @@
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
 ^inst/extdata/testing
-^TODO.md$
 ^.*\.DS_Store$
 .DS_Store
 .venv_altdoc
@@ -13,8 +12,8 @@
 ^altdoc$
 ^_pkgdown\.yml$
 ^pkgdown$
-(^|/)wip-.*$
 ^.venv_altdoc$
 ^edit-bench$
 ^immdata-test$
 ^immundata-quick-start$
+^dev$

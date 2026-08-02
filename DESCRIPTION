@@ -22,7 +22,6 @@ Imports:
     checkmate,
     cli,
     dbplyr,
-    ggplot2,
     glue,
     jsonlite,
     lifecycle,
