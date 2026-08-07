@@ -438,3 +438,112 @@ test_that("agg_repertoires preserves second chain data (no NAs)", {
     info = "Both chains should belong to the same repertoire ID"
   )
 })
+
+test_that("agg_repertoires keeps repertoire IDs aligned with their schema", {
+  output_dir <- create_test_output_dir("repertoire_mapping_")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  set.seed(1)
+
+  n_repertoires <- 128L
+  n_barcodes <- 1000L
+  n_rows <- n_repertoires * n_barcodes
+
+  annotations <- tibble::tibble(
+    sample_id = rep(
+      sprintf("sample_%03d", seq_len(n_repertoires)),
+      each = n_barcodes
+    ),
+    imd_receptor_id = rep(
+      seq_len(n_repertoires),
+      each = n_barcodes
+    ),
+    imd_barcode = seq_len(n_rows),
+    imd_chain_id = seq_len(n_rows),
+    imd_n_chains = 1L,
+    cdr3_aa = rep(
+      sprintf("CASS%03d", seq_len(n_repertoires)),
+      each = n_barcodes
+    )
+  ) |>
+    dplyr::slice_sample(prop = 1) |>
+    duckplyr::as_duckdb_tibble()
+
+  idata <- ImmunData$new(
+    schema = "cdr3_aa",
+    annotations = annotations
+  )
+
+  aggregated <- agg_repertoires_with_integrity(
+    idata,
+    schema = "sample_id",
+    context = "repertoire ID and schema mapping"
+  )
+
+  expected_mapping <- tibble::tibble(
+    imd_repertoire_id = seq_len(n_repertoires),
+    sample_id = sprintf("sample_%03d", seq_len(n_repertoires))
+  )
+
+  actual_mapping <- aggregated$repertoires |>
+    dplyr::select(imd_repertoire_id, sample_id) |>
+    dplyr::arrange(imd_repertoire_id) |>
+    dplyr::collect()
+
+  expect_equal(actual_mapping, expected_mapping)
+
+  write_immundata(aggregated, output_folder = output_dir)
+  loaded <- read_immundata(output_dir, verbose = FALSE)
+
+  expect_agg_repertoires_integrity(
+    loaded,
+    context = "repertoire ID and schema mapping after snapshot roundtrip",
+    schema = "sample_id"
+  )
+
+  loaded_mapping <- loaded$repertoires |>
+    dplyr::select(imd_repertoire_id, sample_id) |>
+    dplyr::arrange(imd_repertoire_id) |>
+    dplyr::collect()
+
+  expect_equal(loaded_mapping, expected_mapping)
+})
+
+test_that("agg_repertoires orders IDs by a composite schema", {
+  annotations <- tibble::tibble(
+    sample_id = c("sample_b", "sample_a", "sample_b", "sample_a"),
+    timepoint = c("day_2", "day_2", "day_1", "day_1"),
+    imd_receptor_id = seq_len(4L),
+    imd_barcode = seq_len(4L),
+    imd_chain_id = seq_len(4L),
+    imd_n_chains = 1L,
+    cdr3_aa = paste0("CASS", seq_len(4L))
+  ) |>
+    duckplyr::as_duckdb_tibble()
+
+  idata <- ImmunData$new(
+    schema = "cdr3_aa",
+    annotations = annotations
+  )
+
+  aggregated <- agg_repertoires_with_integrity(
+    idata,
+    schema = c("sample_id", "timepoint"),
+    context = "composite repertoire schema mapping"
+  )
+
+  actual_mapping <- aggregated$repertoires |>
+    dplyr::select(imd_repertoire_id, sample_id, timepoint) |>
+    dplyr::arrange(imd_repertoire_id) |>
+    dplyr::collect()
+
+  expected_mapping <- tibble::tribble(
+    ~imd_repertoire_id, ~sample_id, ~timepoint,
+    1L, "sample_a", "day_1",
+    2L, "sample_a", "day_2",
+    3L, "sample_b", "day_1",
+    4L, "sample_b", "day_2"
+  )
+
+  expect_equal(actual_mapping, expected_mapping)
+})

@@ -151,6 +151,31 @@ expect_agg_repertoires_integrity <- function(
     }
   }
 
+  mapping_mismatches <- NULL
+  mapping_mismatches_display <- "<not checked>"
+  if (!is.null(schema)) {
+    mapping_cols <- unique(c("imd_repertoire_id", schema))
+
+    if (all(mapping_cols %in% names(ann)) && all(mapping_cols %in% names(reps))) {
+      annotation_map <- ann |>
+        dplyr::distinct(dplyr::across(dplyr::all_of(mapping_cols)))
+
+      repertoire_map <- reps |>
+        dplyr::distinct(dplyr::across(dplyr::all_of(mapping_cols)))
+
+      mapping_mismatches <- dplyr::bind_rows(
+        annotation_map |>
+          dplyr::anti_join(repertoire_map, by = mapping_cols) |>
+          dplyr::mutate(.mapping_source = "annotations"),
+        repertoire_map |>
+          dplyr::anti_join(annotation_map, by = mapping_cols) |>
+          dplyr::mutate(.mapping_source = "repertoires")
+      )
+
+      mapping_mismatches_display <- as.character(nrow(mapping_mismatches))
+    }
+  }
+
   diag_lines <- c(
     paste0("context: ", context),
     if (!is.null(schema)) {
@@ -190,7 +215,8 @@ expect_agg_repertoires_integrity <- function(
     } else {
       "repertoire NA counts: <none>"
     },
-    paste0("unmatched repertoire ids: ", unmatched_repertoire_ids_display)
+    paste0("unmatched repertoire ids: ", unmatched_repertoire_ids_display),
+    paste0("repertoire mapping mismatch rows: ", mapping_mismatches_display)
   )
   diag <- paste(diag_lines, collapse = "\n")
 
@@ -242,6 +268,30 @@ expect_agg_repertoires_integrity <- function(
       nrow(unmatched_repertoire_ids),
       0,
       info = diag
+    )
+  }
+
+  if (!is.null(mapping_mismatches)) {
+    mapping_mismatches_preview <- utils::head(mapping_mismatches, 20L)
+    mapping_diag <- paste0(
+      diag,
+      "\n\nrepertoire mapping mismatches:\n",
+      format_integrity_df_dump(mapping_mismatches_preview),
+      if (nrow(mapping_mismatches) > nrow(mapping_mismatches_preview)) {
+        paste0(
+          "\n... ",
+          nrow(mapping_mismatches) - nrow(mapping_mismatches_preview),
+          " additional mismatch rows omitted"
+        )
+      } else {
+        ""
+      }
+    )
+
+    testthat::expect_equal(
+      nrow(mapping_mismatches),
+      0L,
+      info = mapping_diag
     )
   }
 

@@ -128,6 +128,7 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
       .by = all_of(schema),
       n_barcodes = sum(!!rlang::sym(chain_count_col))
     ) |>
+    arrange(!!!rlang::syms(schema)) |>
     mutate(
       {{ repertoire_id }} := row_number()
     ) |>
