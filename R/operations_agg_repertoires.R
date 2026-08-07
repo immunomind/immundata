@@ -123,17 +123,6 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
       {{ chain_count_col }} := dplyr::first(!!rlang::sym(chain_count_col))
     )
 
-  repertoires_table <- single_chain_annotations |>
-    summarise(
-      .by = all_of(schema),
-      n_barcodes = sum(!!rlang::sym(chain_count_col))
-    ) |>
-    arrange(!!!rlang::syms(schema)) |>
-    mutate(
-      {{ repertoire_id }} := row_number()
-    ) |>
-    relocate({{ repertoire_id }})
-
   #
   # proportions
   #
@@ -143,31 +132,39 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
       {{ imd_count_col }} := sum(!!rlang::sym(chain_count_col))
     )
 
-  repertoires_table_for_join <- repertoires_table
+  repertoires_table <- receptor_cells |>
+    summarise(
+      .by = all_of(schema),
+      n_barcodes = sum(!!rlang::sym(imd_count_col)),
+      n_receptors = n()
+    ) |>
+    arrange(!!!rlang::syms(schema)) |>
+    mutate(
+      {{ repertoire_id }} := row_number()
+    ) |>
+    relocate({{ repertoire_id }}) |>
+    collect()
 
   receptor_props <- receptor_cells |>
-    left_join(repertoires_table_for_join, by = schema) |>
+    left_join(repertoires_table, by = schema, na_matches = "na") |>
     mutate({{ prop_col }} := !!rlang::sym(imd_count_col) / n_barcodes) |>
-    select(-n_barcodes)
+    select(-n_barcodes, -n_receptors)
 
   new_annotations <- new_annotations |>
-    left_join(receptor_props, by = c(schema, receptor_id))
+    left_join(
+      receptor_props,
+      by = c(schema, receptor_id),
+      na_matches = "na"
+    )
 
   #
-  # n_repertoires & n_receptors
+  # n_repertoires
   #
-  unique_receptors <- new_annotations |>
-    distinct(!!rlang::sym(receptor_id), !!rlang::sym(repertoire_id))
-
-  n_receptor_df <- unique_receptors |>
-    summarise(.by = !!rlang::sym(repertoire_id), n_receptors = n())
-
-  repertoires_table <- repertoires_table |> left_join(n_receptor_df, by = repertoire_id)
-
-  repertoire_counts <- unique_receptors |>
+  repertoire_counts <- receptor_cells |>
     summarise(.by = all_of(receptor_id), n_repertoires = n())
 
-  new_annotations <- new_annotations |> left_join(repertoire_counts, by = receptor_id)
+  new_annotations <- new_annotations |>
+    left_join(repertoire_counts, by = receptor_id, na_matches = "na")
 
   ImmunData$new(
     schema = idata$schema_receptor,

@@ -153,6 +153,9 @@ expect_agg_repertoires_integrity <- function(
 
   mapping_mismatches <- NULL
   mapping_mismatches_display <- "<not checked>"
+  count_check_missing <- character()
+  count_mismatches <- NULL
+  count_mismatches_display <- "<not checked>"
   if (!is.null(schema)) {
     mapping_cols <- unique(c("imd_repertoire_id", schema))
 
@@ -173,6 +176,73 @@ expect_agg_repertoires_integrity <- function(
       )
 
       mapping_mismatches_display <- as.character(nrow(mapping_mismatches))
+    }
+
+    count_annotation_cols <- unique(c(
+      schema,
+      "imd_receptor_id",
+      "imd_barcode",
+      "imd_n_chains"
+    ))
+    count_repertoire_cols <- unique(c(
+      schema,
+      "n_barcodes",
+      "n_receptors"
+    ))
+    missing_annotation_count_cols <- setdiff(
+      count_annotation_cols,
+      names(ann)
+    )
+    missing_repertoire_count_cols <- setdiff(
+      count_repertoire_cols,
+      names(reps)
+    )
+    count_check_missing <- c(
+      if (length(missing_annotation_count_cols) > 0) {
+        paste0("annotations.", missing_annotation_count_cols)
+      },
+      if (length(missing_repertoire_count_cols) > 0) {
+        paste0("repertoires.", missing_repertoire_count_cols)
+      }
+    )
+
+    if (length(count_check_missing) == 0) {
+      expected_counts <- ann |>
+        dplyr::summarise(
+          imd_n_chains = dplyr::first(imd_n_chains),
+          .by = dplyr::all_of(c(
+            schema,
+            "imd_receptor_id",
+            "imd_barcode"
+          ))
+        ) |>
+        dplyr::summarise(
+          n_barcodes = sum(imd_n_chains),
+          n_receptors = dplyr::n_distinct(imd_receptor_id),
+          .by = dplyr::all_of(schema)
+        )
+
+      actual_counts <- reps |>
+        dplyr::select(dplyr::all_of(count_repertoire_cols))
+
+      count_mismatches <- dplyr::bind_rows(
+        expected_counts |>
+          dplyr::anti_join(
+            actual_counts,
+            by = count_repertoire_cols,
+            na_matches = "na"
+          ) |>
+          dplyr::mutate(.count_source = "recomputed from annotations"),
+        actual_counts |>
+          dplyr::anti_join(
+            expected_counts,
+            by = count_repertoire_cols,
+            na_matches = "na"
+          ) |>
+          dplyr::mutate(.count_source = "repertoire table")
+      )
+
+      count_mismatches_display <- as.character(nrow(count_mismatches))
     }
   }
 
@@ -216,19 +286,31 @@ expect_agg_repertoires_integrity <- function(
       "repertoire NA counts: <none>"
     },
     paste0("unmatched repertoire ids: ", unmatched_repertoire_ids_display),
-    paste0("repertoire mapping mismatch rows: ", mapping_mismatches_display)
+    paste0("repertoire mapping mismatch rows: ", mapping_mismatches_display),
+    if (length(count_check_missing) > 0) {
+      paste0(
+        "missing count-check columns: ",
+        paste(count_check_missing, collapse = ", ")
+      )
+    } else {
+      "missing count-check columns: <none>"
+    },
+    paste0("repertoire count mismatch rows: ", count_mismatches_display)
   )
   diag <- paste(diag_lines, collapse = "\n")
 
   has_ann_na_mismatch <- length(ann_na_counts) > 0 && any(ann_na_counts != 0)
   has_reps_na_mismatch <- length(reps_na_counts) > 0 && any(reps_na_counts != 0)
   has_unmatched_repertoire_ids <- !is.null(unmatched_repertoire_ids) && nrow(unmatched_repertoire_ids) > 0
+  has_count_mismatches <- !is.null(count_mismatches) && nrow(count_mismatches) > 0
   has_mismatch <- nrow(reps) <= 0 ||
     length(ann_missing) > 0 ||
     length(reps_missing) > 0 ||
     has_ann_na_mismatch ||
     has_reps_na_mismatch ||
-    has_unmatched_repertoire_ids
+    has_unmatched_repertoire_ids ||
+    length(count_check_missing) > 0 ||
+    has_count_mismatches
 
   if (has_mismatch) {
     before_input_dump <- if (!is.null(before_annotations) || !is.null(before_repertoires)) {
@@ -292,6 +374,38 @@ expect_agg_repertoires_integrity <- function(
       nrow(mapping_mismatches),
       0L,
       info = mapping_diag
+    )
+  }
+
+  if (!is.null(schema)) {
+    testthat::expect_equal(
+      length(count_check_missing),
+      0L,
+      info = diag
+    )
+  }
+
+  if (!is.null(count_mismatches)) {
+    count_mismatches_preview <- utils::head(count_mismatches, 20L)
+    count_diag <- paste0(
+      diag,
+      "\n\nrepertoire count mismatches:\n",
+      format_integrity_df_dump(count_mismatches_preview),
+      if (nrow(count_mismatches) > nrow(count_mismatches_preview)) {
+        paste0(
+          "\n... ",
+          nrow(count_mismatches) - nrow(count_mismatches_preview),
+          " additional mismatch rows omitted"
+        )
+      } else {
+        ""
+      }
+    )
+
+    testthat::expect_equal(
+      nrow(count_mismatches),
+      0L,
+      info = count_diag
     )
   }
 
