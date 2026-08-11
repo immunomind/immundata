@@ -69,6 +69,127 @@ test_that("read_repertoires() works with vector of file names", {
   }
 })
 
+test_that("single-cell pairing does not combine equal barcodes from different files", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_a_file <- tempfile("sample_A_", fileext = ".tsv")
+  sample_b_file <- tempfile("sample_B_", fileext = ".tsv")
+  on.exit(unlink(c(sample_a_file, sample_b_file)), add = TRUE)
+
+  # The AAAC-1 rows come from independent libraries. Although their raw
+  # barcodes match, neither AAAC-1 cell has a complete TRA/TRB receptor.
+  # VALID-A is an unrelated complete receptor that keeps the result non-empty.
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = c("AAAC-1", "VALID-A", "VALID-A"),
+      locus = c("TRA", "TRA", "TRB"),
+      UMI = c(12L, 10L, 11L),
+      v_call = c("TRAV1", "TRAV2", "TRBV2"),
+      j_call = c("TRAJ1", "TRAJ2", "TRBJ2"),
+      junction_aa = c("CAVR", "CAVVALID", "CASSVALID")
+    ),
+    sample_a_file
+  )
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = "AAAC-1",
+      locus = "TRB",
+      UMI = 18L,
+      v_call = "TRBV1",
+      j_call = "TRBJ1",
+      junction_aa = "CASSR"
+    ),
+    sample_b_file
+  )
+
+  idata <- read_repertoires(
+    path = c(sample_a_file, sample_b_file),
+    schema = make_receptor_schema(
+      features = c("v_call", "j_call", "junction_aa"),
+      chains = c("TRA", "TRB")
+    ),
+    barcode_col = "barcode",
+    locus_col = "locus",
+    umi_col = "UMI",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    rename_columns = NULL
+  )
+
+  cross_file_receptors <- idata$annotations |>
+    collect() |>
+    summarise(
+      n_source_files = n_distinct(imd_filename),
+      .by = imd_receptor_id
+    ) |>
+    filter(n_source_files > 1L)
+
+  expect_equal(
+    nrow(cross_file_receptors),
+    0L,
+    info = "a receptor must never contain chains from distinct input files"
+  )
+})
+
+test_that("single-chain selection treats equal barcodes from different files independently", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_a_file <- tempfile("sample_A_", fileext = ".tsv")
+  sample_b_file <- tempfile("sample_B_", fileext = ".tsv")
+  on.exit(unlink(c(sample_a_file, sample_b_file)), add = TRUE)
+
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = "AAAC-1",
+      locus = "TRA",
+      UMI = 12L,
+      v_call = "TRAV1",
+      j_call = "TRAJ1",
+      junction_aa = "CAVA"
+    ),
+    sample_a_file
+  )
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = "AAAC-1",
+      locus = "TRA",
+      UMI = 20L,
+      v_call = "TRAV2",
+      j_call = "TRAJ2",
+      junction_aa = "CAVB"
+    ),
+    sample_b_file
+  )
+
+  idata <- read_repertoires(
+    path = c(sample_a_file, sample_b_file),
+    schema = make_receptor_schema(
+      features = c("v_call", "j_call", "junction_aa"),
+      chains = "TRA"
+    ),
+    barcode_col = "barcode",
+    locus_col = "locus",
+    umi_col = "UMI",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    rename_columns = NULL
+  )
+
+  observed_source_files <- idata$annotations |>
+    collect() |>
+    distinct(imd_filename) |>
+    pull(imd_filename)
+
+  expect_setequal(
+    observed_source_files,
+    normalizePath(c(sample_a_file, sample_b_file))
+  )
+})
+
 test_that("read_repertoires() works with glob pattern", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))

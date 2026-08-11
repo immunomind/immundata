@@ -32,6 +32,8 @@ if two chains are given.
 
 \item{barcode_col}{Character(1). The name of the column containing cell
 identifiers (barcodes). Required for single-cell processing and chain pairing.
+When the internal source-file column \code{imd_filename} is present, single-cell
+identity is scoped by both source file and barcode during aggregation.
 Default: \code{NULL}.}
 
 \item{count_col}{Character(1). The name of the column containing counts

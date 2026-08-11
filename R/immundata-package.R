@@ -68,7 +68,6 @@
 #' @importFrom duckplyr duckdb_tibble
 #' @importFrom duckplyr read_csv_duckdb
 #' @importFrom duckplyr read_parquet_duckdb
-#' @importFrom ggplot2 autoplot
 #' @importFrom glue glue
 #' @importFrom jsonlite unbox
 #' @importFrom lifecycle deprecated

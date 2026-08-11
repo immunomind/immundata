@@ -40,8 +40,8 @@ make_seq_options <- function(query_col,
 }
 
 check_seq_options <- function(seq_options, mode = NULL) {
-  checkmate::check_list(seq_options, null.ok = FALSE)
-  checkmate::check_choice(mode, choices = c("filter", "mutate"), null.ok = FALSE)
+  checkmate::assert_list(seq_options, null.ok = FALSE)
+  checkmate::assert_choice(mode, choices = c("filter", "mutate"), null.ok = FALSE)
 
   if (!is.null(seq_options$patterns) &&
     length(seq_options$patterns) > 0 &&
@@ -313,8 +313,14 @@ annotate_tbl_regex <- function(tbl_data,
 #' @concept utils
 #' @export
 make_receptor_schema <- function(features, chains = NULL) {
-  checkmate::check_character(features, min.len = 1)
-  checkmate::check_character(chains, max.len = 2, null.ok = TRUE)
+  checkmate::assert_character(features, min.len = 1, any.missing = FALSE)
+  checkmate::assert_character(
+    chains,
+    min.len = 1,
+    max.len = 2,
+    any.missing = FALSE,
+    null.ok = TRUE
+  )
 
   list(features = features, chains = chains)
 }

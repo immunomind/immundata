@@ -29,6 +29,8 @@
 #'       if two chains are given.
 #' @param barcode_col Character(1). The name of the column containing cell
 #'   identifiers (barcodes). Required for single-cell processing and chain pairing.
+#'   When the internal source-file column `imd_filename` is present, single-cell
+#'   identity is scoped by both source file and barcode during aggregation.
 #'   Default: `NULL`.
 #' @param count_col Character(1). The name of the column containing counts
 #'   (e.g., UMI counts for bulk, clonotype frequency). Used for bulk data
@@ -83,10 +85,10 @@
 #' @export
 agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL, locus_col = NULL, umi_col = NULL) {
   checkmate::assert_data_frame(dataset)
-  checkmate::check_character(barcode_col, max.len = 1, null.ok = TRUE)
-  checkmate::check_character(count_col, max.len = 1, null.ok = TRUE)
-  checkmate::check_character(locus_col, max.len = 1, null.ok = TRUE)
-  checkmate::check_character(umi_col, max.len = 1, null.ok = TRUE)
+  checkmate::assert_string(barcode_col, min.chars = 1, null.ok = TRUE)
+  checkmate::assert_string(count_col, min.chars = 1, null.ok = TRUE)
+  checkmate::assert_string(locus_col, min.chars = 1, null.ok = TRUE)
+  checkmate::assert_string(umi_col, min.chars = 1, null.ok = TRUE)
 
   if (!is.null(barcode_col) && !is.null(count_col)) {
     cli::cli_abort("Please pass either {.arg barcode_col} (single-cell mode) or {.arg count_col} (bulk mode), not both.")
@@ -168,6 +170,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
   #   }
 
   immundata_barcode_col <- imd_schema("barcode")
+  immundata_filename_col <- imd_schema("manifest_filename")
   immundata_receptor_id_col <- imd_schema("receptor")
   immundata_chain_id_col <- imd_schema("chain")
   immundata_count_col <- imd_schema("count")
@@ -274,6 +277,14 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
         {{ immundata_chain_id_col }} := row_number()
       )
 
+    # Raw barcodes are only unique within their source library. Scope all
+    # single-cell selection and pairing operations by the source filename when
+    # it is available, while retaining the raw barcode in `imd_barcode`.
+    cell_group_cols <- c(
+      if (immundata_filename_col %in% colnames(dataset)) immundata_filename_col,
+      immundata_barcode_col
+    )
+
     #
     # 3.1) Case #3.1: single chain
     #
@@ -284,16 +295,16 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
       filtered_chains <- dataset |>
         select(all_of(c(
           immundata_chain_id_col,
-          immundata_barcode_col,
+          cell_group_cols,
           umi_col
         ))) |>
         mutate(
-          .by = all_of(immundata_barcode_col),
+          .by = all_of(cell_group_cols),
           temp__reads = max(!!rlang::sym(umi_col), na.rm = TRUE)
         ) |>
         filter(!!rlang::sym(umi_col) == temp__reads) |>
-        distinct(!!rlang::sym(immundata_barcode_col), .keep_all = TRUE) |>
-        select(all_of(c(immundata_barcode_col, immundata_chain_id_col)))
+        distinct(!!!rlang::syms(cell_group_cols), .keep_all = TRUE) |>
+        select(all_of(c(cell_group_cols, immundata_chain_id_col)))
 
       dataset <- dataset |>
         semi_join(filtered_chains, by = immundata_chain_id_col)
@@ -327,24 +338,24 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
       filtered_chains <- dataset |>
         select(all_of(c(
           immundata_chain_id_col,
-          immundata_barcode_col,
+          cell_group_cols,
           umi_col,
           locus_col
         ))) |>
         mutate(
-          .by = all_of(c(immundata_barcode_col, locus_col)),
+          .by = all_of(c(cell_group_cols, locus_col)),
           temp__reads = max(!!rlang::sym(umi_col), na.rm = TRUE)
         ) |>
         filter(!!rlang::sym(umi_col) == temp__reads) |>
         # If there are ties, keep the first one
-        distinct(!!rlang::sym(immundata_barcode_col), !!rlang::sym(locus_col), .keep_all = TRUE) |>
-        select(all_of(c(immundata_barcode_col, locus_col, immundata_chain_id_col)))
+        distinct(!!!rlang::syms(c(cell_group_cols, locus_col)), .keep_all = TRUE) |>
+        select(all_of(c(cell_group_cols, locus_col, immundata_chain_id_col)))
 
       if (!is_relaxed_pairing) {
         # - find barcodes with both loci
         valid_barcodes <- filtered_chains |>
           summarise(
-            .by = all_of(immundata_barcode_col),
+            .by = all_of(cell_group_cols),
             n = n()
           ) |>
           filter(n == 2)
@@ -352,7 +363,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
         # - find barcodes with one main locus and only one of the alternative loci
         valid_barcodes <- filtered_chains |>
           summarise(
-            .by = all_of(immundata_barcode_col),
+            .by = all_of(cell_group_cols),
             has_l1 = any(!!rlang::sym(locus_col) == locus_1),
             has_l2 = any(!!rlang::sym(locus_col) == locus_2),
             has_l3 = any(!!rlang::sym(locus_col) == locus_3),
@@ -363,7 +374,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
       # - get back to chains to select only those which are paired
       filtered_chains <- filtered_chains |>
         semi_join(valid_barcodes,
-          by = immundata_barcode_col
+          by = cell_group_cols
         )
 
       # Looks like back-and-forth, but I'm not sure how to make it better, tbh
@@ -374,7 +385,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
       # Step 2: create receptors and their identifiers by self-join
 
       annotated_filtered_chains <- dataset |>
-        select(all_of(c(receptor_features, locus_col, immundata_chain_id_col, immundata_barcode_col))) |>
+        select(all_of(c(receptor_features, locus_col, immundata_chain_id_col, cell_group_cols))) |>
         semi_join(filtered_chains, by = immundata_chain_id_col)
 
       r1 <- annotated_filtered_chains |>
@@ -391,7 +402,7 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
       receptor_barcode_mapping <- r1 |>
         left_join(
           r2,
-          by = immundata_barcode_col
+          by = cell_group_cols
         )
 
       receptor_chain_mapping <- receptor_barcode_mapping |>

@@ -52,83 +52,94 @@ export(rename_strata)
 export(test_receptor_schema)
 export(write_immundata)
 importFrom(R6,R6Class)
-importFrom(checkmate,assert)
-importFrom(checkmate,assertCharacter)
-importFrom(checkmate,assertR6)
-importFrom(checkmate,assert_character)
-importFrom(checkmate,assert_choice)
-importFrom(checkmate,assert_class)
-importFrom(checkmate,assert_data_frame)
-importFrom(checkmate,assert_directory_exists)
-importFrom(checkmate,assert_file_exists)
-importFrom(checkmate,assert_logical)
-importFrom(checkmate,assert_string)
-importFrom(checkmate,checkCharacter)
-importFrom(checkmate,checkChoice)
-importFrom(checkmate,checkR6)
-importFrom(checkmate,check_character)
-importFrom(checkmate,check_choice)
-importFrom(checkmate,check_class)
-importFrom(checkmate,check_data_frame)
-importFrom(checkmate,check_function)
-importFrom(checkmate,check_list)
-importFrom(checkmate,check_scalar_na)
-importFrom(checkmate,check_subset)
-importFrom(checkmate,check_true)
-importFrom(checkmate,makeAssertion)
-importFrom(checkmate,test_character)
-importFrom(checkmate,test_data_frame)
-importFrom(checkmate,test_file_exists)
-importFrom(checkmate,test_function)
-importFrom(checkmate,test_list)
-importFrom(checkmate,test_subset)
-importFrom(cli,cli_abort)
-importFrom(cli,cli_alert_danger)
-importFrom(cli,cli_alert_info)
-importFrom(cli,cli_alert_success)
-importFrom(cli,cli_alert_warning)
-importFrom(cli,cli_end)
-importFrom(cli,cli_li)
-importFrom(cli,cli_ol)
-importFrom(cli,cli_ul)
-importFrom(dplyr,all_of)
-importFrom(dplyr,any_of)
-importFrom(dplyr,arrange)
-importFrom(dplyr,collect)
-importFrom(dplyr,compute)
-importFrom(dplyr,count)
-importFrom(dplyr,distinct)
-importFrom(dplyr,filter)
-importFrom(dplyr,full_join)
-importFrom(dplyr,left_join)
-importFrom(dplyr,mutate)
-importFrom(dplyr,n)
-importFrom(dplyr,pull)
-importFrom(dplyr,relocate)
-importFrom(dplyr,rename)
-importFrom(dplyr,right_join)
-importFrom(dplyr,row_number)
-importFrom(dplyr,select)
-importFrom(dplyr,semi_join)
-importFrom(dplyr,summarise)
-importFrom(dplyr,union_all)
-importFrom(duckplyr,as_duckdb_tibble)
-importFrom(duckplyr,as_tbl)
-importFrom(duckplyr,compute_parquet)
-importFrom(duckplyr,duckdb_tibble)
-importFrom(duckplyr,read_csv_duckdb)
-importFrom(duckplyr,read_parquet_duckdb)
-importFrom(ggplot2,autoplot)
+importFrom(checkmate,
+  assert,
+  assertCharacter,
+  assertR6,
+  assert_character,
+  assert_choice,
+  assert_class,
+  assert_data_frame,
+  assert_directory_exists,
+  assert_file_exists,
+  assert_logical,
+  assert_string,
+  checkCharacter,
+  checkChoice,
+  checkR6,
+  check_character,
+  check_choice,
+  check_class,
+  check_data_frame,
+  check_function,
+  check_list,
+  check_scalar_na,
+  check_subset,
+  check_true,
+  makeAssertion,
+  test_character,
+  test_data_frame,
+  test_file_exists,
+  test_function,
+  test_list,
+  test_subset
+)
+importFrom(cli,
+  cli_abort,
+  cli_alert_danger,
+  cli_alert_info,
+  cli_alert_success,
+  cli_alert_warning,
+  cli_end,
+  cli_li,
+  cli_ol,
+  cli_ul
+)
+importFrom(dplyr,
+  all_of,
+  any_of,
+  arrange,
+  collect,
+  compute,
+  count,
+  distinct,
+  filter,
+  full_join,
+  left_join,
+  mutate,
+  n,
+  pull,
+  relocate,
+  rename,
+  right_join,
+  row_number,
+  select,
+  semi_join,
+  summarise,
+  union_all
+)
+importFrom(duckplyr,
+  as_duckdb_tibble,
+  as_tbl,
+  compute_parquet,
+  duckdb_tibble,
+  read_csv_duckdb,
+  read_parquet_duckdb
+)
 importFrom(glue,glue)
 importFrom(jsonlite,unbox)
 importFrom(lifecycle,deprecated)
 importFrom(readr,read_delim)
-importFrom(rlang,":=")
-importFrom(rlang,.data)
-importFrom(rlang,sym)
-importFrom(rlang,syms)
+importFrom(rlang,
+  ":=",
+  .data,
+  sym,
+  syms
+)
 importFrom(tibble,as_tibble)
 importFrom(tools,file_ext)
-importFrom(utils,packageDescription)
-importFrom(utils,packageVersion)
-importFrom(utils,tail)
+importFrom(utils,
+  packageDescription,
+  packageVersion,
+  tail
+)
