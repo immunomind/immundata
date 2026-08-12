@@ -1,10 +1,12 @@
 check_file_extensions <- function(path, verbose = TRUE) {
 
-  ol <- cli_ol()
-  cli_ol(path)
-  cli_end(ol)
+  if (verbose) {
+    ol <- cli_ol()
+    cli_ol(path)
+    cli_end(ol)
 
-  cli_alert_info("Checking if all files are of the same type")
+    cli_alert_info("Checking if all files are of the same type")
+  }
 
   input_file_type <- NA
   delim <- NA
@@ -31,7 +33,9 @@ check_file_extensions <- function(path, verbose = TRUE) {
     } else {
       cli_abort("Unknown file type: [{unique_extensions}]. Supported file types: Parquet, CSV, TSV, gzipped CSV and TSV")
     }
-    cli_alert_success("All files have the same extension")
+    if (verbose) {
+      cli_alert_success("All files have the same extension")
+    }
   } else {
     cli_abort("Not all files of the same type. Please convert them all to the same type, and try again")
   }

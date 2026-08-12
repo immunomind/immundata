@@ -18,7 +18,8 @@ read_repertoires(
   enforce_schema = TRUE,
   manifest_file_col = "file",
   output_folder = NULL,
-  repertoire_schema = "<auto>"
+  repertoire_schema = "<auto>",
+  verbose = getOption("immundata.verbose", TRUE)
 )
 }
 \arguments{
@@ -100,6 +101,9 @@ string. Defines columns used to group annotations into distinct repertoires
 manifest row. \code{"<auto>"} chooses \code{"<manifest>"} behavior when
 \code{path = "<manifest>"}, otherwise it groups by the internal input filename
 column. If \code{NULL}, no repertoires are created. Default: \code{"<auto>"}.}
+
+\item{verbose}{Logical(1). Whether to print informative messages. Defaults to
+\code{getOption("immundata.verbose", TRUE)}.}
 }
 \value{
 An \code{ImmunData} object containing the processed receptor annotations.

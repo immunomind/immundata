@@ -9,7 +9,7 @@ read_immundata(
   tag = NULL,
   version = NULL,
   prudence = "stingy",
-  verbose = TRUE
+  verbose = getOption("immundata.verbose", TRUE)
 )
 }
 \arguments{
@@ -28,8 +28,8 @@ for the tag is loaded.}
 reading the Parquet file, passed to \code{duckplyr::read_parquet_duckdb()}.
 Default \code{"stingy"} likely implies stricter type checking or safer inference.}
 
-\item{verbose}{Logical(1). If \code{TRUE} (default), prints informative messages
-using \code{cli} during loading. Set to \code{FALSE} for quiet operation.}
+\item{verbose}{Logical(1). Whether to print informative messages. Defaults to
+\code{getOption("immundata.verbose", TRUE)}.}
 }
 \value{
 A new \code{ImmunData} object reconstructed from the saved files.

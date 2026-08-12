@@ -4,7 +4,13 @@
 \alias{read_manifest}
 \title{Load and Validate a Manifest for Immune Repertoire Files}
 \usage{
-read_manifest(manifest, file_col = "file", delim = NULL, ...)
+read_manifest(
+  manifest,
+  file_col = "file",
+  delim = NULL,
+  ...,
+  verbose = getOption("immundata.verbose", TRUE)
+)
 }
 \arguments{
 \item{manifest}{A manifest table. Can be either:
@@ -21,6 +27,9 @@ inferred from the extension: comma for \code{.csv}, tab for \code{.tsv} and \cod
 
 \item{...}{Additional arguments passed to \code{readr::read_delim()} when reading
 a manifest from a file.}
+
+\item{verbose}{Logical(1). Whether to print informative messages. Defaults to
+\code{getOption("immundata.verbose", TRUE)}.}
 }
 \value{
 A validated and updated manifest data frame with absolute file paths

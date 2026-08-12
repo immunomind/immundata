@@ -14,7 +14,10 @@ Sys.setenv(
   DUCKPLYR_FALLBACK_AUTOUPLOAD = "0",
   DUCKPLYR_FALLBACK_VERBOSE = "FALSE"
 )
-options(rlib_message_verbosity = "quiet")
+options(
+  immundata.verbose = FALSE,
+  rlib_message_verbosity = "quiet"
+)
 
 library(immundata)
 

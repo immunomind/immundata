@@ -33,6 +33,8 @@
 #'   define a unique repertoire. For example, `c("SampleID")` or
 #'   `c("DonorID", "TimePoint")`. Columns must exist in `idata$annotations`.
 #'   Default: `"repertoire_id"` (assumes such a column exists).
+#' @param verbose Logical(1). Reserved for consistency with other aggregation
+#'   functions. Defaults to `getOption("immundata.verbose", TRUE)`.
 #'
 #' @details
 #' The function operates on the `idata$annotations` table:
@@ -84,9 +86,11 @@
 #' print(idata_aggregated$repertoires)
 #' print(head(idata_aggregated$annotations)) # Note the new columns
 #' }
-agg_repertoires <- function(idata, schema = "repertoire_id") {
+agg_repertoires <- function(idata, schema = "repertoire_id",
+                            verbose = getOption("immundata.verbose", TRUE)) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_character(schema, min.len = 1)
+  checkmate::assert_flag(verbose)
 
   missing_cols <- setdiff(schema, colnames(idata$annotations))
   if (length(missing_cols) > 0) {
@@ -135,8 +139,8 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
   repertoires_table <- receptor_cells |>
     summarise(
       .by = all_of(schema),
-      n_barcodes = sum(!!rlang::sym(imd_count_col)),
-      n_receptors = n()
+      !!n_barcodes_col := sum(!!rlang::sym(imd_count_col)),
+      !!n_receptors_col := n()
     ) |>
     arrange(!!!rlang::syms(schema)) |>
     mutate(
@@ -147,8 +151,8 @@ agg_repertoires <- function(idata, schema = "repertoire_id") {
 
   receptor_props <- receptor_cells |>
     left_join(repertoires_table, by = schema, na_matches = "na") |>
-    mutate({{ prop_col }} := !!rlang::sym(imd_count_col) / n_barcodes) |>
-    select(-n_barcodes, -n_receptors)
+    mutate(!!prop_col := !!rlang::sym(imd_count_col) / !!rlang::sym(n_barcodes_col)) |>
+    select(-all_of(c(n_barcodes_col, n_receptors_col)))
 
   new_annotations <- new_annotations |>
     left_join(

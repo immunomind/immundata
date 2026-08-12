@@ -85,14 +85,16 @@ agg_strata <- function(idata, schema, strata_name_prefix = "Strata") {
     ) |>
     select(all_of(c(strata_col, strata_name_col, schema)))
 
+  row_id_col <- ".__row_id"
+
   rep_tbl_stratified <- rep_tbl_clean |>
-    mutate(.__row_id = row_number()) |>
+    mutate(!!row_id_col := row_number()) |>
     left_join(
       strata_defs |> select(all_of(c(schema, strata_col, strata_name_col))),
       by = schema
     ) |>
-    arrange(.__row_id) |>
-    select(-all_of(".__row_id"))
+    arrange(!!rlang::sym(row_id_col)) |>
+    select(-all_of(row_id_col))
 
   rep_to_strata <- rep_tbl_stratified |>
     select(all_of(c(repertoire_col, strata_col))) |>

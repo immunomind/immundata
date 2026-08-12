@@ -11,7 +11,8 @@ write_immundata_internal <- function(idata,
                                      compression_level = 9,
                                      producer_function = "write_immundata",
                                      ingestion_payload = NULL,
-                                     metadata_extensions = NULL) {
+                                     metadata_extensions = NULL,
+                                     verbose = getOption("immundata.verbose", TRUE)) {
   compression_was_provided <- !missing(compression)
   compression_level_was_provided <- !missing(compression_level)
 
@@ -39,6 +40,7 @@ write_immundata_internal <- function(idata,
   )
   checkmate::assert_list(ingestion_payload, null.ok = TRUE)
   checkmate::assert_list(metadata_extensions, null.ok = TRUE)
+  checkmate::assert_flag(verbose)
 
   resolved_output <- resolve_snapshot_output_folder(
     idata = idata,
@@ -67,7 +69,9 @@ write_immundata_internal <- function(idata,
   metadata_json <- snapshot_metadata$metadata
   provenance_after <- snapshot_metadata$provenance
 
-  cli::cli_alert_info("Writing the receptor annotation data to [{annotations_path}]")
+  if (verbose) {
+    cli::cli_alert_info("Writing the receptor annotation data to [{annotations_path}]")
+  }
   duckplyr_is_1_2_0 <- isTRUE(utils::packageVersion("duckplyr") == "1.2.0")
   parquet_options <- Filter(
     f = function(x) !is.null(x),
@@ -78,32 +82,58 @@ write_immundata_internal <- function(idata,
   )
 
   if (duckplyr_is_1_2_0) {
-    if (compression_was_provided || compression_level_was_provided) {
+    if (verbose && (compression_was_provided || compression_level_was_provided)) {
       cli::cli_alert_warning(
         "duckplyr 1.2.0 does not accept compression options in `compute_parquet()`; ignoring `compression` and `compression_level`."
       )
     }
-    compute_parquet(
-      idata$annotations,
-      annotations_path
-    )
+    if (verbose) {
+      compute_parquet(
+        idata$annotations,
+        annotations_path
+      )
+    } else {
+      suppressMessages(compute_parquet(
+        idata$annotations,
+        annotations_path
+      ))
+    }
   } else if (length(parquet_options) == 0) {
-    compute_parquet(
-      idata$annotations,
-      annotations_path
-    )
+    if (verbose) {
+      compute_parquet(
+        idata$annotations,
+        annotations_path
+      )
+    } else {
+      suppressMessages(compute_parquet(
+        idata$annotations,
+        annotations_path
+      ))
+    }
   } else {
-    compute_parquet(
-      idata$annotations,
-      annotations_path,
-      options = parquet_options
-    )
+    if (verbose) {
+      compute_parquet(
+        idata$annotations,
+        annotations_path,
+        options = parquet_options
+      )
+    } else {
+      suppressMessages(compute_parquet(
+        idata$annotations,
+        annotations_path,
+        options = parquet_options
+      ))
+    }
   }
 
-  cli::cli_alert_info("Writing the metadata to [{metadata_path}]")
+  if (verbose) {
+    cli::cli_alert_info("Writing the metadata to [{metadata_path}]")
+  }
   jsonlite::write_json(metadata_json, metadata_path, null = "null", auto_unbox = TRUE, pretty = TRUE)
 
-  cli::cli_alert_success("ImmunData files saved to [{output_folder}]")
+  if (verbose) {
+    cli::cli_alert_success("ImmunData files saved to [{output_folder}]")
+  }
 
   written_idata <- read_immundata(output_folder, verbose = FALSE)
   invisible(set_provenance(written_idata, provenance_after))

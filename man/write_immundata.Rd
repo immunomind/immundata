@@ -10,7 +10,8 @@ write_immundata(
   tag = NULL,
   rehome = FALSE,
   compression = "zstd",
-  compression_level = 9
+  compression_level = 9,
+  verbose = getOption("immundata.verbose", TRUE)
 )
 }
 \arguments{
@@ -38,6 +39,9 @@ Defaults to \code{"zstd"}. Set \code{NULL} to let DuckDB choose.}
 \item{compression_level}{Numeric(1) or \code{NULL}. Compression level passed through
 to DuckDB for codecs that support levels (for example, Zstandard). Defaults
 to \code{9}. Set \code{NULL} to let DuckDB choose.}
+
+\item{verbose}{Logical(1). Whether to print informative messages. Defaults to
+\code{getOption("immundata.verbose", TRUE)}.}
 }
 \value{
 Invisibly returns the input \code{idata} object, saved to disk.

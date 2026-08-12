@@ -25,6 +25,9 @@
 #' @param delim Delimiter used to read the manifest file. If `NULL`, it is
 #'   inferred from the extension: comma for `.csv`, tab for `.tsv` and `.txt`.
 #'
+#' @param verbose Logical(1). Whether to print informative messages. Defaults to
+#'   `getOption("immundata.verbose", TRUE)`.
+#'
 #' @param ... Additional arguments passed to `readr::read_delim()` when reading
 #'   a manifest from a file.
 #'
@@ -33,7 +36,9 @@
 #'
 #' @concept ingestion
 #' @export
-read_manifest <- function(manifest, file_col = "file", delim = NULL, ...) {
+read_manifest <- function(manifest, file_col = "file", delim = NULL, ...,
+                          verbose = getOption("immundata.verbose", TRUE)) {
+  checkmate::assert_flag(verbose)
 
   if (!checkmate::test_data_frame(manifest) && !checkmate::test_file_exists(manifest)) {
     cli_abort("Error in manifest: the input manifest should be either a data frame or an existing file.")
@@ -56,7 +61,11 @@ read_manifest <- function(manifest, file_col = "file", delim = NULL, ...) {
       )
     }
 
-    manifest_table <- read_delim(manifest, delim = delim, ...)
+    if (verbose) {
+      manifest_table <- read_delim(manifest, delim = delim, ...)
+    } else {
+      manifest_table <- suppressMessages(read_delim(manifest, delim = delim, ...))
+    }
     manifest_source <- "file" # TODO: enum
   } else {
     manifest_table <- manifest
@@ -93,14 +102,18 @@ read_manifest <- function(manifest, file_col = "file", delim = NULL, ...) {
   n_existed <- sum(file_existed)
   n_threshold <- round(length(file_list) * 0.1) + 1
 
-  cli_alert_info("Found {n_existed}/{length(file_list)} repertoire files from the manifest on disk")
+  if (verbose) {
+    cli_alert_info("Found {n_existed}/{length(file_list)} repertoire files from the manifest on disk")
+  }
   if (n_existed == 0) {
     cli_abort("Error: found zero (!) repertoire files passed in the manifest. Are the file paths in the manifest correct?")
-  } else if (n_existed <= n_threshold) {
+  } else if (n_existed <= n_threshold && verbose) {
     cli_alert_warning("Warning: found only {n_existed} files out of {length(file_list)} in the manifest. Please check if you planned to work with more repertoire files. Continuing the execution.")
   }
 
-  cli_alert_success("Manifest parsed successfully")
+  if (verbose) {
+    cli_alert_success("Manifest parsed successfully")
+  }
 
   immundata_filename_col <- IMD_GLOBALS$schema$manifest_filename
   manifest_table[[immundata_filename_col]] <- manifest_table[[file_col]]

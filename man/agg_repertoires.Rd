@@ -4,7 +4,11 @@
 \alias{agg_repertoires}
 \title{Aggregate AIRR data into repertoires}
 \usage{
-agg_repertoires(idata, schema = "repertoire_id")
+agg_repertoires(
+  idata,
+  schema = "repertoire_id",
+  verbose = getOption("immundata.verbose", TRUE)
+)
 }
 \arguments{
 \item{idata}{An \code{ImmunData} object, typically the output of \code{\link[=read_repertoires]{read_repertoires()}}
@@ -16,6 +20,9 @@ specified in \code{schema} and internal columns like \code{imd_receptor_id} and
 define a unique repertoire. For example, \code{c("SampleID")} or
 \code{c("DonorID", "TimePoint")}. Columns must exist in \code{idata$annotations}.
 Default: \code{"repertoire_id"} (assumes such a column exists).}
+
+\item{verbose}{Logical(1). Reserved for consistency with other aggregation
+functions. Defaults to \code{getOption("immundata.verbose", TRUE)}.}
 }
 \value{
 A \strong{new} \code{ImmunData} object. Its \verb{$annotations} table includes the

@@ -10,7 +10,8 @@ agg_receptors(
   barcode_col = NULL,
   count_col = NULL,
   locus_col = NULL,
-  umi_col = NULL
+  umi_col = NULL,
+  verbose = getOption("immundata.verbose", TRUE)
 )
 }
 \arguments{
@@ -48,6 +49,9 @@ or pairing. Default: \code{NULL}.}
 Required for single-cell data (\code{barcode_col} is set). Used to select the
 most abundant chain within each barcode and, for paired schemas, within
 each barcode/locus group when multiple chains are present. Default: \code{NULL}.}
+
+\item{verbose}{Logical(1). Whether to print informative messages. Defaults to
+\code{getOption("immundata.verbose", TRUE)}.}
 }
 \value{
 A \code{duckplyr_df} (or data frame) representing the annotated sequences.

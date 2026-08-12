@@ -17,8 +17,8 @@
 #' @param prudence Character(1). Controls strictness of type inference when
 #'   reading the Parquet file, passed to `duckplyr::read_parquet_duckdb()`.
 #'   Default `"stingy"` likely implies stricter type checking or safer inference.
-#' @param verbose Logical(1). If `TRUE` (default), prints informative messages
-#'   using `cli` during loading. Set to `FALSE` for quiet operation.
+#' @param verbose Logical(1). Whether to print informative messages. Defaults to
+#'   `getOption("immundata.verbose", TRUE)`.
 #'
 #' @details
 #' This function expects a directory structure created by [write_immundata()],
@@ -71,13 +71,17 @@
 #' # Clean up
 #' unlink(save_dir, recursive = TRUE)
 #' }
-read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy", verbose = TRUE) {
+read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy",
+                           verbose = getOption("immundata.verbose", TRUE)) {
   checkmate::assert_character(path, len = 1, null.ok = FALSE)
   checkmate::assert_character(tag, len = 1, null.ok = TRUE)
   checkmate::assert_count(version, null.ok = TRUE)
+  checkmate::assert_flag(verbose)
 
   resolved_path <- resolve_snapshot_input(path, tag = tag, version = version)
-  cli_alert_info("Reading ImmunData files from [{.path {resolved_path}}]")
+  if (verbose) {
+    cli_alert_info("Reading ImmunData files from [{.path {resolved_path}}]")
+  }
 
   assert_directory_exists(resolved_path)
   assert_file_exists(file.path(resolved_path, imd_files()$annotations))
@@ -92,7 +96,17 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
   )
   metadata_json <- normalize_metadata_json(meta_raw)
 
-  annotation_data <- read_parquet_duckdb(file.path(resolved_path, imd_files()$annotations), prudence = prudence)
+  if (verbose) {
+    annotation_data <- read_parquet_duckdb(
+      file.path(resolved_path, imd_files()$annotations),
+      prudence = prudence
+    )
+  } else {
+    annotation_data <- suppressMessages(read_parquet_duckdb(
+      file.path(resolved_path, imd_files()$annotations),
+      prudence = prudence
+    ))
+  }
   validate_snapshot_columns(metadata_json, annotation_data, resolved_path)
 
   receptor_schema <- metadata_json[["schema_receptor"]]
@@ -122,7 +136,11 @@ read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy"
   )
 
   if (isTRUE(metadata_json$rebuild_repertoires)) {
-    idata <- agg_repertoires(idata, metadata_json$schema_repertoire)
+    idata <- agg_repertoires(
+      idata,
+      metadata_json$schema_repertoire,
+      verbose = verbose
+    )
   }
 
   if (verbose) {

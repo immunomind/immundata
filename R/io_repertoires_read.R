@@ -143,6 +143,8 @@ resolve_repertoire_schema <- function(repertoire_schema,
 #'   manifest row. `"<auto>"` chooses `"<manifest>"` behavior when
 #'   `path = "<manifest>"`, otherwise it groups by the internal input filename
 #'   column. If `NULL`, no repertoires are created. Default: `"<auto>"`.
+#' @param verbose Logical(1). Whether to print informative messages. Defaults to
+#'   `getOption("immundata.verbose", TRUE)`.
 #'
 #' @details
 #' The function executes the following steps:
@@ -254,7 +256,8 @@ read_repertoires <- function(path,
                              enforce_schema = TRUE,
                              manifest_file_col = "file",
                              output_folder = NULL,
-                             repertoire_schema = "<auto>") {
+                             repertoire_schema = "<auto>",
+                             verbose = getOption("immundata.verbose", TRUE)) {
   start_time <- Sys.time()
 
   checkmate::assert_character(path)
@@ -299,6 +302,7 @@ read_repertoires <- function(path,
   )
   checkmate::assert_character(rename_columns, null.ok = TRUE)
   checkmate::assert_logical(enforce_schema)
+  checkmate::assert_flag(verbose)
   checkmate::assert_list(preprocess, null.ok = TRUE)
   if (!is.null(preprocess)) {
     sapply(preprocess, checkmate::assert_function)
@@ -360,12 +364,14 @@ read_repertoires <- function(path,
   )
 
   # Read the dataset
-  cli::cli_h3("Reading repertoire data")
-  file_check_results <- check_file_extensions(path)
+  if (verbose) {
+    cli::cli_h3("Reading repertoire data")
+  }
+  file_check_results <- check_file_extensions(path, verbose = verbose)
   input_file_type <- file_check_results$filetype
   delim <- file_check_results$delim
 
-  raw_dataset <- switch(input_file_type,
+  raw_dataset <- suppressMessages(switch(input_file_type,
     parquet = read_parquet_duckdb(path,
       prudence = "stingy",
       options = list(
@@ -388,14 +394,16 @@ read_repertoires <- function(path,
         union_by_name = !enforce_schema
       )
     )
-  )
+  ))
 
   raw_dataset <- raw_dataset |>
     rename(!!immundata_filename_col := any_of("filename"))
 
   # Rename columns
   if (!is.null(rename_columns)) {
-    cli::cli_h3("Renaming the columns and schemas")
+    if (verbose) {
+      cli::cli_h3("Renaming the columns and schemas")
+    }
 
     old_colnames <- colnames(raw_dataset)
     applied_rename_columns <- rename_columns[unname(rename_columns) %in% old_colnames]
@@ -404,7 +412,7 @@ read_repertoires <- function(path,
     raw_dataset <- raw_dataset |> rename(any_of(rename_columns))
     new_colnames <- colnames(raw_dataset)
     renamed_cols <- setdiff(new_colnames, old_colnames)
-    if (length(renamed_cols)) {
+    if (length(renamed_cols) && verbose) {
       cli_alert_success("Introduced new renamed columns: {renamed_cols}")
     }
 
@@ -422,46 +430,77 @@ read_repertoires <- function(path,
       }
     }
 
-    cli::cli_alert_success("Renaming is finished")
+    if (verbose) {
+      cli::cli_alert_success("Renaming is finished")
+    }
   }
 
   #
   # Preprocess the data
   #
   if (length(preprocess)) {
-    cli::cli_h3("Preprocessing the data")
+    if (verbose) {
+      cli::cli_h3("Preprocessing the data")
+    }
     preprocess_input_cols <- colnames(raw_dataset)
 
-    ol <- cli::cli_ol()
-    cli::cli_ol()
-    for (strategy_i in seq_along(preprocess)) {
-      cli::cli_li(names(preprocess)[strategy_i])
-      raw_dataset <- preprocess[[strategy_i]](raw_dataset, manifest = manifest)
+    if (verbose) {
+      ol <- cli::cli_ol()
+      cli::cli_ol()
     }
-    cli::cli_end()
-    cli::cli_end(ol)
+    for (strategy_i in seq_along(preprocess)) {
+      if (verbose) {
+        cli::cli_li(names(preprocess)[strategy_i])
+        raw_dataset <- preprocess[[strategy_i]](raw_dataset, manifest = manifest)
+      } else {
+        raw_dataset <- suppressMessages(preprocess[[strategy_i]](raw_dataset, manifest = manifest))
+      }
+    }
+    if (verbose) {
+      cli::cli_end()
+      cli::cli_end(ol)
+    }
 
     dropped_columns <- setdiff(preprocess_input_cols, colnames(raw_dataset))
 
-    cli::cli_alert_success("Preprocessing plan is ready")
+    if (verbose) {
+      cli::cli_alert_success("Preprocessing plan is ready")
+    }
   }
 
 
   #
   # Aggregate the data
   #
-  cli::cli_h3("Aggregating the data to receptors")
+  if (verbose) {
+    cli::cli_h3("Aggregating the data to receptors")
+  }
 
-  annotation_data <- agg_receptors(
-    dataset = raw_dataset,
-    schema = schema,
-    barcode_col = barcode_col,
-    count_col = count_col,
-    locus_col = locus_col,
-    umi_col = umi_col
-  )
+  if (verbose) {
+    annotation_data <- agg_receptors(
+      dataset = raw_dataset,
+      schema = schema,
+      barcode_col = barcode_col,
+      count_col = count_col,
+      locus_col = locus_col,
+      umi_col = umi_col,
+      verbose = verbose
+    )
+  } else {
+    annotation_data <- suppressMessages(agg_receptors(
+      dataset = raw_dataset,
+      schema = schema,
+      barcode_col = barcode_col,
+      count_col = count_col,
+      locus_col = locus_col,
+      umi_col = umi_col,
+      verbose = verbose
+    ))
+  }
 
-  cli::cli_alert_success("Execution plan for receptor data aggregation and annotation is ready")
+  if (verbose) {
+    cli::cli_alert_success("Execution plan for receptor data aggregation and annotation is ready")
+  }
 
   #
   # Joining with the manifest table
@@ -471,32 +510,48 @@ read_repertoires <- function(path,
       cli::cli_abort("No '{immundata_filename_col}' in the manifest. It is imperative to have this column - `immundata` uses it to annotate the AIRR files")
     }
 
-    cli::cli_h3("Joining the manifest with the dataset using '{immundata_filename_col}' column")
+    if (verbose) {
+      cli::cli_h3("Joining the manifest with the dataset using '{immundata_filename_col}' column")
+    }
 
     manifest_duckdb <- duckdb_tibble(manifest)
 
     annotation_data <- annotation_data |>
       left_join(manifest_duckdb, by = immundata_filename_col)
 
-    cli::cli_alert_success("Joining plan is ready")
+    if (verbose) {
+      cli::cli_alert_success("Joining plan is ready")
+    }
   }
 
   #
   # Postprocess the data
   #
   if (length(postprocess)) {
-    cli::cli_h3("Postprocessing the data")
-
-    ol <- cli::cli_ol()
-    cli::cli_ol()
-    for (strategy_i in seq_along(postprocess)) {
-      cli::cli_li(names(postprocess)[strategy_i])
-      annotation_data <- postprocess[[strategy_i]](annotation_data)
+    if (verbose) {
+      cli::cli_h3("Postprocessing the data")
     }
-    cli::cli_end()
-    cli::cli_end(ol)
 
-    cli::cli_alert_success("Postprocessing plan is ready")
+    if (verbose) {
+      ol <- cli::cli_ol()
+      cli::cli_ol()
+    }
+    for (strategy_i in seq_along(postprocess)) {
+      if (verbose) {
+        cli::cli_li(names(postprocess)[strategy_i])
+        annotation_data <- postprocess[[strategy_i]](annotation_data)
+      } else {
+        annotation_data <- suppressMessages(postprocess[[strategy_i]](annotation_data))
+      }
+    }
+    if (verbose) {
+      cli::cli_end()
+      cli::cli_end(ol)
+    }
+
+    if (verbose) {
+      cli::cli_alert_success("Postprocessing plan is ready")
+    }
   }
 
   idata <- ImmunData$new(
@@ -515,15 +570,27 @@ read_repertoires <- function(path,
   # Create repertoires
   #
   if (!is.null(resolved_repertoire_schema)) {
-    cli::cli_h3("Aggregating repertoires...")
-    idata <- agg_repertoires(idata, resolved_repertoire_schema)
-    cli_alert_success("Aggregation is finished")
+    if (verbose) {
+      cli::cli_h3("Aggregating repertoires...")
+    }
+    if (verbose) {
+      idata <- agg_repertoires(idata, resolved_repertoire_schema, verbose = verbose)
+    } else {
+      idata <- suppressMessages(
+        agg_repertoires(idata, resolved_repertoire_schema, verbose = verbose)
+      )
+    }
+    if (verbose) {
+      cli_alert_success("Aggregation is finished")
+    }
   }
 
   #
   # Save the created ImmunData on disk
   #
-  cli::cli_h3("Saving the newly created ImmunData to disk")
+  if (verbose) {
+    cli::cli_h3("Saving the newly created ImmunData to disk")
+  }
 
   write_immundata_internal(
     idata = idata,
@@ -556,7 +623,8 @@ read_repertoires <- function(path,
         preprocess = names(preprocess),
         postprocess = names(postprocess)
       )
-    )
+    ),
+    verbose = verbose
   )
 
   #
@@ -564,9 +632,13 @@ read_repertoires <- function(path,
   #
   idata <- read_immundata(output_folder, verbose = FALSE)
 
-  cli::cli_h3("Summary")
+  if (verbose) {
+    cli::cli_h3("Summary")
+  }
   final_time <- format(round(Sys.time() - start_time, 2))
-  cli_alert_info("Time elapsed: {.emph {final_time}}")
+  if (verbose) {
+    cli_alert_info("Time elapsed: {.emph {final_time}}")
+  }
 
   idata_size <- idata |>
     count() |>
@@ -577,16 +649,20 @@ read_repertoires <- function(path,
     count() |>
     pull("n")
 
-  cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
+  if (verbose) {
+    cli_alert_success("Loaded ImmunData with the receptor schema: [{schema}]")
+  }
 
-  if (!is.null(resolved_repertoire_schema)) {
+  if (!is.null(resolved_repertoire_schema) && verbose) {
     cli_alert_success("Loaded ImmunData with the repertoire schema: [{resolved_repertoire_schema}]")
   }
 
-  if (idata_size == 0) {
-    cli_alert_warning("Loaded ImmunData with zero (!) chains. Possible problems: wrong {.code 'chain'} specification to the receptor schema (e.g., {.code 'TCRB'} instead of {.code 'TRB'}), or preproces/postprocess filters")
-  } else {
-    cli_alert_success("Loaded ImmunData with [{idata_size}] chains and [{idata_receptors}] receptors")
+  if (verbose) {
+    if (idata_size == 0) {
+      cli_alert_warning("Loaded ImmunData with zero (!) chains. Possible problems: wrong {.code 'chain'} specification to the receptor schema (e.g., {.code 'TCRB'} instead of {.code 'TRB'}), or preproces/postprocess filters")
+    } else {
+      cli_alert_success("Loaded ImmunData with [{idata_size}] chains and [{idata_receptors}] receptors")
+    }
   }
 
   idata

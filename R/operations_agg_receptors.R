@@ -80,15 +80,19 @@
 #'   This output is typically assigned to the `$annotations` field of an `ImmunData` object.
 #'
 #' @seealso [read_repertoires()], [make_receptor_schema()], [ImmunData]
+#' @param verbose Logical(1). Whether to print informative messages. Defaults to
+#'   `getOption("immundata.verbose", TRUE)`.
 #'
 #' @concept aggregation
 #' @export
-agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL, locus_col = NULL, umi_col = NULL) {
+agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL, locus_col = NULL, umi_col = NULL,
+                          verbose = getOption("immundata.verbose", TRUE)) {
   checkmate::assert_data_frame(dataset)
   checkmate::assert_string(barcode_col, min.chars = 1, null.ok = TRUE)
   checkmate::assert_string(count_col, min.chars = 1, null.ok = TRUE)
   checkmate::assert_string(locus_col, min.chars = 1, null.ok = TRUE)
   checkmate::assert_string(umi_col, min.chars = 1, null.ok = TRUE)
+  checkmate::assert_flag(verbose)
 
   if (!is.null(barcode_col) && !is.null(count_col)) {
     cli::cli_abort("Please pass either {.arg barcode_col} (single-cell mode) or {.arg count_col} (bulk mode), not both.")
@@ -189,7 +193,9 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
         )
       }
 
-      cli::cli_alert_info("Renaming {original_locus_col} to {canonical_locus_col}")
+      if (verbose) {
+        cli::cli_alert_info("Renaming {original_locus_col} to {canonical_locus_col}")
+      }
 
       dataset <- dataset |>
         rename(!!canonical_locus_col := all_of(original_locus_col))
@@ -199,16 +205,22 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
 
   # Prefilter locus
   if (is.null(receptor_chains)) {
-    cli::cli_alert_info("No locus information found")
+    if (verbose) {
+      cli::cli_alert_info("No locus information found")
+    }
   } else if (length(parsed_chains) == 1) {
     dataset <- dataset |> filter(!!rlang::sym(locus_col) == parsed_chains)
-    cli::cli_alert_info("Found target locus: {parsed_chains}. The dataset will be pre-filtered to leave chains for this locus only")
+    if (verbose) {
+      cli::cli_alert_info("Found target locus: {parsed_chains}. The dataset will be pre-filtered to leave chains for this locus only")
+    }
   } else {
     dataset <- dataset |> filter(!!rlang::sym(locus_col) %in% parsed_chains)
-    if (is_relaxed_pairing) {
-      cli::cli_alert_info("Found relaxed locus pair: {receptor_chains[1]} + ({receptor_chains[2]}). The dataset will be pre-filtered to leave chains for these loci only")
-    } else {
-      cli::cli_alert_info("Found locus pair: {receptor_chains}. The dataset will be pre-filtered to leave chains for these loci only")
+    if (verbose) {
+      if (is_relaxed_pairing) {
+        cli::cli_alert_info("Found relaxed locus pair: {receptor_chains[1]} + ({receptor_chains[2]}). The dataset will be pre-filtered to leave chains for these loci only")
+      } else {
+        cli::cli_alert_info("Found locus pair: {receptor_chains}. The dataset will be pre-filtered to leave chains for these loci only")
+      }
     }
   }
 
@@ -217,7 +229,9 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
   # 1) Case #1: simple receptor table - no barcodes, no count column
   #
   if (is.null(barcode_col) && is.null(count_col)) {
-    cli::cli_alert_info("Processing data as immune repertoire tables - no counts, no barcodes, no chain pairing possible")
+    if (verbose) {
+      cli::cli_alert_info("Processing data as immune repertoire tables - no counts, no barcodes, no chain pairing possible")
+    }
 
     dataset <- dataset |>
       mutate(
@@ -243,7 +257,9 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
   # 2) Case #2: bulk data - no barcodes, but with the count column
   #
   else if (is.null(barcode_col) && !is.null(count_col)) {
-    cli::cli_alert_info("Processing data as bulk sequencing immune repertoires - with counts, no barcodes, no chain pairing possible")
+    if (verbose) {
+      cli::cli_alert_info("Processing data as bulk sequencing immune repertoires - with counts, no barcodes, no chain pairing possible")
+    }
 
     dataset <- dataset |>
       mutate(
@@ -269,7 +285,9 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
   # 3) Case #3: single-cell data - barcodes, no counts
   #
   else if (!is.null(barcode_col) && is.null(count_col)) {
-    cli::cli_alert_info("Processing data as single-cell sequencing immune repertoires - no counts, with barcodes, chain pairing is possible")
+    if (verbose) {
+      cli::cli_alert_info("Processing data as single-cell sequencing immune repertoires - no counts, with barcodes, chain pairing is possible")
+    }
 
     dataset <- dataset |>
       mutate(

@@ -26,6 +26,8 @@
 #' @param compression_level Numeric(1) or `NULL`. Compression level passed through
 #'   to DuckDB for codecs that support levels (for example, Zstandard). Defaults
 #'   to `9`. Set `NULL` to let DuckDB choose.
+#' @param verbose Logical(1). Whether to print informative messages. Defaults to
+#'   `getOption("immundata.verbose", TRUE)`.
 #'
 #' @details
 #' The function performs the following actions:
@@ -99,7 +101,8 @@ write_immundata <- function(idata,
                             tag = NULL,
                             rehome = FALSE,
                             compression = "zstd",
-                            compression_level = 9) {
+                            compression_level = 9,
+                            verbose = getOption("immundata.verbose", TRUE)) {
   write_immundata_internal(
     idata = idata,
     output_folder = output_folder,
@@ -107,6 +110,7 @@ write_immundata <- function(idata,
     rehome = rehome,
     compression = compression,
     compression_level = compression_level,
-    producer_function = "write_immundata"
+    producer_function = "write_immundata",
+    verbose = verbose
   )
 }
