@@ -50,6 +50,7 @@
 #' @importFrom dplyr distinct
 #' @importFrom dplyr filter
 #' @importFrom dplyr full_join
+#' @importFrom dplyr inner_join
 #' @importFrom dplyr left_join
 #' @importFrom dplyr mutate
 #' @importFrom dplyr n
