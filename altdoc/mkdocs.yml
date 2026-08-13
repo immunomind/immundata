@@ -1,0 +1,129 @@
+site_name: immundata
+site_description: A unified data layer for large-scale single-cell, spatial, and bulk immunomics in R
+site_url: https://immunomind.github.io/immundata/
+repo_url: https://github.com/immunomind/immundata
+repo_name: immunomind/immundata
+
+theme:
+  name: material
+  icon:
+    logo: material/dna
+    repo: fontawesome/brands/github
+  font:
+    text: Roboto
+    code: Roboto Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+
+plugins:
+  - search:
+      separator: '[\s\-\._]+'
+  - redirects:
+      redirect_maps:
+        "reference/ImmunData.md": "man/ImmunData.md"
+        "reference/agg_receptors.md": "man/agg_receptors.md"
+        "reference/agg_repertoires.md": "man/agg_repertoires.md"
+        "reference/agg_strata.md": "man/agg_strata.md"
+        "reference/annotate_anndata.md": "man/annotate_anndata.md"
+        "reference/annotate_immundata.md": "man/annotate_immundata.md"
+        "reference/annotate_seurat.md": "man/annotate_seurat.md"
+        "reference/collect.ImmunData.md": "man/collect.ImmunData.md"
+        "reference/compute.ImmunData.md": "man/compute.ImmunData.md"
+        "reference/count.ImmunData.md": "man/count.ImmunData.md"
+        "reference/dimnames-set-.ImmunData.md": "man/dimnames-set-.ImmunData.md"
+        "reference/dimnames.ImmunData.md": "man/dimnames.ImmunData.md"
+        "reference/downsample_immundata.md": "man/downsample_immundata.md"
+        "reference/filter_immundata.md": "man/filter_immundata.md"
+        "reference/from_immunarch.md": "man/from_immunarch.md"
+        "reference/imd_schema.md": "man/imd_schema.md"
+        "reference/make_receptor_schema.md": "man/make_receptor_schema.md"
+        "reference/make_seq_options.md": "man/make_seq_options.md"
+        "reference/mutate_immundata.md": "man/mutate_immundata.md"
+        "reference/names-set-.ImmunData.md": "man/names-set-.ImmunData.md"
+        "reference/preprocess_postprocess.md": "man/preprocess_postprocess.md"
+        "reference/read_immundata.md": "man/read_immundata.md"
+        "reference/read_manifest.md": "man/read_manifest.md"
+        "reference/read_repertoires.md": "man/read_repertoires.md"
+        "reference/rename_strata.md": "man/rename_strata.md"
+        "reference/write_immundata.md": "man/write_immundata.md"
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - mdx_truly_sane_lists
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  analytics:
+    provider: google
+    property: G-YHL2JHZTFV
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/immunomind/immundata
+    - icon: fontawesome/solid/globe
+      link: https://immunomind.com
+
+use_directory_urls: false
+
+nav:
+  - Home: README.md
+  - Tutorials: https://immunomind.github.io/docs/tutorials/single_cell/
+  - Reference:
+      - Overview: reference/index.md
+      - Ingestion:
+          - read_repertoires: man/read_repertoires.md
+          - read_manifest: man/read_manifest.md
+          - Pre- and post-processing: man/preprocess_postprocess.md
+          - from_immunarch: man/from_immunarch.md
+          - read_immundata: man/read_immundata.md
+          - write_immundata: man/write_immundata.md
+      - Data model and aggregation:
+          - ImmunData: man/ImmunData.md
+          - make_receptor_schema: man/make_receptor_schema.md
+          - agg_receptors: man/agg_receptors.md
+          - agg_repertoires: man/agg_repertoires.md
+          - agg_strata: man/agg_strata.md
+          - rename_strata: man/rename_strata.md
+      - Transformation:
+          - filter_immundata: man/filter_immundata.md
+          - downsample_immundata: man/downsample_immundata.md
+          - annotate_immundata: man/annotate_immundata.md
+          - annotate_seurat: man/annotate_seurat.md
+          - annotate_anndata: man/annotate_anndata.md
+          - mutate_immundata: man/mutate_immundata.md
+      - Computation:
+          - count: man/count.ImmunData.md
+          - compute: man/compute.ImmunData.md
+          - collect: man/collect.ImmunData.md
+      - Utilities:
+          - Schema helpers: man/imd_schema.md
+          - Sequence options: man/make_seq_options.md
+          - dimnames: man/dimnames.ImmunData.md
+          - "dimnames<-": man/dimnames-set-.ImmunData.md
+          - "names<-": man/names-set-.ImmunData.md
+  - Ecosystem: https://immunomind.github.io/docs/
