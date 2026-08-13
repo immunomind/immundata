@@ -1,5 +1,5 @@
 <div align="center">
-  <h2>🦋 <code>immundata</code> – <strong>Data layer for large-scale multi-modal immune repertoires in R</strong></h2>
+  <h1>🦋 <code>immundata</code> – <strong>Data layer for large-scale multi-modal immune repertoires in R</strong></h1>
 </div>
 
 ---
@@ -36,11 +36,9 @@
 </div>
 
 <p align="center">
-  <a href="https://immunomind.github.io/docs/tutorials/single_cell/">Tutorials</a>
-  |
   <a href="https://immunomind.github.io/immundata/reference/">API reference</a>
   |
-  <a href=https://immunomind.github.io/docs/>Ecosystem</a>
+  <a href="https://immunomind.github.io/docs/tutorials/single_cell/">Tutorials ↗</a>
   |
   Publication (coming soon...)
 </p>

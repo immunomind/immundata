@@ -92,7 +92,6 @@ use_directory_urls: false
 
 nav:
   - Home: README.md
-  - Tutorials: https://immunomind.github.io/docs/tutorials/single_cell/
   - Reference:
       - Overview: reference/index.md
       - Ingestion:
@@ -126,4 +125,4 @@ nav:
           - dimnames: man/dimnames.ImmunData.md
           - "dimnames<-": man/dimnames-set-.ImmunData.md
           - "names<-": man/names-set-.ImmunData.md
-  - Ecosystem: https://immunomind.github.io/docs/
+  - Tutorials ↗: https://immunomind.github.io/docs/tutorials/single_cell/
