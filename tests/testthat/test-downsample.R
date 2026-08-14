@@ -2,15 +2,7 @@ test_that("downsample_immundata downsamples single-cell repertoires and is deter
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  test_data <- data.frame(
-    cell_id = c("c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"),
-    sample_id = c("S1", "S1", "S1", "S1", "S2", "S2", "S2", "S2"),
-    v_call = c("IGHV1", "IGHV2", "IGHV3", "IGHV4", "IGHV1", "IGHV2", "IGHV3", "IGHV4"),
-    j_call = c("IGHJ1", "IGHJ2", "IGHJ3", "IGHJ4", "IGHJ1", "IGHJ2", "IGHJ3", "IGHJ4"),
-    junction_aa = c("CARA", "CARB", "CARC", "CARD", "CARE", "CARF", "CARG", "CARH"),
-    locus = "IGH",
-    umi_count = c(10, 11, 12, 13, 14, 15, 16, 17)
-  )
+  test_data <- make_single_cell_downsample_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -69,13 +61,7 @@ test_that("downsample_immundata downsampled bulk repertoires by count", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  test_data <- data.frame(
-    sample_id = c("S1", "S1", "S2", "S2"),
-    v_call = c("TRBV1", "TRBV2", "TRBV3", "TRBV4"),
-    j_call = c("TRBJ1", "TRBJ2", "TRBJ1", "TRBJ2"),
-    junction_aa = c("AAAA", "BBBB", "CCCC", "DDDD"),
-    clone_count = c(8, 7, 6, 9)
-  )
+  test_data <- make_bulk_count_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -272,15 +258,7 @@ test_that("downsample_immundata warns and keeps repertoire unchanged when n exce
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  test_data <- data.frame(
-    cell_id = c("c1", "c2", "c3", "c4", "c5", "c6"),
-    sample_id = c("S1", "S1", "S1", "S2", "S2", "S2"),
-    v_call = c("IGHV1", "IGHV2", "IGHV3", "IGHV1", "IGHV2", "IGHV3"),
-    j_call = c("IGHJ1", "IGHJ2", "IGHJ3", "IGHJ1", "IGHJ2", "IGHJ3"),
-    junction_aa = c("A1", "A2", "A3", "B1", "B2", "B3"),
-    locus = "IGH",
-    umi_count = c(1, 1, 1, 1, 1, 1)
-  )
+  test_data <- make_single_cell_downsample_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -330,13 +308,7 @@ test_that("downsample_immundata supports count-mode proportion downsampling", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  test_data <- data.frame(
-    sample_id = c("S1", "S1", "S2", "S2"),
-    v_call = c("TRBV1", "TRBV2", "TRBV3", "TRBV4"),
-    j_call = c("TRBJ1", "TRBJ2", "TRBJ1", "TRBJ2"),
-    junction_aa = c("AAAA", "BBBB", "CCCC", "DDDD"),
-    clone_count = c(8, 7, 6, 9)
-  )
+  test_data <- make_bulk_count_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -376,13 +348,7 @@ test_that("downsample_immundata is deterministic in count mode with seed", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  test_data <- data.frame(
-    sample_id = c("S1", "S1", "S2", "S2"),
-    v_call = c("TRBV1", "TRBV2", "TRBV3", "TRBV4"),
-    j_call = c("TRBJ1", "TRBJ2", "TRBJ1", "TRBJ2"),
-    junction_aa = c("AAAA", "BBBB", "CCCC", "DDDD"),
-    clone_count = c(8, 7, 6, 9)
-  )
+  test_data <- make_bulk_count_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)

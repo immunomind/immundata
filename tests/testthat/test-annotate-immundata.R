@@ -1,17 +1,7 @@
 make_annotate_test_idata <- function() {
-  ann <- tibble::tibble(
-    imd_receptor_id = 1:4,
-    imd_barcode = paste0("bc", 1:4),
-    imd_chain_id = 1:4,
-    imd_n_chains = 1L,
-    cdr3_aa = c("AAA", "AAT", "AAAA", "BBB"),
-    v_call = c("V1", "V1", "V2", "V3"),
-    sample_id = c("S1", "S1", "S2", "S2")
-  )
-
   ImmunData$new(
     schema = c("cdr3_aa", "v_call"),
-    annotations = duckplyr::as_duckdb_tibble(ann),
+    annotations = make_basic_test_annotations(),
     provenance = list(
       home_path = tempdir(),
       current_path = tempdir(),

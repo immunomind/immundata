@@ -1,16 +1,7 @@
 make_compute_state_test_idata <- function() {
-  annotations <- tibble::tibble(
-    imd_receptor_id = 1:4,
-    imd_barcode = paste0("bc", 1:4),
-    imd_chain_id = 1:4,
-    imd_n_chains = 1L,
-    cdr3_aa = c("AAA", "AAT", "AAAA", "BBB"),
-    sample_id = c("S1", "S1", "S2", "S2")
-  )
-
   ImmunData$new(
     schema = "cdr3_aa",
-    annotations = duckplyr::as_duckdb_tibble(annotations)
+    annotations = make_basic_test_annotations()
   )
 }
 

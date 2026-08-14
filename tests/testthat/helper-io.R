@@ -54,24 +54,14 @@ get_test_ig_data <- function(
     preprocess = NULL,
     postprocess = NULL,
     rename_columns = NULL) {
-  if (is.null(preprocess)) {
-    immundata:::get_test_ig_data(
-      mode = mode,
-      features = features,
-      output_folder = output_folder,
-      postprocess = postprocess,
-      rename_columns = rename_columns
-    )
-  } else {
-    immundata:::get_test_ig_data(
-      mode = mode,
-      features = features,
-      output_folder = output_folder,
-      preprocess = preprocess,
-      postprocess = postprocess,
-      rename_columns = rename_columns
-    )
-  }
+  immundata:::get_test_ig_data(
+    mode = mode,
+    features = features,
+    output_folder = output_folder,
+    preprocess = preprocess,
+    postprocess = postprocess,
+    rename_columns = rename_columns
+  )
 }
 
 load_test_ig_idata <- get_test_ig_data

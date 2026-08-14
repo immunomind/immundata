@@ -31,24 +31,7 @@ test_that("Hamming fuzzy matching returns correct results", {
 })
 
 test_that("Hamming matching preserves paired chains within preceding filters", {
-  annotations <- duckplyr::as_duckdb_tibble(
-    tibble::tibble(
-      imd_receptor_id = rep(1L, 4),
-      imd_barcode = c("bc1", "bc1", "bc2", "bc2"),
-      imd_chain_id = 1:4,
-      imd_n_chains = rep(1L, 4),
-      locus = rep(c("IGH", "IGL"), 2),
-      cdr3_aa = rep(c("AAA", "CCC"), 2),
-      sample_id = rep(c("S1", "S2"), each = 2)
-    )
-  )
-  idata <- ImmunData$new(
-    schema = make_receptor_schema(
-      features = "cdr3_aa",
-      chains = c("IGH", "IGL")
-    ),
-    annotations = annotations
-  )
+  idata <- make_paired_filter_test_idata()
 
   actual <- filter_immundata(
     idata,

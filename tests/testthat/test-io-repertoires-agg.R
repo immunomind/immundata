@@ -9,15 +9,7 @@ test_that("agg_repertoires counts single-chain receptors correctly", {
   # Create synthetic single-chain data
   # Sample1: 3 cells, 2 unique receptors (cells 1&2 share receptor)
   # Sample2: 2 cells, 2 unique receptors
-  test_data <- data.frame(
-    cell_id = c("cell1", "cell2", "cell3", "cell4", "cell5"),
-    sample_id = c("Sample1", "Sample1", "Sample1", "Sample2", "Sample2"),
-    v_call = c("IGHV1", "IGHV1", "IGHV2", "IGHV3", "IGHV4"),
-    j_call = c("IGHJ1", "IGHJ1", "IGHJ2", "IGHJ3", "IGHJ4"),
-    junction_aa = c("CARW", "CARW", "CBRW", "CCRW", "CDRW"), # cell1 & cell2 identical
-    locus = c("IGH", "IGH", "IGH", "IGH", "IGH"),
-    umi_count = c(100, 150, 200, 250, 300)
-  )
+  test_data <- make_single_chain_shared_receptor_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -97,10 +89,10 @@ test_that("agg_repertoires counts single-chain receptors correctly", {
 })
 
 # ============================================================================
-# TEST 2: Paired-chain data - potential double counting issue
+# TEST 2: Paired-chain data
 # ============================================================================
 
-test_that("agg_repertoires identifies double-counting in paired-chain data", {
+test_that("agg_repertoires counts paired-chain barcodes correctly", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
@@ -140,28 +132,20 @@ test_that("agg_repertoires identifies double-counting in paired-chain data", {
   idata_agg <- agg_repertoires_with_integrity(
     idata,
     schema = "sample_id",
-    context = "paired-chain double-counting check"
+    context = "paired-chain barcode counts"
   )
 
   repertoires <- idata_agg$repertoires |> collect()
   annotations <- idata_agg$annotations |> collect()
 
-  # Current behavior (with double-counting bug):
-  # Sample1: n_barcodes will be 4 (2 cells × 2 chains) - WRONG!
-  # Sample2: n_barcodes will be 2 (1 cell × 2 chains) - WRONG!
-  # The correct values should be:
+  # Expected results:
   # Sample1: n_barcodes = 2 (actual cells)
   # Sample2: n_barcodes = 1 (actual cell)
 
   sample1_stats <- repertoires |> filter(sample_id == "Sample1")
   sample2_stats <- repertoires |> filter(sample_id == "Sample2")
 
-  # These tests document the CURRENT behavior (with double-counting)
-  # They should FAIL when the bug is fixed
-  current_behavior_sample1 <- sample1_stats$n_barcodes
-  current_behavior_sample2 <- sample2_stats$n_barcodes
-
-  # Test for n_receptors (this should be correct)
+  # Test for n_receptors
   expect_equal(sample1_stats$n_receptors, 2,
     info = "Sample1 should have 2 unique receptors"
   )
@@ -223,8 +207,6 @@ test_that("agg_repertoires handles paired-chain data with shared receptors", {
   # Expected (correct) results:
   # - 3 actual cells
   # - 2 unique receptors (cells 1&2 share)
-  # Current (incorrect due to double-counting):
-  # - n_barcodes will show 6 (3 cells × 2 chains)
 
   expect_equal(repertoires$n_receptors, 2,
     info = "Should have 2 unique receptors"
@@ -234,17 +216,16 @@ test_that("agg_repertoires handles paired-chain data with shared receptors", {
     select(imd_receptor_id, imd_count) |>
     distinct()
 
-  # The shared receptor should have count = 2 × 2 = 4 (double-counted)
-  # Should be 2 (two cells sharing the receptor)
+  # The shared receptor should have count = 2 (two cells sharing the receptor)
   shared_receptor_count <- max(receptor_counts$imd_count)
   expect_equal(shared_receptor_count, 2)
 })
 
 # ============================================================================
-# TEST 4: Proportions calculation with double-counting
+# TEST 4: Proportions calculation
 # ============================================================================
 
-test_that("agg_repertoires proportions are affected by double-counting", {
+test_that("agg_repertoires calculates paired-chain proportions correctly", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 

@@ -6,15 +6,8 @@ test_that("Single chain: correct barcode and receptor counts", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  # Create toy data: 5 cells, some with IGH, some without
-  test_data <- data.frame(
-    cell_id = c("cell1", "cell2", "cell3", "cell4", "cell5"),
-    v_call = c("IGHV1", "IGHV2", "IGHV1", "IGHV3", "IGHV1"),
-    j_call = c("IGHJ1", "IGHJ2", "IGHJ1", "IGHJ3", "IGHJ1"),
-    junction_aa = c("CARW", "CBRW", "CARW", "CCRW", "CDRW"),
-    locus = c("IGH", "IGH", "IGH", "IGH", "IGH"),
-    umi_count = c(100, 200, 150, 300, 250)
-  )
+  # Create toy data: 5 cells, all with IGH
+  test_data <- make_single_chain_shared_receptor_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -190,14 +183,7 @@ test_that("Strict pairing: handles duplicate chains correctly", {
   on.exit(cleanup_output_dir(output_dir))
 
   # Create data with multiple chains of same locus per cell
-  test_data <- data.frame(
-    cell_id = c("cell1", "cell1", "cell1", "cell1"),
-    v_call = c("IGHV1", "IGHV2", "IGLV1", "IGLV2"),
-    j_call = c("IGHJ1", "IGHJ2", "IGLJ1", "IGLJ2"),
-    junction_aa = c("CARW", "CBRW", "CASL", "CBSL"),
-    locus = c("IGH", "IGH", "IGL", "IGL"),
-    umi_count = c(100, 150, 80, 60) # IGHV2 and IGLV1 have highest counts
-  )
+  test_data <- make_duplicate_chain_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -239,56 +225,7 @@ test_that("Relaxed pairing: correct counts with artifact exclusion", {
   on.exit(cleanup_output_dir(output_dir))
 
   # Create toy data with various scenarios
-  test_data <- data.frame(
-    cell_id = c(
-      "cell1", "cell1", # IGH + IGL only
-      "cell2", "cell2", # IGH + IGK only
-      "cell3", "cell3", "cell3", # IGH + IGL + IGK (artifact!)
-      "cell4", # IGH only
-      "cell5", # IGL only
-      "cell6", "cell6"
-    ), # IGL + IGK only (no IGH)
-    v_call = c(
-      "IGHV1", "IGLV1",
-      "IGHV2", "IGKV2",
-      "IGHV3", "IGLV3", "IGKV3",
-      "IGHV4",
-      "IGLV5",
-      "IGLV6", "IGKV6"
-    ),
-    j_call = c(
-      "IGHJ1", "IGLJ1",
-      "IGHJ2", "IGKJ2",
-      "IGHJ3", "IGLJ3", "IGKJ3",
-      "IGHJ4",
-      "IGLJ5",
-      "IGLJ6", "IGKJ6"
-    ),
-    junction_aa = c(
-      "CARW", "CASL",
-      "CBRW", "CBSK",
-      "CCRW", "CCSL", "CCSK",
-      "CDRW",
-      "CESL",
-      "CFSL", "CFSK"
-    ),
-    locus = c(
-      "IGH", "IGL",
-      "IGH", "IGK",
-      "IGH", "IGL", "IGK",
-      "IGH",
-      "IGL",
-      "IGL", "IGK"
-    ),
-    umi_count = c(
-      100, 80,
-      120, 90,
-      110, 85, 75,
-      130,
-      70,
-      60, 65
-    )
-  )
+  test_data <- make_relaxed_pairing_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -312,15 +249,15 @@ test_that("Relaxed pairing: correct counts with artifact exclusion", {
   annotations <- idata$annotations |> collect()
 
   # Expected results:
-  # - cell1: IGH + IGL ✓ (valid)
-  # - cell2: IGH + IGK ✓ (valid)
-  # - cell3: EXCLUDED (artifact - has both IGL and IGK)
-  # - cell4: EXCLUDED (missing light chain)
-  # - cell5: EXCLUDED (missing heavy chain)
-  # - cell6: EXCLUDED (missing heavy chain)
+  # - normal_igl: IGH + IGL ✓ (valid)
+  # - normal_igk: IGH + IGK ✓ (valid)
+  # - artifact: EXCLUDED (has both IGL and IGK)
+  # - heavy_only: EXCLUDED (missing light chain)
+  # - light_only: EXCLUDED (missing heavy chain)
+  # - two_lights: EXCLUDED (missing heavy chain)
 
   expect_equal(n_distinct(annotations$imd_barcode), 2)
-  expect_setequal(unique(annotations$imd_barcode), c("cell1", "cell2"))
+  expect_setequal(unique(annotations$imd_barcode), c("normal_igl", "normal_igk"))
   expect_equal(n_distinct(annotations$imd_receptor_id), 2)
 })
 
@@ -403,39 +340,7 @@ test_that("Comparison: relaxed vs strict pairing counts", {
     cleanup_output_dir(output_dir_relaxed)
   })
 
-  # Create data with artifacts
-  test_data <- data.frame(
-    cell_id = c(
-      "normal1", "normal1", # IGH + IGL
-      "normal2", "normal2", # IGH + IGK
-      "artifact", "artifact", "artifact"
-    ), # IGH + IGL + IGK
-    v_call = c(
-      "IGHV1", "IGLV1",
-      "IGHV2", "IGKV2",
-      "IGHV3", "IGLV3", "IGKV3"
-    ),
-    j_call = c(
-      "IGHJ1", "IGLJ1",
-      "IGHJ2", "IGKJ2",
-      "IGHJ3", "IGLJ3", "IGKJ3"
-    ),
-    junction_aa = c(
-      "CARW", "CASL",
-      "CBRW", "CBSK",
-      "CCRW", "CCSL", "CCSK"
-    ),
-    locus = c(
-      "IGH", "IGL",
-      "IGH", "IGK",
-      "IGH", "IGL", "IGK"
-    ),
-    umi_count = c(
-      100, 80,
-      120, 90,
-      110, 85, 75
-    )
-  )
+  test_data <- make_relaxed_pairing_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -482,8 +387,8 @@ test_that("Comparison: relaxed vs strict pairing counts", {
     pull(imd_barcode) |>
     unique()
 
-  # Strict should include: normal1, artifact (picking IGL)
-  # Relaxed should include: normal1, normal2 (excluding artifact)
+  # Strict should include: normal_igl, artifact (picking IGL)
+  # Relaxed should include: normal_igl, normal_igk (excluding artifact)
 
   expect_true("artifact" %in% strict_cells,
     info = "Strict pairing includes artifact cell"

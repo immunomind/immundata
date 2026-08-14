@@ -51,35 +51,13 @@ test_that("Case 3.1: read_repertoires() handles single chain correctly", {
     unique()
 
   expect_setequal(cells_in_result, cells_with_igh)
-
-  # TODO: Artifact cells should NOT be in the result
-  # artifact_cells <- original_data |>
-  #   group_by(cell_id) |>
-  #   summarise(
-  #     has_igh = "IGH" %in% locus,
-  #     has_igk = "IGK" %in% locus,
-  #     has_igl = "IGL" %in% locus,
-  #     .groups = "drop"
-  #   ) |>
-  #   filter(!((has_igh & has_igk & !has_igl) | (has_igh & !has_igk & has_igl))) |>
-  #   pull(cell_id) |>
-  #   unique()
-  #
-  # expect_false(any(artifact_cells %in% cells_in_result))
 })
 
-test_that("read_repertoires handles duplicate chain entries correctly", {
+test_that("read_repertoires handles duplicate single-chain entries correctly", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  test_data <- tibble(
-    cell_id = c("cell1", "cell1", "cell1", "cell1"),
-    v_call = c("IGHV1", "IGHV1", "IGLV1", "IGLV2"),
-    j_call = c("IGHJ1", "IGHJ1", "IGLJ1", "IGLJ2"),
-    junction_aa = c("CARW", "CARX", "CASW", "CATW"),
-    locus = c("IGH", "IGH", "IGL", "IGL"), # Two IGH and two IGL chains
-    umi_count = c(100, 150, 80, 60) # Different UMI counts
-  )
+  test_data <- make_duplicate_chain_test_data()
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
@@ -105,21 +83,14 @@ test_that("read_repertoires handles duplicate chain entries correctly", {
   igh_chains <- annotations |> filter(locus == "IGH")
 
   # Should have selected the chains with highest UMI
-  expect_equal(igh_chains$junction_aa, "CARX") # 150 UMI
+  expect_equal(igh_chains$junction_aa, "CBRW") # 150 UMI
 })
 
-test_that("read_repertoires handles same max UMI count per barcode", {
+test_that("read_repertoires handles tied max UMI counts for a single chain", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))
 
-  test_data <- tibble(
-    cell_id = c("cell1", "cell1", "cell1", "cell1"),
-    v_call = c("IGHV1", "IGHV1", "IGLV1", "IGLV2"),
-    j_call = c("IGHJ1", "IGHJ1", "IGLJ1", "IGLJ2"),
-    junction_aa = c("CARW", "CARX", "CASW", "CATW"),
-    locus = c("IGH", "IGH", "IGL", "IGL"), # Two IGH and two IGL chains
-    umi_count = c(100, 100, 80, 80) # Different UMI counts
-  )
+  test_data <- make_duplicate_chain_test_data(tied = TRUE)
 
   temp_file <- tempfile(fileext = ".tsv")
   readr::write_tsv(test_data, temp_file)
