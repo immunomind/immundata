@@ -1,11 +1,8 @@
-name: Build documentation
+name: Build development documentation
 
 on:
   push:
-    branches: [main, master]
-  pull_request:
-  release:
-    types: [published]
+    branches: [dev]
   workflow_dispatch:
 
 concurrency:
@@ -15,7 +12,8 @@ concurrency:
 permissions: read-all
 
 jobs:
-  altdoc:
+  altdoc-dev:
+    if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -50,19 +48,19 @@ jobs:
           extra-packages: local::.
           needs: website
 
+      - name: Configure development preview
+        run: |
+          sed -i 's#https://immunomind.github.io/immundata/#https://immunomind.github.io/immundata/dev/#g' altdoc/mkdocs.yml altdoc/pkgdown.yml README.md
+          sed -i 's/^site_name: immundata$/site_name: immundata dev/' altdoc/mkdocs.yml
+
       - name: Build site
         run: altdoc::render_docs(freeze = FALSE, parallel = FALSE, verbose = TRUE)
         shell: Rscript {0}
 
-      - name: Deploy to GitHub Pages
-        if: >-
-          github.event_name != 'pull_request' &&
-          (github.ref == 'refs/heads/main' ||
-          github.ref == 'refs/heads/master' ||
-          startsWith(github.ref, 'refs/tags/'))
+      - name: Deploy development preview
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           clean: true
-          clean-exclude: dev
           branch: gh-pages
           folder: docs
+          target-folder: dev
