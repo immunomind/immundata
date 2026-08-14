@@ -1,0 +1,40 @@
+/* Keep long R signatures and output readable without distorting the page. */
+pre.r-example {
+  display: block;
+  margin: 0 0 1rem;
+  overflow: auto;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.35rem;
+  font-size: 0.72rem;
+}
+
+.md-typeset pre > code {
+  font-size: 0.73rem;
+}
+
+.md-typeset code {
+  font-size: inherit;
+}
+
+.md-typeset h1 > code,
+.md-typeset h2 > code,
+.md-typeset h3 > code {
+  font-size: inherit;
+}
+
+.md-typeset__table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #243447;
+  --md-accent-fg-color: #d97706;
+  --md-typeset-a-color: #087f8c;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #182433;
+  --md-accent-fg-color: #f59e0b;
+  --md-typeset-a-color: #67c7d0;
+}

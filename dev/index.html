@@ -1,0 +1,3913 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A unified data layer for large-scale single-cell, spatial, and bulk immunomics in R">
+      
+      
+      
+        <link rel="canonical" href="https://immunomind.github.io/immundata/dev/index.html">
+      
+      
+      
+        <link rel="next" href="reference/index.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>immundata dev</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-YHL2JHZTFV"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-YHL2JHZTFV",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-YHL2JHZTFV",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#why-immundata" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="immundata dev" class="md-header__button md-logo" aria-label="immundata dev" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 2h2v2c0 1.44.68 2.61 1.88 3.78.86.83 2.01 1.63 3.21 2.42l-1.83 1.19C8.27 10.72 7.31 10 6.5 9.21 5.07 7.82 4 6.1 4 4zm14 0h2v2c0 2.1-1.07 3.82-2.5 5.21-1.41 1.38-3.21 2.52-4.96 3.63-1.75 1.12-3.45 2.21-4.66 3.38C6.68 17.39 6 18.56 6 20v2H4v-2c0-2.1 1.07-3.82 2.5-5.21 1.41-1.38 3.21-2.52 4.96-3.63 1.75-1.12 3.45-2.21 4.66-3.38C17.32 6.61 18 5.44 18 4zm-3.26 10.61c.99.67 1.95 1.39 2.76 2.18C18.93 16.18 20 17.9 20 20v2h-2v-2c0-1.44-.68-2.61-1.88-3.78-.86-.83-2.01-1.63-3.21-2.42zM7 3h10v1l-.06.5H7.06L7 4zm.68 3h8.64c-.24.34-.52.69-.9 1.06l-.51.44H9.07l-.49-.44c-.38-.37-.66-.72-.9-1.06m1.41 10.5h5.84l.49.44c.38.37.66.72.9 1.06H7.68c.24-.34.52-.69.9-1.06zm-2.03 3h9.88l.06.5v1H7v-1z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            immundata dev
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/immunomind/immundata" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    immunomind/immundata
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="reference/index.html" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://immunomind.github.io/docs/tutorials/single_cell/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tutorials ↗
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="immundata dev" class="md-nav__button md-logo" aria-label="immundata dev" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 2h2v2c0 1.44.68 2.61 1.88 3.78.86.83 2.01 1.63 3.21 2.42l-1.83 1.19C8.27 10.72 7.31 10 6.5 9.21 5.07 7.82 4 6.1 4 4zm14 0h2v2c0 2.1-1.07 3.82-2.5 5.21-1.41 1.38-3.21 2.52-4.96 3.63-1.75 1.12-3.45 2.21-4.66 3.38C6.68 17.39 6 18.56 6 20v2H4v-2c0-2.1 1.07-3.82 2.5-5.21 1.41-1.38 3.21-2.52 4.96-3.63 1.75-1.12 3.45-2.21 4.66-3.38C17.32 6.61 18 5.44 18 4zm-3.26 10.61c.99.67 1.95 1.39 2.76 2.18C18.93 16.18 20 17.9 20 20v2h-2v-2c0-1.44-.68-2.61-1.88-3.78-.86-.83-2.01-1.63-3.21-2.42zM7 3h10v1l-.06.5H7.06L7 4zm.68 3h8.64c-.24.34-.52.69-.9 1.06l-.51.44H9.07l-.49-.44c-.38-.37-.66-.72-.9-1.06m1.41 10.5h5.84l.49.44c.38.37.66.72.9 1.06H7.68c.24-.34.52-.69.9-1.06zm-2.03 3h9.88l.06.5v1H7v-1z"/></svg>
+
+    </a>
+    immundata dev
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/immunomind/immundata" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    immunomind/immundata
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="index.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-immundata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤔 Why immundata?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-latest-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the latest version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-installation-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other installation options
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧬 Workflow Explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧬 Workflow Explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concepts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💾 Ingestion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💾 Ingestion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-airr-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load AIRR data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working-with-manifest-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working with manifest files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#receptor-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Receptor schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repertoire-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repertoire schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preprocessing-and-postprocessing-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessing and postprocessing strategies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-the-output-and-intermediate-immundata-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing the output and intermediate ImmunData files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-immundata-objects-on-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing ImmunData objects on disk
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#immundata-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧿 ImmunData Object
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠 Transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠 Transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#annotate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modify
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📈 Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-analysis-using-immundata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic analysis using immundata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-analysis-using-immundata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced analysis using immundata
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧩 Use Cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧩 Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bulk-repseq-airrseq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bulk -- RepSeq, AIRRSeq
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-cell-and-paired-chain-scrnaseq-scvdjseq-sctcrseq-scbcrseq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-cell and paired-chain -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Advanced Topics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Advanced Topics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-immundata-reads-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How immundata reads the data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-functions-for-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom functions for analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-ram-limits-to-accelerate-the-backend-computations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change RAM limits to accelerate the backend computations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make-immundata-even-faster-with-data-engineering-tricks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Make immundata even faster with data engineering tricks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-your-intermediate-data-for-faster-computations-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Save your intermediate data for faster computations and reproducibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏷 About
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏷 About">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#author-and-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Author and contributors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commercial-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commercial usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤔 FAQ
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingestion
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ingestion
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/read_repertoires.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    read_repertoires
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/read_manifest.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    read_manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/preprocess_postprocess.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pre- and post-processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/from_immunarch.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    from_immunarch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/read_immundata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    read_immundata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/write_immundata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    write_immundata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model and aggregation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data model and aggregation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/ImmunData.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ImmunData
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/make_receptor_schema.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    make_receptor_schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/agg_receptors.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agg_receptors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/agg_repertoires.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agg_repertoires
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/agg_strata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agg_strata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/rename_strata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    rename_strata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transformation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/filter_immundata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    filter_immundata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/downsample_immundata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    downsample_immundata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/annotate_immundata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    annotate_immundata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/annotate_seurat.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    annotate_seurat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/annotate_anndata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    annotate_anndata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/mutate_immundata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mutate_immundata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Computation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/count.ImmunData.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    count
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/compute.ImmunData.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    compute
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/collect.ImmunData.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    collect
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/imd_schema.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/make_seq_options.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/dimnames.ImmunData.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dimnames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/dimnames-set-.ImmunData.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dimnames<-
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="man/names-set-.ImmunData.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    names<-
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://immunomind.github.io/docs/tutorials/single_cell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials ↗
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-immundata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤔 Why immundata?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-latest-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the latest version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-installation-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other installation options
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧬 Workflow Explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧬 Workflow Explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concepts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💾 Ingestion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💾 Ingestion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-airr-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load AIRR data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working-with-manifest-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working with manifest files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#receptor-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Receptor schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repertoire-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repertoire schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preprocessing-and-postprocessing-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessing and postprocessing strategies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-the-output-and-intermediate-immundata-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing the output and intermediate ImmunData files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-immundata-objects-on-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing ImmunData objects on disk
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#immundata-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧿 ImmunData Object
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠 Transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠 Transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#annotate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modify
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📈 Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-analysis-using-immundata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic analysis using immundata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-analysis-using-immundata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced analysis using immundata
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧩 Use Cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧩 Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bulk-repseq-airrseq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bulk -- RepSeq, AIRRSeq
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-cell-and-paired-chain-scrnaseq-scvdjseq-sctcrseq-scbcrseq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-cell and paired-chain -- scRNAseq, scVDJseq, scTCRseq, scBCRseq
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Advanced Topics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Advanced Topics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-immundata-reads-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How immundata reads the data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-functions-for-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom functions for analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-ram-limits-to-accelerate-the-backend-computations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change RAM limits to accelerate the backend computations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make-immundata-even-faster-with-data-engineering-tricks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Make immundata even faster with data engineering tricks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-your-intermediate-data-for-faster-computations-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Save your intermediate data for faster computations and reproducibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏷 About
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏷 About">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#author-and-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Author and contributors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commercial-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commercial usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤔 FAQ
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<div align="center">
+  <h1>🦋 <code>immundata</code> – <strong>Data layer for large-scale multi-modal immune repertoires in R</strong></h1>
+</div>
+
+<hr />
+<div align="center">
+  <a href="https://github.com/immunomind">
+    <img alt="Ecosystem: ImmunoMind"
+         src="https://img.shields.io/badge/ecosystem-ImmunoMind-orange?style=flat-square">
+  </a>
+  <a href="https://cran.r-project.org/package=immundata">
+    <img alt="CRAN Version"
+         src="https://www.r-pkg.org/badges/version-ago/immundata?style=flat-square">
+  </a>
+  <a href="https://www.r-pkg.org/pkg/immundata">
+    <img alt="CRAN Downloads (all time)"
+         src="https://cranlogs.r-pkg.org/badges/grand-total/immundata">
+  </a>
+  <a href="https://www.r-pkg.org/pkg/immundata">
+    <img alt="CRAN Downloads (last week)"
+         src="https://cranlogs.r-pkg.org/badges/last-week/immundata">
+  </a>
+  <a href="https://anaconda.org/conda-forge/r-immundata">
+    <img alt="Conda Version"
+         src="https://anaconda.org/conda-forge/r-immundata/badges/version.svg">
+  </a>
+  <a href="https://anaconda.org/conda-forge/r-immundata">
+    <img alt="Conda Total Downloads"
+         src="https://anaconda.org/conda-forge/r-immundata/badges/downloads.svg">
+  </a>
+  <a href="https://github.com/immunomind/immundata/issues">
+    <img alt="GitHub Issues"
+         src="https://img.shields.io/github/issues/immunomind/immundata?style=flat-square">
+  </a>
+</div>
+
+<p align="center">
+  <a href="https://immunomind.github.io/immundata/dev/reference/">API reference</a>
+  |
+  <a href="https://immunomind.github.io/docs/tutorials/single_cell/">Tutorials ↗</a>
+  |
+  Publication (coming soon...)
+</p>
+
+<hr />
+<p><code>immundata</code> introduces the <code>ImmunData</code> data structure – think <a href="https://github.com/scverse/anndata">AnnData</a> or <a href="https://github.com/satijalab/seurat-object/">SeuratObject</a> but for immune repertoires – so you can have:</p>
+<ul>
+<li><strong>Single source of truth:</strong> store tens of millions of immune receptors plus metadata in one place;</li>
+</ul>
+<ul>
+<li><strong>Multi-modality:</strong> compute receptor- and repertoire-level statistics leveraging single-cell, spatial, immunogenicity or any other annotations;</li>
+</ul>
+<ul>
+<li><strong>Immunomics at scale:</strong> work seamlessly with datasets that don't fit in memory;</li>
+</ul>
+<ul>
+<li><strong>Reproducibility by design:</strong> run the same workflow on a laptop, server, or cloud instance.</li>
+</ul>
+<hr />
+<h2 id="why-immundata">🤔 Why <code>immundata</code>?<a class="headerlink" href="#why-immundata" title="Permanent link">&para;</a></h2>
+<p>Modern immunomics no longer ends at a couple of FASTQ files and a bar plot:</p>
+<ul>
+<li>We now blend bulk AIRR-seq, single-cell V(D)J + GEX, spatial transcriptomics, clinical metadata and public databases -- often inside the same analysis notebook;</li>
+</ul>
+<ul>
+<li>Pipelines that handle gigabytes today face deca-gigabytes after the next experiment;</li>
+</ul>
+<ul>
+<li>The same immune repertoire dataset must power multiple plots, dashboards, deep learning models and be reproducible months (years, ideally) later.</li>
+</ul>
+<p><code>immundata</code> brings you a unified data layer for large-scale single-cell, spatial and bulk immunomics in R.
+It is the data-engineering backbone powered by <a href="https://arrow.apache.org/docs/r/">Arrow</a>, <a href="https://duckdb.org/">DuckDB</a>, and <a href="https://duckplyr.tidyverse.org/">duckplyr</a>.
+<code>immundata</code> lets you scale, mix and, ultimately, analyse annotated AIRR data without rewriting your biology workflow from scratch each time the dataset grows 10×.</p>
+<hr />
+<blockquote>
+<p>[!WARNING]
+<code>immundata</code> is still in the <strong>0.x</strong> series. Until we reach 1.0.0, breaking changes may appear in any minor/patch update (e.g. 0.2.1 → 0.3.0). When you attach the package, sometimes you'll see startup messages summarising
+the most important changes – please read them. If something that used to work suddenly fails, check the updated
+documentation (<code>?function_name</code>) first.</p>
+<p><strong>Tip:</strong> if your analysis depends on a specific behaviour, pin the
+exact version with <code>renv</code> or use <code>pak</code> for installation:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immunomind/immundata@0.2.1&quot;</span><span class="p">)</span>
+</code></pre></div>
+I'll keep publishing tagged releases with full docs so you can always
+roll back if needed.</p>
+</blockquote>
+<hr />
+<blockquote>
+<p>[!IMPORTANT]
+This README is huge. I'm not kidding. Please consider using navigation.</p>
+</blockquote>
+<ul>
+<li>🤔 <a href="#-why--immundata-">Why <code>immundata</code>?</a></li>
+<li>📦 <a href="#-installation">Installation</a></li>
+<li>⚡ <a href="#-quick-start">Quick Start</a></li>
+<li>🧬 <a href="#-workflow-explained">Workflow Explained</a></li>
+<li>💾 <a href="#-ingestion">Ingestion</a><ul>
+<li><a href="#load-airr-data">Load AIRR data</a></li>
+<li><a href="#working-with-manifest-files">Working with manifest files</a></li>
+<li><a href="#receptor-schema">Receptor schema</a></li>
+<li><a href="#repertoire-schema">Repertoire schema</a></li>
+<li><a href="#pre--and-post‑processing-strategies">Pre‑ and post‑processing strategies</a></li>
+<li><a href="#managing-output--intermediate-immundata-files">Managing output &amp; intermediate ImmunData files</a></li>
+<li><a href="#writing-immundata-objects-to-disk">Writing ImmunData objects to disk</a></li>
+</ul>
+</li>
+<li>🧿 <a href="#-immundata-object">ImmunData Object</a></li>
+<li>🛠 <a href="#-transformation">Transformation</a><ul>
+<li><a href="#filter">Filter</a></li>
+<li><a href="#annotate">Annotate</a></li>
+<li><a href="#modify">Modify</a></li>
+</ul>
+</li>
+<li>📈 <a href="#-analysis">Analysis</a><ul>
+<li><a href="#basic-analysis-using--immundata-">Basic analysis using <code>immundata</code></a></li>
+<li><a href="#advanced-analysis-using--immunarch-">Advanced analysis using <code>immunarch</code></a></li>
+</ul>
+</li>
+<li>🧩 <a href="#-use-cases">Use Cases</a><ul>
+<li><a href="#bulk---repseq-airrseq">Bulk -- RepSeq, AIRRSeq</a></li>
+<li><a href="#paired-chain---scvdjseq-or-other-technologies">Paired-chain -- scVDJseq or other technologies</a></li>
+<li><a href="#single-cell---scrnaseq-scvdjseq-sctcrseq-scbcrseq">Single-cell -- scRNAseq, scVDJseq, scTCRseq, scBCRseq</a></li>
+<li><a href="#spatial---spatial-transcriptomics-and-cell-coordinates">Spatial -- spatial transcriptomics and cell coordinates</a></li>
+<li><a href="#annotate-immune-receptors-using-external-airr-databases">Annotate immune receptors using external AIRR databases</a></li>
+<li><a href="#immunogenicity----run-external-tools-such-as-tcrdist-to-annotate-immundata">Immunogenicity -- run external tools such as TCRdist to annotate ImmunData</a></li>
+<li><a href="#hybrid-datasets">Hybrid datasets</a><ul>
+<li><a href="#multi-locus-data">Multi-locus data</a></li>
+<li><a href="#multiple-contigs-for-tcr">Multiple contigs for TCR</a></li>
+<li><a href="#bcr-heavy-chains-with-multiple-light-chains">BCR-heavy chains with multiple light chains</a></li>
+<li><a href="#bulk-and-single-cell-data-integration">Bulk and single-cell data integration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>🧠 <a href="#-advanced-topics">Advanced Topics</a></li>
+<li>🏷 <a href="#-about">About</a><ul>
+<li><a href="#citation">Citation</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#author-and-contributors">Author and contributors</a></li>
+<li><a href="#commercial-usage">Commercial usage</a></li>
+</ul>
+</li>
+<li>🤔 <a href="#-faq">FAQ</a></li>
+</ul>
+<hr />
+<h2 id="installation">📦 Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<p>Before installing any release or pre-release version of <code>immundata</code>, please install <code>pak</code> that will simplify the installation of any package, not just <code>immundata</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;pak&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">repos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sprintf</span><span class="p">(</span><span class="s">&quot;https://r-lib.github.io/p/pak/stable/%s/%s/%s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">.Platform</span><span class="o">$</span><span class="n">pkgType</span><span class="p">,</span><span class="w"> </span><span class="nf">R.Version</span><span class="p">()</span><span class="o">$</span><span class="n">os</span><span class="p">,</span><span class="w"> </span><span class="nf">R.Version</span><span class="p">()</span><span class="o">$</span><span class="n">arch</span><span class="p">))</span>
+</code></pre></div>
+<p>More info if needed is available on <a href="https://pak.r-lib.org/#arrow_down-installation">pak website</a>.</p>
+<h3 id="install-the-latest-version">Install the latest version<a class="headerlink" href="#install-the-latest-version" title="Permanent link">&para;</a></h3>
+<p>To install the latest release of <code>immundata</code>, simply run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immunomind/immundata&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Mind that this will install the package from our GitHub instead of CRAN. This method is much preferred due to limitations of CRAN and reliance on other packages, which are distributed via <code>pak</code> as well.</p>
+<h3 id="other-installation-options">Other installation options<a class="headerlink" href="#other-installation-options" title="Permanent link">&para;</a></h3>
+<p>We will periodically release <code>immundata</code> on CRAN. To install it from CRAN, run </p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>If you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immunomind/immundata@dev&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="quick-start">⚡ Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<p>Use the immune repertoire data packaged with <code>immundata</code> for quick dive.
+Replace <code>system.file</code> calls with your local file paths to run the code on your data.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Manifest with additional sample-level information</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">manifest_path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># Two sample files</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">samples</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample_0_1k.tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">),</span><span class="w"> </span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample_1k_2k.tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1"># Read the manifest</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="n">manifest</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_path</span><span class="p">)</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="c1"># Pass the file paths and the manifest to the function to read the dataset into R</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="n">imdata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="n">samples</span><span class="p">,</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">                           </span><span class="n">schema</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3_aa&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">                           </span><span class="n">manifest</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">manifest</span><span class="p">,</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">                           </span><span class="n">output_folder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;./immundata-quick-start&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="c1"># Print the resultant object in the detailed yet manageable format</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="n">imdata</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="c1"># Check the folder immundata created - this is where your dataset resides now</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="nf">list.files</span><span class="p">(</span><span class="s">&quot;./immundata-quick-start&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="c1"># Read sections below for data analysis</span>
+</code></pre></div>
+<hr />
+<h2 id="workflow-explained">🧬 Workflow Explained<a class="headerlink" href="#workflow-explained" title="Permanent link">&para;</a></h2>
+<p><code>immundata</code> splits the workflow into two clear phases:</p>
+<ol>
+<li>
+<p><strong>Ingestion</strong> – convert your AIRR files into a special format saved on disk, and then read them to a tidy <code>immundata::ImmunData</code> object  </p>
+</li>
+<li>
+<p><strong>Transformation</strong>  – explore, annotate, filter and compute on that object</p>
+</li>
+</ol>
+<p>Before we go into more details for each of the phase, there are three straightforward yet essential <code>immundata</code> concepts to keep in mind. These concepts set it apart from data-frame-based AIRR libraries. By extension, the concepts affect how you would work with and even <em>think</em> about the data analysis in other packages such as <code>immunarch</code> which use <code>immundata</code> as a backbone for computations.</p>
+<h3 id="concepts">Concepts<a class="headerlink" href="#concepts" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Units: chain -&gt; barcode -&gt; receptor</strong></p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>In plain English</th>
+<th>How <strong>immundata</strong> represents it</th>
+<th><strong>Role</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Chain</strong></td>
+<td>A single V(D)J transcript (e.g. <em>TRA</em> or <em>IGH</em>) coming from one read or contig.</td>
+<td>One row in the physical table <code>idata$annotations</code>; retains <code>locus</code>, <code>cdr3</code>, <code>umis</code>/<code>reads</code> and other crucial rearrangement characteristics.</td>
+<td><strong>Raw data unit</strong> – atomic building block.</td>
+</tr>
+<tr>
+<td><strong>Barcode / Cell</strong></td>
+<td>The droplet (10x), spot (Visium) or well a chain was captured in.</td>
+<td>Column <code>imd_barcode</code>.</td>
+<td><strong>Physical bundle</strong> – groups chains that share a capture compartment.</td>
+</tr>
+<tr>
+<td><strong>Receptor</strong></td>
+<td>The biological receptor you analyse: a single chain <strong>or</strong> a paired set (αβ, Heavy-Light) from one cell.</td>
+<td>Virtual table <code>idata$receptors</code>; unique ID <code>imd_receptor_id</code>.</td>
+<td><strong>Logical unit</strong> – minimal object for AIRR statistics.</td>
+</tr>
+<tr>
+<td><strong>Repertoire</strong></td>
+<td>A set of receptors grouped by sample, donor, cluster, etc.</td>
+<td>Physical table <code>idata$repertoires</code>; unique ID <code>imd_repertoire_id</code>; grouping columns you choose.</td>
+<td><strong>Aggregate unit</strong> – higher-level grouping for comparative analysis.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Chain</strong> is one V(D)J rearranged molecule / contig / chemistry read (e.g. a single TRA, TRB, IGH, IGL). This is a minimally possible data unit, a building block of everything.
+  In case of single-chain data, chain is the same as barcode. Never changes after ingest; you can always drill back to the exact sequence.</p>
+<p><strong>Barcode</strong> is a physical container that stores zero, one, or many chains. In single‑cell it's a droplet == cell; in bulk it's the same as assembled "clonotype"; in spatial it's a spot. Barcode sometimes equals to cell. It is a biological unit that "stores" relevant biological data and uses for aggregation of same chains and computing counts of same receptors coming from different barcodes. Inherits any per‑cell / per‑sample metadata you add.</p>
+<p><strong>Receptor</strong> is a logical unit. A logical grouping of chains that you want to treat as one biological receptor. This is a minimal unit for AIRR statistics. There are two components to it: receptor features and receptor chains, alltogether comprising a receptor schema that you define in order to do downstream analysis. Receptor features are usually CDR3 amino acid sequences or CDR3 amino acid sequences plus Variable gene segment. Receptor chains can be: single chain, α+β pair, heavy+light pair, or even all chains sharing the same CDR3/V/J.</p>
+<p>To summarise: chains are how <code>immundata</code> stores the information, barcodes bundle chains together, and receptors are the minimal units on which repertoire statistics are computed.</p>
+</li>
+<li>
+<p><strong>Aggregation: defining receptors and repertoires</strong></p>
+<p>The moment data leave an AIRR-assembly tool such as <strong>Cell Ranger</strong>, you are handed an ocean of individual V(D)J chains, yet every biological question you care about is phrased in terms of receptors ("this αβ TCR") or repertoires ("all receptors from donor A on day 30"). As with "receptors as logical units", the underlying assumption the second concept is based upon is <em>researchers work with rearrangements but think in receptors</em>. <code>immundata</code> formalises the climb from raw chains to those higher-order concepts through <strong>controlled aggregation</strong> – explicit, user-defined rules that transform data without obscuring their origin.</p>
+<p>The function <code>agg_receptors()</code> lets you declare what <em>one receptor</em> means in your study. You choose a schema – perhaps "pair chains that share a barcode and have complementary α and β loci" or "group every IGH with whatever IGL shares the same CDR3 amino-acid sequence." The function re-aggregates the data and returns a new <code>ImmunData</code> object, so you keep the previous receptor definition intact; every receptor now has a stable identifier and can be traced back to its constituent chains and barcode. There is no need to touch the downstream pipeline – just change the input.</p>
+<p>The function <code>agg_repertoires()</code> states how receptors should be bundled into biologically meaningful cohorts: all receptors from a biopsy, from a therapy responder, from a single-cell-defined cluster, or any combination of manifest-derived annotation columns. The result is a physical <code>idata$repertoires</code> table with basic statistics (numbers of chains, barcodes, and unique receptors), again preserving direct links to the receptors it aggregates.</p>
+<p>Because these aggregation steps live in your pipeline rather than being buried inside helper functions, they deliver two major pay-offs:</p>
+<p>- <strong>Convenience with rigour:</strong> you can run high-level computations – Jaccard coefficients, diversity indices – knowing that the exact receptor definition is stored alongside the result, so you never mis-specify parameters such as <code>"cdr3+v"</code>;</p>
+<p>- <strong>Provenance and data lineage by design:</strong> every receptor records every chain it contains, every repertoire records every receptor, and the full recipe is stored in the object's metadata. Six months later – or six reviewers later – you can trace any summary statistic back to the precise chains that produced it, enabling fully reproducible pipelines with no hidden transformations.</p>
+</li>
+<li>
+<p><strong>Pipeline-based execution: immutability and materialisation</strong></p>
+<p>The explicit data lineage we talked about in concepts 1 &amp; 2 pays its dividend only if every step is re-playable. That is why <code>immundata</code> treats an analysis as a <em>pipeline of immutable transformations</em>. Each function returns a fresh <code>ImmunData</code> object, leaving the parent untouched; the full chain of objects records how the data travelled from raw chains to final statistics.</p>
+<p>Because immunomics datasets started to regularly outgrow RAM, those objects do <strong>not</strong> live in memory by default. Their tables are persisted as column-compressed Parquet files and "materialised" – pulled into RAM – only when a computation truly needs them, typically to crunch a subset or to emit the final numbers such as repertoire-overlap indices. For a 10 GB dataset that fits in memory, this behaviour is invisible: DuckDB streams the file, you get an in-memory frame, and life goes on. For a 100 GB experiment, the same code still runs; the heavy joins spill to disk, and the intermediate results are cached so downstream steps can reuse them without recomputation.</p>
+<p>Thinking in pipelines therefore means two things:</p>
+<p>- <strong>Cache what matters:</strong> create intermediate <code>ImmunData</code> objects when you hit an expensive step, and write them to disk; the next run can pick up from there. A prime example of this a computing edit distances to some patterns or sequences.</p>
+<p>- <strong>Assume re-execution:</strong> any colleague (or future-you on a bigger cluster) should be able to rerun <code>pipeline.R</code> end-to-end without interactive tinkering and arrive at the same result byte-for-byte.</p>
+<p>All of this engineering should stay behind the curtain. Downstream packages that adopt <code>immundata</code> as their backbone should expose high-level verbs such as <code>compute_diversity()</code> or <code>plot_overlap()</code>; the user need not touch <code>ImmunData</code>, DuckDB, or Parquet. In the ideal scenario they never learn that an on-disk database powers their workflow – and they never have to.</p>
+<p>Leave the data engineering to the data engineers (and, sadly, bioinformaticians – I feel your pain); keep your focus or the focus of your users on the biology. It is sophisticated enough already.</p>
+</li>
+</ol>
+<p>And now, let's dive into how you work with <code>immundata</code>.</p>
+<h3 id="phase-1-ingestion">Phase 1: Ingestion<a class="headerlink" href="#phase-1-ingestion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>      ┌───────┐
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>      │ files │
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>      └───────┘
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>          │
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>          ▼
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>   read_manifest()    ──── Read manifest
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>          │
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>          ▼ 
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  read_repertoires()  ──┬─ Read repertoire files (!)
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>          │             │      ▼
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>          │             │  Preprocess
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>          │             │      ▼
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>          │             │  Aggregate receptors (!)
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>          │             │      ▼
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>          │             │  Postprocess
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>          │             │      ▼
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>          │             │  Aggregate repertoires #1
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>          │             │      ▼
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>          │             └─ Write data on disk (!)
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>          ▼
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>   agg_repertoires()  ──── Aggregate repertoires #2
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>          │
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>          ▼
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>    ┌───────────┐
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>    │ ImmunData │
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>    └───────────┘
+</code></pre></div>
+<p>Steps marked with <code>(!)</code> are non-optional.</p>
+<p>The goal of the <strong>ingestion phase</strong> is to turn a folder of AIRR-seq files into an immutable on-disk <code>ImmunData</code> dataset.</p>
+<p>1) <strong>Read manifest:</strong></p>
+<div class="highlight"><pre><span></span><code>  `read_manifest()` pulls in any sample- or donor-level information, such as therapy arm, HLA type, age, etc., and stores it in a data frame that we can pass to the main reading functions `read_repertoires`. Attaching this context early means every chain you read later already &quot;knows&quot; which patient or time-point it belongs to.
+
+  You can safely skip it if you don&#39;t have per-sample or per-donor manifest annotations.
+</code></pre></div>
+<p>2) <strong>Read repertoire files:</strong></p>
+<div class="highlight"><pre><span></span><code>  `read_repertoires()` streams Parquet/CSV/TSV files straight into DuckDB that powers `ImmunData` objects.
+</code></pre></div>
+<p>3) <strong>Preprocess:</strong></p>
+<div class="highlight"><pre><span></span><code>  During the read step you may pass a `preproc = recipe` argument to `read_repertoires` to preprocess data before aggregating receptors: drop unused columns, strip non-productive sequences, translate field names to the AIRR schema, de-duplicate contigs, etc. Because this logic is declarative, re-runs produce identical results.
+</code></pre></div>
+<p>4) <strong>Aggregate receptors:</strong></p>
+<div class="highlight"><pre><span></span><code>  Receptor schema is how you define a receptor – a logical unit of analysis. The `read_repertoires` collapses chains into receptors accordingly and assigns each a stable unique identifier.
+</code></pre></div>
+<p>3) <strong>Postprocess:</strong></p>
+<div class="highlight"><pre><span></span><code>  A mirror step to **preprocess**: a convenient hook to run QC checks, add derived fields, attach reference-gene annotations, or compute per-chain quality metrics **after** the dataset is ready. You can pass any number of steps which will be executed in a sequential order.
+</code></pre></div>
+<p>5) <strong>Aggregate repertoires #1:</strong></p>
+<div class="highlight"><pre><span></span><code>  If you already know how to group chains into receptors, perhaps by `&quot;Sample&quot;` or `&quot;Donor&quot;` columns from the manifest, you can pass `repertoire_schema = c(&quot;Sample&quot;)` to `read_repertoires()`. Otherwise, skip and define repertoires later (common in single-cell workflows where you need cluster labels first).
+</code></pre></div>
+<p>3) <strong>Write data on disk:</strong></p>
+<div class="highlight"><pre><span></span><code>  `read_repertoires` always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.
+</code></pre></div>
+<p>5) <strong>Aggregate repertoires #2:</strong></p>
+<div class="highlight"><pre><span></span><code>  Call `agg_repertoires()` later if you withheld grouping until additional annotations were available, e.g. donor + cell cluster.
+</code></pre></div>
+<h3 id="phase-2-transformation">Phase 2: Transformation<a class="headerlink" href="#phase-2-transformation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>      ┌───────────┐       ┌────────────────────────────┐
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>      │ ImmunData │       │ AnnData / Seurat / TCRdist │
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>      └───────────┘       │ seur@meta.data / adata.obs │
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>            │             └────────────────────────────┘
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>            │                             │
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>            ├─────────────────────────────┘
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>            │
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>            ▼
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>   annotate_immundata()    ──── Import external annotations to ImmunData
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>            │
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>            ▼ 
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>     agg_repertoires()     ──── Aggregate repertoires
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>            │
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>            ▼ 
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    filter_immundata()     ──── Filter receptors or repertoires
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>            │
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>            ▼ 
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    mutate_immundata()     ──── Create or modify columns, compute statistics
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>            │
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>            │     ┌────────────────┐
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>            ├────►│ save / plot #1 │
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>            │     └────────────────┘
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>            ▼ 
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>   annotate_immundata()    ──── Annotate ImmunData with the computed statistics
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>            │
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>            │     ┌────────────────┐
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>            ├────►│ save / plot #2 │
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>            │     └────────────────┘
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>            │
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>            ▼
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>┌────────────────────────┐
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>│seur@meta.data[:] &lt;- ...│ ──── Export ImmunData annotations
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a>│    adata.obs = ...     │
+<a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a>└────────────────────────┘
+</code></pre></div>
+<p>Transformation is a loop of annotation → modification and computation → visualisation, always producing a new <code>ImmunData</code> while leaving the parent intact. That immutability is what turns every notebook into a reproducible pipeline.</p>
+<p>1) <strong>Import external annotations to ImmunData:</strong></p>
+<div class="highlight"><pre><span></span><code>  `annotate_immundata()` (or its thin wrappers `annotate_barcodes()` / `annotate_receptors()`) merges labels from Seurat/AnnData/TCRdist/anything that can be expressed as a keyed data frame to the main table, so each chain has a corresponding annotation.
+</code></pre></div>
+<p>2) <strong>Aggregate repertoires:</strong></p>
+<div class="highlight"><pre><span></span><code>  Now that extra labels are present, you might regroup receptors, for example, by donor × cell-state.
+</code></pre></div>
+<p>3) <strong>Filter receptors or repertoires:</strong></p>
+<div class="highlight"><pre><span></span><code>  `filter_immundata()` accepts tidy-verse predicates on chains, receptors, or repertoires.
+</code></pre></div>
+<p>4) <strong>Create or modify columns, compute statistics:</strong></p>
+<div class="highlight"><pre><span></span><code>  On this step, you compute statistics per-repertoire or per-receptor, using input receptor features. There are several scenarios depending on what you try to achieve.
+
+  1) use `immunarch` for the most common analysis functions. The package will automatically annotate both **receptors/barcodes/chains** (!) and **repertoires** (!!) if it is possible;
+
+  2) simply mutate on the whole dataset using `dplyr` syntax, like compute edit distance to a specific pattern using `mutate_immundata`;
+
+  3) more complex compute that requires a function to apply to values and is probably not supported by `duckplyr`. See the [🧠 Advanced Topics](#-advanced-topics) for more details.
+</code></pre></div>
+<p>4) <strong>Save / plot #1:</strong></p>
+<div class="highlight"><pre><span></span><code>  Cache the `ImmunData`. Use `ggplot2` to visualise the statistics, computed from `ImmunData`.
+</code></pre></div>
+<p>5)  <strong>Annotate ImmunData with the computed statistics:</strong></p>
+<div class="highlight"><pre><span></span><code>  `annotate_immundata()` (again) joins the freshly minted statistics back to the canonical dataset.
+</code></pre></div>
+<p>4) <strong>Save / plot #2:</strong></p>
+<div class="highlight"><pre><span></span><code>  Save the `ImmunData` with new annotations to disk. Plot the results of analysis.
+</code></pre></div>
+<p>6)  <strong>Export ImmunData annotations:</strong></p>
+<div class="highlight"><pre><span></span><code>  Write the annotated data back to the cell-level dataset (Seurat / AnnData) for the subsequent analysis. Additionally, you could write the `ImmunData` itself to disk if needed.
+</code></pre></div>
+<hr />
+<h2 id="ingestion">💾 Ingestion<a class="headerlink" href="#ingestion" title="Permanent link">&para;</a></h2>
+<h3 id="load-airr-data">Load AIRR data<a class="headerlink" href="#load-airr-data" title="Permanent link">&para;</a></h3>
+<p><code>immundata</code> provides a flexible system for loading immune receptor repertoire files from different sources -- CSV, TSV and Parquet files, possibly gzipped, with some optionality. The main function for this is <code>read_repertoires()</code>. Below are four ways to pass your file paths and one for convering data from existing <code>immunarch pre-1.0</code> list objects with <code>$data</code> and <code>$meta</code>.</p>
+<p>1. <strong>Pass a single file name:</strong></p>
+<div class="highlight"><pre><span></span><code>  If you just have **one** AIRR file:
+
+  ```r
+  library(immundata)
+
+  inp_file &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_0_1k.tsv&quot;, package = &quot;immundata&quot;)
+
+  idata &lt;- read_repertoires(
+    path   = inp_file,
+    schema = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+  )
+
+  print(idata)
+  ```
+</code></pre></div>
+<p>2. <strong>Pass a vector of file names:</strong></p>
+<div class="highlight"><pre><span></span><code>  For **multiple** files in a vector:
+
+  ```r
+  library(immundata)
+
+  inp_file1 &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_0_1k.tsv&quot;, package = &quot;immundata&quot;)
+  inp_file2 &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_1k_2k.tsv&quot;, package = &quot;immundata&quot;)
+
+  file_vec &lt;- c(inp_file1, inp_file2)
+
+  idata &lt;- read_repertoires(
+    path   = file_vec,
+    schema = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+  )
+
+  print(idata)
+  ```
+
+  `immundata` automatically merges them (depending on your chosen schema), writes the aggregated data into a single directory of Parquet files, and produces a single-cell `ImmunData` object. Think about it as a huge table instead of smaller multiple repertoire tables.
+</code></pre></div>
+<p>3. <strong>Pass a glob pattern:</strong></p>
+<div class="highlight"><pre><span></span><code>  If your files follow a consistent naming pattern, you can leverage shell globs:
+
+  ```r
+  library(immundata)
+
+  folder_with_files &lt;- system.file(&quot;extdata/tsv&quot;, &quot;&quot;, package = &quot;immundata&quot;)
+
+  glob_files &lt;- paste0(folder_with_files, &quot;sample*.tsv&quot;)
+
+  print(glob_files)
+  # The output is something like &quot;/Library/Frameworks/.../immundata/extdata/tsv/*&quot;
+  # Mind the star &quot;*&quot; at the end
+
+  # For example, all AIRR files in the &#39;samples/&#39; folder
+  idata &lt;- read_repertoires(
+    path   = glob_files,
+    schema = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+  )
+
+  print(idata)
+  ```
+
+  Behind the scenes, `read_repertoires()` expands the glob with `Sys.glob(...)`, merges the data, and produces a single `ImmunData`.
+</code></pre></div>
+<p>4. <strong>Use a manifest file:</strong></p>
+<div class="highlight"><pre><span></span><code>  Sometimes you need more control over the data source (e.g. consistent sample naming, extra columns). In that case:
+
+    1.  **Load a manifest** with `read_manifest()`.
+
+    2.  **Pass** the resulting data frame to `read_repertoires(path = &quot;&lt;manifest&gt;&quot;, ..., manifest = manifest_table)`. Mind the `&quot;&lt;manifest&gt;&quot;` string we pass to the function. It indicates that we should take file paths from the input manifest.
+
+  An example code:
+
+  ```r
+  library(immundata)
+
+  manifest_path &lt;- system.file(&quot;extdata/tsv&quot;, &quot;manifest.csv&quot;, package = &quot;immundata&quot;)
+
+  manifest_table &lt;- read_manifest(manifest_path)
+
+  print(manifest_table)
+  ```
+
+  ```
+  # The column &quot;file&quot; stores the file paths. If you have a different column name
+  # for files, use the `manifest_file_col = &quot;&lt;your column name&gt;&quot;` argument.
+  # A tibble: 2 × 5
+    file                       Therapy Response Prefix imd_filename
+    &lt;chr&gt;                      &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;   
+  1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
+  2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
+  ```
+
+  ```r
+  idata &lt;- read_repertoires(
+    path     = &quot;&lt;manifest&gt;&quot;,
+    manifest = manifest_table,
+    schema   = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+  )
+
+  print(idata)
+  ```
+
+  This approach **unifies** sample-level annotations (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
+
+  You can pass the manifest separately along with the list of files as we did in the previous examples without the &quot;&lt;manifest&gt;&quot; directive, but in that case you would need to check the correctness of all filepaths by yourself. Which could be quite cumbersome, to say the least.
+
+  For more information on how to work with manifest files, please read the next section.
+</code></pre></div>
+<p>5. <strong>Convert from <code>immunarch</code> lists:</strong></p>
+<div class="highlight"><pre><span></span><code>  Pass `immunarch` data lists to `from_immunarch()` to create `ImmunData` objects.
+
+  ```r
+  library(immundata)
+  # Install old immunarch:
+  # pak::pkg_install(&quot;immunomind/immunarch@0.9.1&quot;)
+  data(immdata, package = &quot;immunarch&quot;)
+
+  idata &lt;- from_immunarch(
+    imm = immdata, 
+    schema = c(&quot;CDR3.aa&quot;, &quot;V.name&quot;), 
+    output_folder = &quot;./immdata-test&quot;)
+
+  print(idata)
+  ```
+</code></pre></div>
+<h3 id="working-with-manifest-files">Working with manifest files<a class="headerlink" href="#working-with-manifest-files" title="Permanent link">&para;</a></h3>
+<p>Manifest files store repertoire file paths plus sample-level information. When <code>immundata</code> loads a manifest, it annotates every receptor from a given sample (or file) with the corresponding manifest fields. For example, if a sample has "Therapy" = "CAR-T", all receptors from that sample receive the same "Therapy" value. You can then aggregate receptors by donor, tissue, or any other field and run your analysis on those repertoires (see the next sections for aggregations).</p>
+<blockquote>
+<p>[!WARNING]
+In the current version, manifest annotations and "repertoire schema" are tightly linked, meaning you can't get
+a manifest field to <code>idata$repertoires</code> if you haven't define repertoires using that field.
+I will implement it in the next versions; for now, please consider using <code>dplyr::left_join</code> to
+merge manifest annotations and the repertoires table together.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">manifest_path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_path</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Rows: 2 Columns: 4
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>── Column specification ─────────────────────────────────────────────────────────
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Delimiter: &quot;,&quot;
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>chr (4): file, Therapy, Response, Prefix
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>ℹ Use `spec()` to retrieve the full column specification for this data.
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>ℹ Found 2/2 repertoire files from the manifest on disk
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>✔ Manifest parsed successfully
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nf">print</span><span class="p">(</span><span class="n">manifest_table</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a># A tibble: 2 × 5
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>  file                       Therapy Response Prefix imd_filename
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>  &lt;chr&gt;                      &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;   
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>1 /.../immundata-/inst/extd… ICI     FR       S1_    /Users/…
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>2 /.../immundata-/inst/extd… CAR-T   PR       S2_    /Users/…
+</code></pre></div>
+<h3 id="receptor-schema">Receptor schema<a class="headerlink" href="#receptor-schema" title="Permanent link">&para;</a></h3>
+<p><code>immundata</code> lets you decide what a receptor means for your study by specifying:</p>
+<ul>
+<li>Feature columns - which fields make a receptor unique. Usually it is <code>"cdr3_aa"</code> and <code>"v_call"</code> columns.</li>
+</ul>
+<ul>
+<li>Chains to keep / pair - e.g. TRA only or a pair TRA + TRB.</li>
+</ul>
+<p>If you have only feature columns, you can usually pass the character vector with columns to functions. In a more advanced case with multiple chain data, <code>immundata</code> provides a helper function <code>make_receptor_schema()</code> for building schemas:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3_aa&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="n">chains</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;TRB&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="p">)</span>
+</code></pre></div>
+<p>1. <strong>Chain-agnostic</strong></p>
+<div class="highlight"><pre><span></span><code>  Used for bulk or pre-filtered immune repertoire data. No filtering by chain data such as TRA or TRB. Each unique combination of features in the schema vector is assigned a unique receptor identifier and counts as a receptor. In the example below, the receptor features are &quot;cdr3_aa&quot; and &quot;v_call&quot; columns - CDR3 amino acid sequence and V gene segment columns respectively.
+
+  ```r
+  library(immundata)
+
+  inp_file &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_0_1k.tsv&quot;, package = &quot;immundata&quot;)
+
+  schema &lt;- c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+
+  idata &lt;- read_repertoires(
+    path   = inp_file,
+    schema = schema
+  )
+
+  print(idata)
+  ```
+</code></pre></div>
+<p>2. <strong>Single-chain</strong></p>
+<div class="highlight"><pre><span></span><code>  &gt;[!NOTE]
+  &gt; Please note that single-chain option does not (!) remove multiple chains per cell - yet.
+  &gt; In other words, you will get multiple receptors per barcode. The paired chain option filter out
+  &gt; chains which don&#39;t have the max number of reads or umis per barcode. So receptor numbers and sequences
+  &gt; could differ significantly.
+
+  Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.
+
+  ```r
+  library(immundata)
+
+  inp_file &lt;- system.file(&quot;extdata/single_cell&quot;, &quot;lt6.csv.gz&quot;, package = &quot;immundata&quot;)
+
+  schema &lt;- make_receptor_schema(
+    features = c(&quot;cdr3&quot;, &quot;v_call&quot;),
+    chains   = &quot;TRA&quot;
+  )
+
+  idata &lt;- read_repertoires(
+    path        = inp_file,
+    schema      = schema,
+    barcode_col = &quot;barcode&quot;,
+    locus_col   = &quot;locus&quot;,
+    preprocess  = make_default_preprocessing(&quot;10x&quot;)
+  )
+
+  print(idata)
+  ```
+</code></pre></div>
+<p>3. <strong>Paired-chain</strong></p>
+<div class="highlight"><pre><span></span><code>  When you want full αβ (or heavy‑light) receptors, immundata can pair two chains that originate from the same barcode and keep, for each locus, the chain with the highest UMI/reads. A single unique receptor identifier is then assigned to the pair. The data is pre-filtered to loci in target chains. Within each barcode×locus the the chain with max umis or reads is selected. Barcodes lacking either chain are dropped from the receptor table.
+
+  ```r
+  library(immundata)
+
+  inp_file &lt;- system.file(&quot;extdata/single_cell&quot;, &quot;lt6.csv.gz&quot;, package = &quot;immundata&quot;)
+
+  schema &lt;- make_receptor_schema(
+    features = c(&quot;cdr3&quot;, &quot;v_call&quot;),
+    chains   = c(&quot;TRA&quot;, &quot;TRB&quot;)
+  )
+
+  idata &lt;- read_repertoires(
+    path        = inp_file,
+    schema      = schema,
+    barcode_col = &quot;barcode&quot;,         # required for pairing
+    locus_col   = &quot;locus&quot;,           # column that says &quot;TRA&quot; / &quot;TRB&quot;
+    umi_col     = &quot;umis&quot;,            # choose chain with max UMIs per locus
+    preprocess  = make_default_preprocessing(&quot;10x&quot;)
+  )
+
+  print(idata)
+  ```
+</code></pre></div>
+<p>Cheat-sheet for arguments to <code>read_repertoires</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th><code>count_col</code></th>
+<th><code>barcode_col</code></th>
+<th><code>locus_col</code></th>
+<th><code>umi_col</code></th>
+<th><code>schema$chains</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bulk data without counts, no locus</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Bulk data with counts, no locus</td>
+<td><em>yes</em></td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Analyse TRA only</td>
+<td>no</td>
+<td><strong>yes</strong>¹</td>
+<td><strong>yes</strong></td>
+<td>no</td>
+<td><code>"TRA"</code></td>
+</tr>
+<tr>
+<td>Pair TRA+TRB, pick best chain per cell</td>
+<td>no</td>
+<td><strong>yes</strong></td>
+<td><strong>yes</strong></td>
+<td><strong>yes</strong></td>
+<td><code>c("TRA","TRB")</code></td>
+</tr>
+</tbody>
+</table>
+<p>¹ If you pass barcodes, they're stored but used for counting only.</p>
+<h3 id="repertoire-schema">Repertoire schema<a class="headerlink" href="#repertoire-schema" title="Permanent link">&para;</a></h3>
+<p>To compute repertoire‑level statistics such as gene‑segment usage, the Jaccard coefficient, or the incidence of public receptors, you first need to define a repertoire. In <code>immundata</code> a repertoire is simply a group of receptors that share one or more values from annotation columns.</p>
+<p>Just like with receptors, you can pass a schema – a character vector of column names – to specify how receptors are grouped into repertoires.</p>
+<p>For the bulk data, usually, you rely on the manifest. It could be useful when you want to aggregate together receptors from the same donor or tissue, and then analyse it. Or you may want to filter out non-responders to analyse the responders only.</p>
+<blockquote>
+<p>[!NOTE]
+Don't confuse grouping of immune repertoires with grouping in plots.
+When you define an immune repertoire, all the proportions are recomputed, and each receptor assigned
+a unique repertoire identifier for faster computations.
+You create virtual "tables" with immune receptors, and you can work with them separately
+using filters or mutations, despite that the data is still stored as a huge table with all receptors.
+When you plot data, you first compute statistics per defined immune repertoire, and then you
+group it. You can later plot or re‑group the resulting statistics, but the order of operations matters.</p>
+</blockquote>
+<p>The true power of regrouping repertoires opens up when you work with single-cell data.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">inp_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;lt6.csv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;TRB&quot;</span><span class="p">))</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">  </span><span class="n">path</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">inp_file</span><span class="p">,</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="w">  </span><span class="n">schema</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="w">  </span><span class="n">manifest</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">  </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w">         </span><span class="c1"># required for pairing</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="w">  </span><span class="n">locus_col</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;locus&quot;</span><span class="p">,</span><span class="w">           </span><span class="c1"># column that says &quot;TRA&quot; / &quot;TRB&quot;</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="w">  </span><span class="n">umi_col</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;umis&quot;</span><span class="p">,</span><span class="w">            </span><span class="c1"># choose chain with max UMIs per locus</span>
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="w">  </span><span class="n">preprocess</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">&quot;10x&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="p">)</span>
+<a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a>
+<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cells.tsv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a><span class="n">cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readr</span><span class="o">::</span><span class="nf">read_tsv</span><span class="p">(</span><span class="n">cells_file</span><span class="p">)</span>
+<a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a>
+<a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="c1"># External cell annotations</span>
+<a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a><span class="nf">print</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span>
+<a id="__codelineno-23-23" name="__codelineno-23-23" href="#__codelineno-23-23"></a>
+<a id="__codelineno-23-24" name="__codelineno-23-24" href="#__codelineno-23-24"></a><span class="c1"># Annotate data with cell clusters</span>
+<a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span>
+<a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a><span class="w">  </span><span class="n">idata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">idata</span><span class="p">,</span>
+<a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a><span class="w">  </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cells</span><span class="p">[</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ident&quot;</span><span class="p">)],</span><span class="w"> </span>
+<a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">  </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a><span class="w">  </span><span class="n">keep_repertoires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<a id="__codelineno-23-30" name="__codelineno-23-30" href="#__codelineno-23-30"></a><span class="p">)</span>
+<a id="__codelineno-23-31" name="__codelineno-23-31" href="#__codelineno-23-31"></a>
+<a id="__codelineno-23-32" name="__codelineno-23-32" href="#__codelineno-23-32"></a><span class="c1"># Aggregate repertoires to make cluster-specific repertoires</span>
+<a id="__codelineno-23-33" name="__codelineno-23-33" href="#__codelineno-23-33"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">agg_repertoires</span><span class="p">(</span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ident&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-34" name="__codelineno-23-34" href="#__codelineno-23-34"></a>
+<a id="__codelineno-23-35" name="__codelineno-23-35" href="#__codelineno-23-35"></a><span class="c1"># Take a look at the $repertoires table</span>
+<a id="__codelineno-23-36" name="__codelineno-23-36" href="#__codelineno-23-36"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="preprocessing-and-postprocessing-strategies">Preprocessing and postprocessing strategies<a class="headerlink" href="#preprocessing-and-postprocessing-strategies" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>[!CAUTION]
+🚧 Under construction. 🚧</p>
+</blockquote>
+<ol>
+<li>
+<p><em>... in progress ...</em></p>
+<ul>
+<li>removing columns ("on" by default)</li>
+<li>filtering non productive ("on" by default)</li>
+</ul>
+</li>
+<li>
+<p><strong>Barcode prefix</strong></p>
+<p>Provide a column named "Prefix" to the manifest so <code>make_default_postprocessing()</code> can automatically add this prefix to barcodes to make barcodes unique in your resultant dataset.</p>
+</li>
+</ol>
+<h3 id="managing-the-output-and-intermediate-immundata-files">Managing the output and intermediate ImmunData files<a class="headerlink" href="#managing-the-output-and-intermediate-immundata-files" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>[!CAUTION]
+🚧 Under construction. 🚧</p>
+</blockquote>
+<p>By default, <code>read_repertoires()</code> writes the created Parquet files into a directory named <code>immundata_&lt;first filen name&gt;</code>. Consider passing <code>output_folder</code> to <code>read_repertoires()</code> if you want to specify the output path.</p>
+<h3 id="writing-immundata-objects-on-disk">Writing ImmunData objects on disk<a class="headerlink" href="#writing-immundata-objects-on-disk" title="Permanent link">&para;</a></h3>
+<p>Use <code>write_immundata</code> to save ImmunData objects.</p>
+<p>Why you might need it - to save intermediate files, e.g., after computing levenshtein distance to specific receptors from the database. In that case, you wouldn't need to recompute the distances each time.</p>
+<hr />
+<h2 id="immundata-object">🧿 ImmunData Object<a class="headerlink" href="#immundata-object" title="Permanent link">&para;</a></h2>
+<p><code>ImmunData</code> object is a self-describing container that holds your immune repertoire dataset. <code>ImmunData</code> objects has several slots accessible via <code>&lt;object&gt;$&lt;slot&gt;</code>:</p>
+<ul>
+<li><code>ImmunData$receptors</code> – a virtual table created on demand from <code>$annotations</code>. One row per receptor as defined by your <code>$schema_receptor</code>; guaranteed to have the stable key <code>imd_receptor_id</code>. This is the aggregated view into your dataset, meaning that all fields from receptor features (cdr3, v_call) are unique with respect to row, i.e., each row is unique.</li>
+</ul>
+<ul>
+<li><code>ImmunData$annotations</code> – the main table that holds all the data. One row per chain (or per cell barcode in case of single-chained data). Holds every AIRR field (cdr3, v_call, umis, etc.) plus any manifest annotations you imported (sample_id, tissue, distances to patterns).</li>
+</ul>
+<ul>
+<li><code>ImmunData$repertoires</code> – a physical table produced by agg_repertoires(). Each row is a repertoire (sample, donor, cluster) and carries pre-computed counts: number of receptors, barcodes, chains.</li>
+</ul>
+<ul>
+<li><code>ImmunData$schema_receptor</code> – the recipe that says how to collapse chains into receptors: which features make them identical (e.g. cdr3_aa, v_call) and which loci must pair (e.g. α+β, heavy+light, single-chain).</li>
+</ul>
+<ul>
+<li><code>ImmunData$schema_repertoire</code> – the grouping keys used to bundle receptors into repertoires (e.g. sample_id, donor_id, time_point, etc.). Lets you define multiple biological layers inside one dataset (e.g. patient level vs. patient × cluster level) and switch between them.</li>
+</ul>
+<p>You should not and you can not change those slots directly. Being a self-describing container is a harsh life, full of dangers and unwanted adventures, and it requires a constant re-evaluation of what goes there and why. <code>immundata</code> functions do that internally.</p>
+<p>Every transformation returns a new <code>ImmunData</code>, so you can stash (not trash) intermediate versions on disk and reproduce any branch of the analysis.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="n">inp_files</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;/*.csv.gz&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cells.tsv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="n">cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readr</span><span class="o">::</span><span class="nf">read_tsv</span><span class="p">(</span><span class="n">cells_file</span><span class="p">)</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRB&quot;</span><span class="p">))</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inp_files</span><span class="p">,</span><span class="w"> </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span><span class="w"> </span><span class="n">manifest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span><span class="w"> </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">locus_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;locus&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">umi_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;umis&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">preprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">&quot;10x&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">repertoire_schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Tissue&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata</span><span class="p">)</span>
+</code></pre></div>
+<p>Printed ImmunData <code>idata</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>── ImmunData ───────────────────────────────────────────────────────────────────────────────────────────
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>── Receptors: ──
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a># A duckplyr data frame: 3 variables
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>   imd_receptor_id cdr3               v_call  
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>             &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;   
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a> 1            2514 CASSVHPQYF         TRBV2   
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a> 2            7687 CAWSGQGWGGSTDTQYF  TRBV30  
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a> 3            2515 CASSPRPGSTGELFF    TRBV18  
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a> 4            5111 CASSQGLGVSYEQYF    TRBV4-1 
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a> 5            7688 CASSHGQGRTGELFF    TRBV7-2 
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a> 6            7689 CASGLRRGRDSGANVLTF TRBV19  
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a> 7            2516 CSAHRGLGNQPQHF     TRBV20-1
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a> 8            5112 CASSPQGVSNQPQHF    TRBV7-2 
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a> 9               1 CASSSVSGNSPLHF     TRBV7-9 
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a>10            5113 CASPLGALTDTQYF     TRBV2   
+<a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a># ℹ more rows
+<a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a># ℹ Use `print(n = ...)` to see more rows
+<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a>
+<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a>── Annotations: ──
+<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a>
+<a id="__codelineno-25-23" name="__codelineno-25-23" href="#__codelineno-25-23"></a># A duckplyr data frame: 23 variables
+<a id="__codelineno-25-24" name="__codelineno-25-24" href="#__codelineno-25-24"></a>   barcode   locus v_call d_call j_call c_gene productive cdr3  cdr3_nt reads  umis imd_filename imd_barcode
+<a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a>   &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      
+<a id="__codelineno-25-26" name="__codelineno-25-26" href="#__codelineno-25-26"></a> 1 AAACCTGA… TRB   TRBV2  None   TRBJ2… TRBC2  True       CASS… TGTGCC… 13736    11 /Users/… LB6_AAACCT…
+<a id="__codelineno-25-27" name="__codelineno-25-27" href="#__codelineno-25-27"></a> 2 AAACCTGC… TRB   TRBV30 TRBD1  TRBJ2… TRBC2  True       CAWS… TGTGCC…  4062     5 /Users/… LB6_AAACCT…
+<a id="__codelineno-25-28" name="__codelineno-25-28" href="#__codelineno-25-28"></a> 3 AAACCTGC… TRB   TRBV18 TRBD2  TRBJ2… TRBC2  True       CASS… TGTGCC…  8617    10 /Users/… LB6_AAACCT…
+<a id="__codelineno-25-29" name="__codelineno-25-29" href="#__codelineno-25-29"></a> 4 AAACCTGG… TRB   TRBV4… TRBD1  TRBJ2… TRBC2  True       CASS… TGCGCC…  6811     5 /Users/… LB6_AAACCT…
+<a id="__codelineno-25-30" name="__codelineno-25-30" href="#__codelineno-25-30"></a> 5 AAACCTGG… TRB   TRBV7… TRBD1  TRBJ2… TRBC2  True       CASS… TGTGCC… 16836    15 /Users/… LB6_AAACCT…
+<a id="__codelineno-25-31" name="__codelineno-25-31" href="#__codelineno-25-31"></a> 6 AAACCTGT… TRB   TRBV19 TRBD2  TRBJ2… TRBC2  True       CASG… TGTGCC…  8805     9 /Users/… LB6_AAACCT…
+<a id="__codelineno-25-32" name="__codelineno-25-32" href="#__codelineno-25-32"></a> 7 AAACCTGT… TRB   TRBV2… TRBD1  TRBJ1… TRBC1  True       CSAH… TGCAGT…  8311     6 /Users/… LB6_AAACCT…
+<a id="__codelineno-25-33" name="__codelineno-25-33" href="#__codelineno-25-33"></a> 8 AAACGGGA… TRB   TRBV7… TRBD1  TRBJ1… TRBC1  True       CASS… TGTGCC…  3390     3 /Users/… LB6_AAACGG…
+<a id="__codelineno-25-34" name="__codelineno-25-34" href="#__codelineno-25-34"></a> 9 AAACGGGA… TRB   TRBV7… TRBD2  TRBJ1… TRBC1  True       CASS… TGTGCC…  4956     4 /Users/… LB6_AAACGG…
+<a id="__codelineno-25-35" name="__codelineno-25-35" href="#__codelineno-25-35"></a>10 AAACGGGA… TRB   TRBV2  TRBD1  TRBJ2… TRBC2  True       CASP… TGTGCC…  5625     4 /Users/… LB6_AAACGG…
+<a id="__codelineno-25-36" name="__codelineno-25-36" href="#__codelineno-25-36"></a># ℹ more rows
+<a id="__codelineno-25-37" name="__codelineno-25-37" href="#__codelineno-25-37"></a># ℹ 10 more variables: imd_chain_id &lt;int&gt;, imd_receptor_id &lt;int&gt;, imd_n_chains &lt;dbl&gt;, file &lt;chr&gt;,
+<a id="__codelineno-25-38" name="__codelineno-25-38" href="#__codelineno-25-38"></a>#   Tissue &lt;chr&gt;, Prefix &lt;chr&gt;, imd_count &lt;dbl&gt;, imd_repertoire_id &lt;int&gt;, imd_proportion &lt;dbl&gt;,
+<a id="__codelineno-25-39" name="__codelineno-25-39" href="#__codelineno-25-39"></a>#   n_repertoires &lt;int&gt;
+<a id="__codelineno-25-40" name="__codelineno-25-40" href="#__codelineno-25-40"></a># ℹ Use `print(n = ...)` to see more rows
+<a id="__codelineno-25-41" name="__codelineno-25-41" href="#__codelineno-25-41"></a>
+<a id="__codelineno-25-42" name="__codelineno-25-42" href="#__codelineno-25-42"></a>── Receptor schema: ──
+<a id="__codelineno-25-43" name="__codelineno-25-43" href="#__codelineno-25-43"></a>
+<a id="__codelineno-25-44" name="__codelineno-25-44" href="#__codelineno-25-44"></a>features:
+<a id="__codelineno-25-45" name="__codelineno-25-45" href="#__codelineno-25-45"></a>→ cdr3
+<a id="__codelineno-25-46" name="__codelineno-25-46" href="#__codelineno-25-46"></a>→ v_call
+<a id="__codelineno-25-47" name="__codelineno-25-47" href="#__codelineno-25-47"></a>chains:
+<a id="__codelineno-25-48" name="__codelineno-25-48" href="#__codelineno-25-48"></a>→ TRB
+<a id="__codelineno-25-49" name="__codelineno-25-49" href="#__codelineno-25-49"></a>
+<a id="__codelineno-25-50" name="__codelineno-25-50" href="#__codelineno-25-50"></a>
+<a id="__codelineno-25-51" name="__codelineno-25-51" href="#__codelineno-25-51"></a>── Repertoire schema: ──
+<a id="__codelineno-25-52" name="__codelineno-25-52" href="#__codelineno-25-52"></a>
+<a id="__codelineno-25-53" name="__codelineno-25-53" href="#__codelineno-25-53"></a>→ Tissue
+<a id="__codelineno-25-54" name="__codelineno-25-54" href="#__codelineno-25-54"></a>
+<a id="__codelineno-25-55" name="__codelineno-25-55" href="#__codelineno-25-55"></a>
+<a id="__codelineno-25-56" name="__codelineno-25-56" href="#__codelineno-25-56"></a>── List of repertoires: ──
+<a id="__codelineno-25-57" name="__codelineno-25-57" href="#__codelineno-25-57"></a>
+<a id="__codelineno-25-58" name="__codelineno-25-58" href="#__codelineno-25-58"></a># A tibble: 3 × 4
+<a id="__codelineno-25-59" name="__codelineno-25-59" href="#__codelineno-25-59"></a>  imd_repertoire_id Tissue n_barcodes n_receptors
+<a id="__codelineno-25-60" name="__codelineno-25-60" href="#__codelineno-25-60"></a>              &lt;int&gt; &lt;chr&gt;       &lt;dbl&gt;       &lt;int&gt;
+<a id="__codelineno-25-61" name="__codelineno-25-61" href="#__codelineno-25-61"></a>1                 1 Blood        4085        3976
+<a id="__codelineno-25-62" name="__codelineno-25-62" href="#__codelineno-25-62"></a>2                 2 Normal       6797        2950
+<a id="__codelineno-25-63" name="__codelineno-25-63" href="#__codelineno-25-63"></a>3                 3 Tumor        7832        3962
+</code></pre></div>
+<hr />
+<h2 id="transformation">🛠 Transformation<a class="headerlink" href="#transformation" title="Permanent link">&para;</a></h2>
+<p>Before running the code in the following subsections, execute the code below. Mind that for the example purposes, the data uses the TRB locus only. Change the input receptor schema and the column names to adapt it to the paired-chain case.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="n">inp_files</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;/*.csv.gz&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cells.tsv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="n">cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readr</span><span class="o">::</span><span class="nf">read_tsv</span><span class="p">(</span><span class="n">cells_file</span><span class="p">)</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRB&quot;</span><span class="p">))</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inp_files</span><span class="p">,</span><span class="w"> </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span><span class="w"> </span><span class="n">manifest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span><span class="w"> </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">locus_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;locus&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">umi_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;umis&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">preprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">&quot;10x&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">repertoire_schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Tissue&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="filter">Filter<a class="headerlink" href="#filter" title="Permanent link">&para;</a></h3>
+<p>The key functions for filtering are <code>filter()</code> (<code>dplyr</code>-compatible) and <code>filter_immundata()</code>, which are the same function with a slightly different arguments due to the necessity to comply with <code>dplyr</code> interface. Repertoires are reaggregated automatically. Functions <code>filter_receptors()</code> and <code>filter_barcodes()</code> are used for filter receptor and barcode identifiers, correspondingly.</p>
+<p>To filter data, you simply pass predicates like in <code>dplyr</code>. Optionally, you can pass <code>seq_options</code> that allow you to filter by exact sequence match, regex pattern, or sequence distances using hamming or edit/levenshtein distances. You can pass multiple patterns via <code>patterns = c("pattern_1", "pattern_2")</code>.</p>
+<p>1. <strong>Filter by any annotation</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata |&gt; filter(v_call == &quot;TRBV2&quot;)
+
+  idata |&gt; filter(Tissue == &quot;Blood&quot;)
+  ```
+</code></pre></div>
+<p>2. <strong>Chain filters together</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  # this expression:
+  idata |&gt; filter(v_call == &quot;TRBV2&quot;, imd_proportion &gt;= 0.0002)
+
+  # is the same as this one:
+  idata |&gt; filter(v_call == &quot;TRBV2&quot;) |&gt; filter(imd_proportion &gt;= 0.0002)
+  ```
+</code></pre></div>
+<p>3. <strong>Filter by sequence distance</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata |&gt; filter(seq_options = make_seq_options(patterns = &quot;CASSELAGYRGEQYF&quot;, query_col = &quot;cdr3&quot;, method = &quot;lev&quot;, max_dist = 3))
+
+  idata |&gt; filter(v_call == &quot;TRBV2&quot;, seq_options = make_seq_options(patterns = &quot;CASSELAGYRGEQYF&quot;, query_col = &quot;cdr3&quot;, method = &quot;lev&quot;, max_dist = 3))
+  ```
+</code></pre></div>
+<p>4. <strong>Filter by receptor identifiers</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata |&gt; filter_receptors(c(1,2,3))
+  ```
+</code></pre></div>
+<p>5. <strong>Filter by barcodes</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  target_bc &lt;- cells$barcode[1:3]
+  idata |&gt; filter_barcodes(target_bc)
+  ```
+</code></pre></div>
+<p>6. <strong>Filter by repertoire</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata |&gt; filter(imd_repertoire_id == 1)
+
+  idata |&gt; filter(Tissue %in% c(&quot;Blood&quot;, &quot;Tumor&quot;))
+  ```
+</code></pre></div>
+<h3 id="annotate">Annotate<a class="headerlink" href="#annotate" title="Permanent link">&para;</a></h3>
+<p>The key function for annotations are <code>annotate</code> and <code>annotate_immundata</code>. Functions <code>annotate_receptors()</code>, <code>annotate_barcodes()</code> and <code>annotate_chains()</code> are light-weight wrappers around <code>annotate_immundata()</code>.</p>
+<p>1. <strong>Annotate by any column</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata2 &lt;- annotate(idata = idata, annotations = cells[c(&quot;barcode&quot;, &quot;ident&quot;)], by = c(imd_barcode = &quot;barcode&quot;), keep_repertoires = FALSE)
+  idata2 &lt;- idata2 |&gt; filter(!is.na(ident))
+  idata2 &lt;- idata2 |&gt; agg_repertoires(schema = &quot;ident&quot;)
+
+  print(idata2)
+  ```
+</code></pre></div>
+<p>2. <strong>Annotate by receptor identifiers</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata2 &lt;- annotate_receptors(idata = idata, annotations = tibble::tibble(receptor = c(1,2,3), important_data = c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)), annot_col = &quot;receptor&quot;)
+
+  idata2 |&gt; filter(important_data %in% c(&quot;A&quot;, &quot;B&quot;))
+  ```
+</code></pre></div>
+<p>3. <strong>Annotate by barcodes</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata2 &lt;- annotate_barcodes(idata = idata, annotations = cells[c(&quot;barcode&quot;, &quot;ident&quot;)],  annot_col = &quot;barcode&quot;, keep_repertoires = FALSE)
+  idata2 &lt;- idata2 |&gt; filter(!is.na(ident))
+  idata2 &lt;- idata2 |&gt; agg_repertoires(schema = &quot;ident&quot;)
+
+  print(idata2)
+  ```
+</code></pre></div>
+<h3 id="modify">Modify<a class="headerlink" href="#modify" title="Permanent link">&para;</a></h3>
+<p>The key functions for this are <code>mutate</code> (<code>dplyr</code>-compatible) / <code>mutate_immundata</code> and the functions from the downstream analysis tools.</p>
+<p>1. <strong>Add or transform one or several annotation columns</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata |&gt; mutate(new_column = &quot;value&quot;)
+
+  idata |&gt; mutate(big_chains = umis &gt;= 10)
+
+  # You can use duckdb functions via `dd$&lt;function&gt;`
+  idata |&gt; mutate(dist_to_pattern = dd$levenshtein(cdr3, &quot;CASSSVSGNSPLHF&quot;))
+  ```
+</code></pre></div>
+<p>2. <strong>Add columns with sequence distance to patterns</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  patterns &lt;- c(&quot;CASSVHPQYF&quot;, &quot;CAWSGQGWGGSTDTQYF&quot;, &quot;CASSPRPGSTGELFF&quot;)
+  idata |&gt; mutate(seq_options = make_seq_options(query_col = &quot;cdr3&quot;, patterns = patterns, method = &quot;lev&quot;))
+
+  idata |&gt; mutate(seq_options = make_seq_options(query_col = &quot;cdr3&quot;, patterns = patterns, method = &quot;lev&quot;, name_type = &quot;pattern&quot;))
+  ```
+</code></pre></div>
+<p>3. <strong>Modify a subset of column values</strong></p>
+<div class="highlight"><pre><span></span><code>  ```r
+  idata |&gt; mutate(found_pattern = if_else(cdr3 == &quot;CASSVHPQYF&quot;, 1, 0))
+  ```
+</code></pre></div>
+<hr />
+<h2 id="analysis">📈 Analysis<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h2>
+<h3 id="basic-analysis-using-immundata">Basic analysis using <code>immundata</code><a class="headerlink" href="#basic-analysis-using-immundata" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># Find receptors from several repertoires which have &gt;60 abundance</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="c1"># and get their barcodes</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="n">idata2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">imd_count</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">60</span><span class="p">)</span>
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="n">target_chains</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata2</span><span class="o">$</span><span class="n">annotations</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="n">imd_barcode</span><span class="p">,</span><span class="w"> </span><span class="n">imd_count</span><span class="p">,</span><span class="w"> </span><span class="n">cdr3</span><span class="p">,</span><span class="w"> </span><span class="n">v_call</span><span class="p">,</span><span class="w"> </span><span class="n">Tissue</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">collect</span><span class="p">()</span>
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="n">target_chains</span>
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>
+<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="c1"># You can then annotate those receptors in your single-cell data using</span>
+<a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a><span class="c1"># the `imd_barcode` column as a key.</span>
+</code></pre></div>
+<h3 id="advanced-analysis-using-immundata">Advanced analysis using <code>immundata</code><a class="headerlink" href="#advanced-analysis-using-immundata" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Install the latest pre-1.0 version of immunarch</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="c1"># pak::pkg_install(immunomind/immunarch)</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">immunarch</span><span class="p">)</span>
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="n">ov_heatmap</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">airr_public_index</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;jaccard&quot;</span><span class="p">)</span>
+<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="n">pheatmap</span><span class="o">::</span><span class="nf">pheatmap</span><span class="p">(</span><span class="n">ov_heatmap</span><span class="p">)</span>
+<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>
+<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="n">clonal_space_homeo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">airr_clonality</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;prop&quot;</span><span class="p">)</span>
+<a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a><span class="n">ggplot2</span><span class="o">::</span><span class="nf">ggplot</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">clonal_space_homeo</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">geom_col</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Tissue</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">occupied_prop</span><span class="p">,</span><span class="w"> </span><span class="n">fill</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">clonal_prop_bin</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">theme_bw</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h2 id="use-cases">🧩 Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>[!TIP]
+Tutorial on <code>immundata</code> + <code>immunarch</code> is available <a href="https://immunomind.github.io/docs/tutorials/single_cell/">on the ecosystem website</a>.</p>
+<p>Read the previous section about the analysis.</p>
+<p>This section is still under construction.</p>
+</blockquote>
+<h3 id="bulk-repseq-airrseq">Bulk -- RepSeq, AIRRSeq<a class="headerlink" href="#bulk-repseq-airrseq" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>[!CAUTION]
+🚧 Under construction. 🚧</p>
+</blockquote>
+<p>Pretty much the whole README is either about single-chain or paired-chain data.</p>
+<p>Consider passing <code>make_default_preprocessing("airr")</code> or <code>make_default_preprocessing("10x")</code> to <code>read_repertoires(..., preproc = &lt;here&gt;, ...)</code> to have convenient processing of the corresponding formats.</p>
+<p>Pass <code>count_col</code> to <code>read_repertoires(..., count_col = "Counts", ...)</code> to assign counts to chains.</p>
+<h3 id="single-cell-and-paired-chain-scrnaseq-scvdjseq-sctcrseq-scbcrseq">Single-cell and paired-chain -- scRNAseq, scVDJseq, scTCRseq, scBCRseq<a class="headerlink" href="#single-cell-and-paired-chain-scrnaseq-scvdjseq-sctcrseq-scbcrseq" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>[!CAUTION]
+🚧 Under construction. 🚧</p>
+</blockquote>
+<p>Make sure to pass <code>make_default_preprocessing("10x")</code>, <code>locus_col</code> and <code>barcode_col</code> to read paired-chain data. Drop the <code>locus_col</code> if you want to read single-chain data only.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">Seurat</span><span class="p">)</span><span class="w"> </span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="n">sdata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the Seurat data</span>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the corresponding AIRR data</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="c1"># Get both GEX and metadata</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="n">smeta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="w">  </span><span class="n">barcode</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">sdata</span><span class="p">),</span>
+<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">  </span><span class="n">cluster</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">Idents</span><span class="p">(</span><span class="n">sdata</span><span class="p">),</span>
+<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">  </span><span class="n">gene_MS4A1</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">FetchData</span><span class="p">(</span><span class="n">sdata</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;MS4A1&quot;</span><span class="p">)[,</span><span class="m">1</span><span class="p">]</span>
+<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="p">)</span>
+<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a>
+<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">smeta</span><span class="p">,</span><span class="w"> </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">AnnDataR</span><span class="p">)</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="n">adata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the AnndataR data</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the corresponding AIRR data</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="n">ameta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="w">  </span><span class="n">barcode</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">obs_names</span><span class="p">,</span>
+<a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="w">  </span><span class="n">cluster</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">obs</span><span class="o">$</span><span class="n">cell_type</span><span class="p">,</span>
+<a id="__codelineno-42-9" name="__codelineno-42-9" href="#__codelineno-42-9"></a><span class="w">  </span><span class="n">gene_GCG</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">X</span><span class="p">[,</span><span class="w"> </span><span class="s">&quot;GCG&quot;</span><span class="p">]</span>
+<a id="__codelineno-42-10" name="__codelineno-42-10" href="#__codelineno-42-10"></a><span class="p">)</span>
+<a id="__codelineno-42-11" name="__codelineno-42-11" href="#__codelineno-42-11"></a>
+<a id="__codelineno-42-12" name="__codelineno-42-12" href="#__codelineno-42-12"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">ameta</span><span class="p">,</span><span class="w"> </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="advanced-topics">🧠 Advanced Topics<a class="headerlink" href="#advanced-topics" title="Permanent link">&para;</a></h2>
+<h3 id="developers">Developers<a class="headerlink" href="#developers" title="Permanent link">&para;</a></h3>
+<h4 id="integrate-into-your-package">Integrate into your package<a class="headerlink" href="#integrate-into-your-package" title="Permanent link">&para;</a></h4>
+<blockquote>
+<p>[!CAUTION]
+🚧 Under construction. 🚧</p>
+</blockquote>
+<p><code>immundata</code> is created in mind with the mission of replacing typical data frame-based formats, usually not following the AIRR-C file standard.</p>
+<h4 id="extend-with-functions">Extend with functions<a class="headerlink" href="#extend-with-functions" title="Permanent link">&para;</a></h4>
+<blockquote>
+<p>[!CAUTION]
+🚧 Under construction. 🚧</p>
+</blockquote>
+<p>S3 methods etc.</p>
+<h3 id="how-immundata-reads-the-data">How <code>immundata</code> reads the data<a class="headerlink" href="#how-immundata-reads-the-data" title="Permanent link">&para;</a></h3>
+<p>By design, <strong><code>immundata</code></strong> data-loading pipeline is <strong>three</strong> steps, rather than one giant function. This promotes modularity, easier debugging, and flexible usage:</p>
+<ol>
+<li><strong>(Optionally) Load the manifest</strong> via <code>read_manifest()</code>.
+    -   This ensures your manifest has the correct file paths, absolute or relative.</li>
+<li><strong>Load the repertoire files</strong> from disk via <code>read_repertoires()</code>.
+    -   This function unifies your data (be it 1 file or 100 files) and <strong>outputs</strong> a Parquet file:
+        -   <strong><code>annotations.parquet</code></strong> (cell-level data, sample metadata, etc.)
+    -   It then calls <code>read_immundata()</code> to return a fully instantiated <code>ImmunData</code> object that uses the newly created files on the disk as a source. The helps two-fold: you don't lose your data, and it allows <code>immundata</code> to run an optimized code when necessary.</li>
+<li><strong>(Optionally) Load the same <code>ImmunData</code> files later</strong> with <code>read_immundata()</code>.
+    -   If you need to reopen the data in a future R session, you don't have to redo the entire pipeline.
+    -   Just call <code>read_immundata(path_to_immundata_folder)</code> where the folder contains <code>annotations.parquet</code>.
+    -   With this approach, you <strong>never</strong> need to re-parse your raw AIRR files once you've generated the Parquet-based <code>immundata</code> format.</li>
+</ol>
+<p>Why split it up?</p>
+<ul>
+<li><strong>Modularity</strong>: If something breaks, you can debug whether it's in manifest parsing or the actual repertoire table creation.</li>
+<li><strong>Reusability</strong>: It is straightforward to share one folder with two <code>immundata</code> files.</li>
+<li><strong>Performance</strong>: Once your data is in <code>immundata</code> format, you can load it in future sessions in <strong>constant time</strong> without merging or parsing again.</li>
+</ul>
+<h3 id="custom-functions-for-analysis">Custom functions for analysis<a class="headerlink" href="#custom-functions-for-analysis" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>[!CAUTION]
+🚧 Under construction. 🚧</p>
+</blockquote>
+<p>1) Function is supported by <code>duckdb</code> - then use <code>dd$&lt;function_name&gt;</code></p>
+<p>2) Use SQL</p>
+<p>3) Run a completely custom function</p>
+<h3 id="change-ram-limits-to-accelerate-the-backend-computations">Change RAM limits to accelerate the backend computations<a class="headerlink" href="#change-ram-limits-to-accelerate-the-backend-computations" title="Permanent link">&para;</a></h3>
+<p>You can change the <a href="https://duckplyr.tidyverse.org/articles/large.html#memory-usage">RAM limits in duckplyr</a>.</p>
+<h3 id="make-immundata-even-faster-with-data-engineering-tricks">Make <code>immundata</code> even faster with data engineering tricks<a class="headerlink" href="#make-immundata-even-faster-with-data-engineering-tricks" title="Permanent link">&para;</a></h3>
+<p>You can use <a href="https://duckdb.org/docs/stable/data/partitioning/hive_partitioning.html">hive partitioning</a> to accelerate analysis. Recommended columns are locus, V gene segment, and sequence length.</p>
+<h3 id="save-your-intermediate-data-for-faster-computations-and-reproducibility">Save your intermediate data for faster computations and reproducibility<a class="headerlink" href="#save-your-intermediate-data-for-faster-computations-and-reproducibility" title="Permanent link">&para;</a></h3>
+<p>Consider caching your data to disk after heavy operations, such as distance computations.</p>
+<hr />
+<h2 id="about">🏷 About<a class="headerlink" href="#about" title="Permanent link">&para;</a></h2>
+<h3 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h3>
+<p><em>... coming soon ...</em></p>
+<h3 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h3>
+<p>The package is freely distributed under the Apache-2.0 license. You can read more about it <a href="https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0">here</a>.</p>
+<h3 id="author-and-contributors">Author and contributors<a class="headerlink" href="#author-and-contributors" title="Permanent link">&para;</a></h3>
+<p><strong>Vadim I. Nazarov – main author and developer</strong></p>
+<p>Vasily Tsvetkov</p>
+<p><em>... more to come ...</em></p>
+<h3 id="commercial-usage">Commercial usage<a class="headerlink" href="#commercial-usage" title="Permanent link">&para;</a></h3>
+<p><code>immundata</code> is free to use for commercial usage as per Apache-2.0 license. However, corporate users will not get a prioritized support for <code>immundata</code>- or AIRR-related issues. The priority of open-source tool <code>immundata</code> is open-source science.</p>
+<p>If you are looking for prioritized support and setting up your data pipelines, consider contacting <a href="https://www.linkedin.com/in/vdnaz/">Vadim Nazarov</a> for commercial consulting / support options / workshops and training sessions / designing data platforms and machine learning systems for multi-omics / or anything related.</p>
+<hr />
+<h2 id="faq">🤔 FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong>Q: Why did <code>metadata.tsv</code> become <code>manifest.csv</code>?</strong></p>
+<p>A: <code>metadata.tsv</code> was an old input-table format for listing repertoire files and per-sample annotations. It was confusing because the word "metadata" already means several different things in <code>immundata</code> workflows:</p>
+<p>- input file manifests: a table that tells <code>read_repertoires()</code> which repertoire files to read and what sample-level annotations to attach;
+  - biological or clinical metadata: donor, tissue, therapy, response, HLA, time point, and similar fields;
+  - cell-level metadata: barcode-level annotations from single-cell or spatial objects, such as cluster labels or gene expression summaries;
+  - ImmunData snapshot metadata: the internal <code>metadata.json</code> file that stores schemas, provenance, lineage, package version, and snapshot IDs.</p>
+<p>Calling the input manifest <code>metadata.tsv</code> mixed these concepts together. We now use the industry-standard manifest pattern: a <code>manifest.csv</code> file with a <code>file</code> column plus any additional annotation columns. In code, use <code>read_manifest()</code> and <code>read_repertoires(path = "&lt;manifest&gt;", manifest = manifest_table)</code>. Snapshot <code>metadata.json</code> remains unchanged because it is metadata about the saved <code>ImmunData</code> object, not a list of input repertoire files.</p>
+</li>
+<li>
+<p><strong>Q: Why all the function names or ImmunData fields are so long? I want to write <code>idata$rec</code> instead of <code>idata$receptors</code>.</strong></p>
+<p>A: Two major reasons – improving the code readability and motivation to leverage the autocomplete tools. Please consider using <code>tab</code> for leveraging autocomplete. It accelerates things x10-20.</p>
+</li>
+<li>
+<p><strong>Q: How does <code>immundata</code> works under the hood, in simpler terms?</strong></p>
+<p>A: Picture a three-layer sandwich:</p>
+<p>- <code>Arrow</code> files on disk hold the raw tables in column-compressed Parquet.</p>
+<p>- <code>DuckDB</code> is an in-process SQL engine that can query those files without loading them fully into RAM.</p>
+<p>- <code>duckplyr</code> glues <code>dplyr</code> verbs (filter, mutate, summarise, …) to DuckDB SQL, so your R code looks exactly like a tidyverse pipeline while the heavy lifting happens in C++.</p>
+<p>When you call <code>read_repertoires()</code>, immundata writes <code>Arrow</code> parts, registers them with <code>DuckDB</code>, and returns a <code>duckplyr</code> table. Every later verb is lazily translated into SQL; nothing is materialised until a step truly needs physical data (e.g. a plot or an algorithm that exists only in R).</p>
+<p>References
+  1. <a href="https://arrow.apache.org/docs/r/">Arrow for R – columnar file format</a>
+  2. <a href="https://duckdb.org/">DuckDB – embedded analytical database</a>
+  3. <a href="https://duckplyr.tidyverse.org/index.html">duckplyr – API/implementation details</a></p>
+</li>
+<li>
+<p><strong>Q: Why do you need to create Parquet files with receptors and annotations?</strong></p>
+<p>A: Those are intermediate files, optimized for future data operations, and working with them significantly accelerates <code>immundata</code>. I will post a benchmark soon.</p>
+</li>
+<li>
+<p><strong>Q: Why does <code>immundata</code> support only the AIRR standard?!</strong></p>
+<p>A: The short answer is because a single, stable schema beats a zoo of drifting ones.</p>
+<p>The practical answer is that <code>immundata</code> allows some optionality – you can provide column names for barcodes, etc.</p>
+<p>The long answer is that the amount of investments required not only for the development, but also for the continued support of parsers for different formats, is astonishing. I developed parsers for 10+ formats for <code>tcR</code> / <code>immunarch</code> packages. I would much prefer for upstream tool developers not to change their format each minor version, breaking pretty much all downstream pipelines and causing all sorts of pain to end users and tools developers – mind you, without bearing a responsibility to at least notify, but ideally fix the broken formats they introduced. The time of the Wild West is over. The AIRR community did an outstanding job creating its standard. Please urge the creators of your favourite tools or fellow developers to use this format or a superset, like <code>immundata</code> does.</p>
+<p><code>immundata</code> does not and will not explicitly support other formats. This is both a practical stance and communication of crucial values, put into <code>immundata</code> as part of a broader ecosystem of AIRR tools. The domain is already too complex, and we need to work together to make this complexity manageable. A healthy ecosystem is not the same as a complex ecosystem.</p>
+</li>
+<li>
+<p><strong>Q: Why is it so complex? Why do we need to use <code>dplyr</code> instead of plain R?</strong></p>
+<p>A: The short answer is:</p>
+<p>-   faster computations;
+  -   code, that is easy to maintain and support by other humans;
+  -   better data skills thanks to thinking in immutable transformations,
+  -   in most cases you don't really need complex transformations, so we can optimize 95% of all AIRR data operations behind the scenes.</p>
+</li>
+<li>
+<p><strong>Q: How do I use <code>dplyr</code> operations that <code>duckplyr</code> doesn't support yet?</strong></p>
+<p>A: Let's consider several use cases.</p>
+<p><strong>Case 0.</strong> You are missing <code>group_by</code> from <code>dplyr</code>. Use <code>summarise(.by = ???, ...)</code>.</p>
+<p><strong>Case 1.</strong> Your data can fit into RAM. Call <code>collect</code> and use <code>dplyr</code>.</p>
+<p><strong>Case 2.</strong> Your data won't fit into RAM but you must run a heavy operation on all rows. You can rewrite functions in SQL. You can break it into supported pieces (e.g. pre-filter, pre-aggregate) that DuckDB can stream, write an intermediate Parquet with <code>compute_parquet()</code>, then loop over chunks, collect them, and run the analysis.</p>
+<p><strong>Case 3.</strong> Your data won't fit into RAM, but before running intensive computations, you are open to working with smaller dataset first. Filter down via <code>slice_head(n=...)</code>, iterate until the code works, then run the same pipeline on the full dataset.</p>
+</li>
+<li>
+<p><strong>Q: You filter out non-productive receptors. How do I explore them?</strong></p>
+<p>A: Do not filter out non-productive receptors in <code>preprocess</code> in <code>read_repertoires()</code>.</p>
+</li>
+<li>
+<p><strong>Q: Why does <code>immundata</code> have its own column names for receptors and repertoires? Could you just use the AIRR format - repertoire_id etc.?</strong></p>
+<p>A: The power of <code>immundata</code> lies in the fast re-aggregation of the data, that allows to work with whatever you define as a repertoire on the fly via <code>agg_repertoires</code>. Hence I use a superset of the AIRR format, which is totally acceptable as per their documentation.</p>
+</li>
+<li>
+<p><strong>Q: What do I do with following error: "Error in <code>compute_parquet()</code> at [...]: ! ?</strong>*</p>
+<p>A: It means that your repertoire files have different schemas, i.e., different column names. You have two options.</p>
+<p><strong>Option 1:</strong> Check the data and fix the schema. Explore the reason why the data have different schemas. Remove wrong files. Change column names. And try again.</p>
+<p><strong>Option 2:</strong> If you know what you are doing, pass argument <code>enforce_schema = FALSE</code> to <code>read_repertoires</code>. The resultant table will have NAs in the place of missing values. But don't use it without considering the first option. Broken schema usually means that there are some issues in the how the data were processed upstream.</p>
+</li>
+<li>
+<p><strong>Q: <code>immundata</code> is too verbose, I'm tired of all the messages. How to turn them off?</strong></p>
+<p>A: Run the following code <code>options(rlib_message_verbosity = "quiet")</code> in the beginning of your R session to turn off messages.</p>
+</li>
+<li>
+<p><strong>Q: I don't want to use <code>pak</code>, how can I use the good old <code>install.packages</code> or <code>devtools</code>?</strong></p>
+<p>A: Nothing will stop you, eh? You are welcome, but I'm not responsible if something won't work due to issues with dependencies:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># CRAN release</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="c1"># GitHub release</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="nf">install.packages</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;devtools&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;pkgload&quot;</span><span class="p">))</span>
+<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span><span class="s">&quot;immunomind/immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">reload</span><span class="p">(</span><span class="n">pkgload</span><span class="o">::</span><span class="nf">inst</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">))</span>
+<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a>
+<a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="c1"># Development version</span>
+<a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span><span class="s">&quot;immunomind/immundata&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;dev&quot;</span><span class="p">)</span>
+<a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">reload</span><span class="p">(</span><span class="n">pkgload</span><span class="o">::</span><span class="nf">inst</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">))</span>
+</code></pre></div>
+</li>
+<li>
+<p><strong>Q: Why are the counts for receptors available only after all the aggregation?</strong></p>
+<p>A: Counts and proportions are properties of a receptor inside a specific repertoire. A receptor seen in two samples will be counted twice – once per repertoire. Until receptors and repertoires are defined, any "count" would be ambiguous. That's why the numbers appear only after <code>agg_receptors()</code> and <code>agg_repertoires()</code> have locked those definitions in.</p>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/immunomind/immundata" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://immunomind.com" target="_blank" rel="noopener" title="immunomind.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
