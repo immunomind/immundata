@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: altdoc-pages
+  group: ${{ github.event_name == 'pull_request' && format('altdoc-pr-{0}', github.event.pull_request.number) || 'altdoc-pages' }}
   cancel-in-progress: false
 
 permissions: read-all
