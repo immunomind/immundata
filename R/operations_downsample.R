@@ -111,52 +111,6 @@ downsample_immundata <- function(idata, n, seed = NULL) {
     rep("__all__", nrow(unit_table))
   }
 
-  draw_weighted <- function(weights, size) {
-    weights <- as.integer(round(weights))
-    out <- integer(length(weights))
-    total <- sum(weights)
-
-    if (size <= 0 || total <= 0) {
-      return(out)
-    }
-
-    if (size >= total) {
-      return(weights)
-    }
-
-    remaining_draws <- as.integer(size)
-    remaining_total <- as.integer(total)
-
-    if (length(weights) == 1) {
-      out[1] <- remaining_draws
-      return(out)
-    }
-
-    # Exact weighted sampling without replacement via sequential hypergeometric draws.
-    for (i in seq_len(length(weights) - 1)) {
-      wi <- as.integer(weights[i])
-
-      if (wi <= 0 || remaining_draws <= 0) {
-        out[i] <- 0L
-      } else {
-        out[i] <- as.integer(
-          stats::rhyper(
-            nn = 1,
-            m = wi,
-            n = remaining_total - wi,
-            k = remaining_draws
-          )
-        )
-        remaining_draws <- remaining_draws - out[i]
-      }
-
-      remaining_total <- remaining_total - wi
-    }
-
-    out[length(weights)] <- remaining_draws
-    out
-  }
-
   split_groups <- split(unit_table, group_ids)
   sampled_units_list <- vector("list", length(split_groups))
   n_clipped <- 0L
@@ -185,7 +139,7 @@ downsample_immundata <- function(idata, n, seed = NULL) {
       next
     }
 
-    sampled_counts <- draw_weighted(group_df[[count_col]], target)
+    sampled_counts <- draw_weighted_counts(group_df[[count_col]], target)
     out <- group_df[sampled_counts > 0, , drop = FALSE]
     out[[count_col]] <- sampled_counts[sampled_counts > 0]
     sampled_units_list[[i]] <- out
@@ -254,4 +208,50 @@ downsample_immundata <- function(idata, n, seed = NULL) {
   }
 
   rebuild_repertoire_and_strata(new_idata, idata)
+}
+
+draw_weighted_counts <- function(weights, size) {
+  weights <- as.integer(round(weights))
+  out <- integer(length(weights))
+  total <- sum(weights)
+
+  if (size <= 0 || total <= 0) {
+    return(out)
+  }
+
+  if (size >= total) {
+    return(weights)
+  }
+
+  remaining_draws <- as.integer(size)
+  remaining_total <- as.integer(total)
+
+  if (length(weights) == 1) {
+    out[1] <- remaining_draws
+    return(out)
+  }
+
+  # Exact weighted sampling without replacement via sequential hypergeometric draws.
+  for (i in seq_len(length(weights) - 1)) {
+    wi <- as.integer(weights[i])
+
+    if (wi <= 0 || remaining_draws <= 0) {
+      out[i] <- 0L
+    } else {
+      out[i] <- as.integer(
+        stats::rhyper(
+          nn = 1,
+          m = wi,
+          n = remaining_total - wi,
+          k = remaining_draws
+        )
+      )
+      remaining_draws <- remaining_draws - out[i]
+    }
+
+    remaining_total <- remaining_total - wi
+  }
+
+  out[length(weights)] <- remaining_draws
+  out
 }

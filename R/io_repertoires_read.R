@@ -1,70 +1,3 @@
-is_special_repertoire_schema <- function(repertoire_schema, value = NULL) {
-  is_special <- is.character(repertoire_schema) &&
-    length(repertoire_schema) == 1 &&
-    repertoire_schema %in% c("<auto>", "<manifest>")
-
-  if (is.null(value)) {
-    return(is_special)
-  }
-
-  is_special && identical(repertoire_schema, value)
-}
-
-assert_unique_manifest_paths <- function(paths) {
-  duplicated_paths <- unique(paths[duplicated(paths)])
-
-  if (length(duplicated_paths) == 0) {
-    return(invisible(TRUE))
-  }
-
-  duplicated_path_details <- vapply(
-    duplicated_paths,
-    function(duplicated_path) {
-      duplicated_rows <- which(paths == duplicated_path)
-      paste0(
-        duplicated_path,
-        " (rows ",
-        paste(duplicated_rows, collapse = ", "),
-        ")"
-      )
-    },
-    character(1)
-  )
-
-  cli::cli_abort(c(
-    "Manifest contains duplicated repertoire file paths after normalization.",
-    "!" = "Each repertoire file must appear only once.",
-    "x" = "Duplicated paths: {paste(duplicated_path_details, collapse = '; ')}"
-  ))
-}
-
-resolve_repertoire_schema <- function(repertoire_schema,
-                                      manifest,
-                                      path_from_manifest,
-                                      filename_col) {
-  if (is.null(repertoire_schema) || is.function(repertoire_schema)) {
-    return(repertoire_schema)
-  }
-
-  if (is_special_repertoire_schema(repertoire_schema, "<auto>")) {
-    if (isTRUE(path_from_manifest)) {
-      repertoire_schema <- "<manifest>"
-    } else {
-      return(filename_col)
-    }
-  }
-
-  if (is_special_repertoire_schema(repertoire_schema, "<manifest>")) {
-    if (!is.null(manifest)) {
-      return(colnames(manifest))
-    }
-
-    return(filename_col)
-  }
-
-  repertoire_schema
-}
-
 #' @title Read and process immune repertoire files to immundata
 #'
 #' @description
@@ -666,4 +599,114 @@ read_repertoires <- function(path,
   }
 
   idata
+}
+
+is_special_repertoire_schema <- function(repertoire_schema, value = NULL) {
+  is_special <- is.character(repertoire_schema) &&
+    length(repertoire_schema) == 1 &&
+    repertoire_schema %in% c("<auto>", "<manifest>")
+
+  if (is.null(value)) {
+    return(is_special)
+  }
+
+  is_special && identical(repertoire_schema, value)
+}
+
+assert_unique_manifest_paths <- function(paths) {
+  duplicated_paths <- unique(paths[duplicated(paths)])
+
+  if (length(duplicated_paths) == 0) {
+    return(invisible(TRUE))
+  }
+
+  duplicated_path_details <- vapply(
+    duplicated_paths,
+    function(duplicated_path) {
+      duplicated_rows <- which(paths == duplicated_path)
+      paste0(
+        duplicated_path,
+        " (rows ",
+        paste(duplicated_rows, collapse = ", "),
+        ")"
+      )
+    },
+    character(1)
+  )
+
+  cli::cli_abort(c(
+    "Manifest contains duplicated repertoire file paths after normalization.",
+    "!" = "Each repertoire file must appear only once.",
+    "x" = "Duplicated paths: {paste(duplicated_path_details, collapse = '; ')}"
+  ))
+}
+
+resolve_repertoire_schema <- function(repertoire_schema,
+                                      manifest,
+                                      path_from_manifest,
+                                      filename_col) {
+  if (is.null(repertoire_schema) || is.function(repertoire_schema)) {
+    return(repertoire_schema)
+  }
+
+  if (is_special_repertoire_schema(repertoire_schema, "<auto>")) {
+    if (isTRUE(path_from_manifest)) {
+      repertoire_schema <- "<manifest>"
+    } else {
+      return(filename_col)
+    }
+  }
+
+  if (is_special_repertoire_schema(repertoire_schema, "<manifest>")) {
+    if (!is.null(manifest)) {
+      return(colnames(manifest))
+    }
+
+    return(filename_col)
+  }
+
+  repertoire_schema
+}
+
+check_file_extensions <- function(path, verbose = TRUE) {
+  if (verbose) {
+    ol <- cli_ol()
+    cli_ol(path)
+    cli_end(ol)
+
+    cli_alert_info("Checking if all files are of the same type")
+  }
+
+  input_file_type <- NA
+  delim <- NA
+
+  unique_extensions <- file_ext(path) |>
+    unique() |>
+    tolower()
+
+  if (length(unique_extensions) == 1) {
+    if (unique_extensions %in% c("gz", "gzip")) {
+      unique_extensions <- strsplit(path[1], ".", fixed = TRUE)[[1]]
+      unique_extensions <- paste(tail(unique_extensions, 2), collapse = ".")
+    }
+
+    # TODO: I have no idea how to make it more elegant.
+    # TODO: make enum-like list for file types
+    if (unique_extensions %in% c("parquet", "csv", "tsv", "csv.gz", "tsv.gz", "csv.gzip", "tsv.gzip")) {
+      input_file_type <- strsplit(unique_extensions, ".", fixed = TRUE)[[1]][1]
+
+      if (input_file_type == "tsv") {
+        delim <- "\t"
+      }
+    } else {
+      cli_abort("Unknown file type: [{unique_extensions}]. Supported file types: Parquet, CSV, TSV, gzipped CSV and TSV")
+    }
+    if (verbose) {
+      cli_alert_success("All files have the same extension")
+    }
+  } else {
+    cli_abort("Not all files of the same type. Please convert them all to the same type, and try again")
+  }
+
+  list(filetype = input_file_type, delim = delim)
 }

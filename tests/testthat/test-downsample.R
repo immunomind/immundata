@@ -1,3 +1,17 @@
+test_that("draw_weighted_counts respects requested and available counts", {
+  set.seed(100)
+
+  weights <- c(2, 3, 5)
+  sampled <- draw_weighted_counts(weights, size = 6)
+
+  expect_length(sampled, length(weights))
+  expect_equal(sum(sampled), 6)
+  expect_true(all(sampled >= 0))
+  expect_true(all(sampled <= weights))
+  expect_equal(draw_weighted_counts(weights, size = 0), integer(3))
+  expect_equal(draw_weighted_counts(weights, size = 10), weights)
+})
+
 test_that("downsample_immundata downsamples single-cell repertoires and is deterministic with seed", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))

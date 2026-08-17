@@ -47,24 +47,21 @@ test_ig_data <- function() {
   system.file("extdata/ig", "multiple_ig_loci.tsv.gz", package = "immundata")
 }
 
-get_test_ig_data <- function(
-    mode = c("single", "paired", "relaxed"),
-    features = c("v_call", "j_call", "junction_aa"),
-    output_folder = create_test_output_dir(),
-    preprocess = NULL,
-    postprocess = NULL,
-    rename_columns = NULL) {
-  immundata:::get_test_ig_data(
-    mode = mode,
-    features = features,
-    output_folder = output_folder,
-    preprocess = preprocess,
-    postprocess = postprocess,
-    rename_columns = rename_columns
+get_test_idata_tsv_no_manifest <- function(
+    schema = c("cdr3_aa", "v_call"),
+    repertoire_schema = "<auto>"
+) {
+  sample_files <- c(
+    system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
+    system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+  )
+  read_repertoires(
+    path = sample_files,
+    schema = schema,
+    repertoire_schema = repertoire_schema,
+    output_folder = create_test_output_dir()
   )
 }
-
-load_test_ig_idata <- get_test_ig_data
 
 format_integrity_df_dump <- function(df) {
   if (is.null(df)) {

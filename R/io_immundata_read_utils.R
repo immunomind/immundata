@@ -171,15 +171,6 @@ validate_snapshot_columns <- function(metadata_json, annotation_data, snapshot_p
   annotation_columns <- colnames(annotation_data)
   issues <- character()
 
-  add_missing_issue <- function(missing, location) {
-    if (length(missing) > 0) {
-      issues <<- c(
-        issues,
-        paste0(location, " is missing required column(s): ", paste(missing, collapse = ", "), ".")
-      )
-    }
-  }
-
   receptor_schema <- metadata_json$schema_receptor
   required_annotation_columns <- c(
     imd_schema("receptor"),
@@ -192,59 +183,71 @@ validate_snapshot_columns <- function(metadata_json, annotation_data, snapshot_p
     required_annotation_columns <- c(required_annotation_columns, imd_schema("locus"))
   }
 
-  add_missing_issue(
-    setdiff(unique(required_annotation_columns), annotation_columns),
-    "annotations.parquet"
+  issues <- c(
+    issues,
+    format_missing_columns_issue(
+      setdiff(unique(required_annotation_columns), annotation_columns),
+      "annotations.parquet"
+    )
   )
 
   repertoire_schema <- metadata_json$schema_repertoire
   repertoire_data <- metadata_json$repertoires
   if (!is.null(repertoire_schema)) {
-    add_missing_issue(
-      setdiff(
-        c(
-          repertoire_schema,
-          imd_schema("repertoire"),
-          imd_schema("count"),
-          imd_schema("proportion"),
-          imd_schema("n_repertoires")
-        ),
-        annotation_columns
-      ),
-      "annotations.parquet for the declared repertoire schema"
-    )
-    if (!isTRUE(metadata_json$rebuild_repertoires)) {
-      add_missing_issue(
+    issues <- c(
+      issues,
+      format_missing_columns_issue(
         setdiff(
           c(
             repertoire_schema,
             imd_schema("repertoire"),
-            imd_schema("n_barcodes"),
-            imd_schema("n_receptors")
+            imd_schema("count"),
+            imd_schema("proportion"),
+            imd_schema("n_repertoires")
           ),
-          colnames(repertoire_data)
+          annotation_columns
         ),
-        "metadata.json repertoires"
+        "annotations.parquet for the declared repertoire schema"
+      )
+    )
+    if (!isTRUE(metadata_json$rebuild_repertoires)) {
+      issues <- c(
+        issues,
+        format_missing_columns_issue(
+          setdiff(
+            c(
+              repertoire_schema,
+              imd_schema("repertoire"),
+              imd_schema("n_barcodes"),
+              imd_schema("n_receptors")
+            ),
+            colnames(repertoire_data)
+          ),
+          "metadata.json repertoires"
+        )
       )
     }
   }
 
   strata_schema <- metadata_json$schema_strata
   if (!is.null(strata_schema)) {
-    add_missing_issue(
-      setdiff(imd_schema("strata"), annotation_columns),
-      "annotations.parquet for the declared strata schema"
-    )
-    add_missing_issue(
-      setdiff(
-        c(
-          strata_schema,
-          imd_schema("strata"),
-          imd_schema("strata_name")
-        ),
-        colnames(repertoire_data)
+    issues <- c(
+      issues,
+      format_missing_columns_issue(
+        setdiff(imd_schema("strata"), annotation_columns),
+        "annotations.parquet for the declared strata schema"
       ),
-      "metadata.json repertoires for the declared strata schema"
+      format_missing_columns_issue(
+        setdiff(
+          c(
+            strata_schema,
+            imd_schema("strata"),
+            imd_schema("strata_name")
+          ),
+          colnames(repertoire_data)
+        ),
+        "metadata.json repertoires for the declared strata schema"
+      )
     )
   }
 
@@ -258,4 +261,17 @@ validate_snapshot_columns <- function(metadata_json, annotation_data, snapshot_p
   }
 
   invisible(TRUE)
+}
+
+format_missing_columns_issue <- function(missing, location) {
+  if (length(missing) == 0) {
+    return(character())
+  }
+
+  paste0(
+    location,
+    " is missing required column(s): ",
+    paste(missing, collapse = ", "),
+    "."
+  )
 }

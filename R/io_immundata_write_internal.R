@@ -74,7 +74,7 @@ write_immundata_internal <- function(idata,
   }
   duckplyr_is_1_2_0 <- isTRUE(utils::packageVersion("duckplyr") == "1.2.0")
   parquet_options <- Filter(
-    f = function(x) !is.null(x),
+    f = \(x) !is.null(x),
     x = list(
       compression = compression,
       compression_level = compression_level
