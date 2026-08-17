@@ -1,24 +1,29 @@
-#' @title Build a `seq_options` list for sequence‑based receptor filtering
+#' @title Create options for comparing receptor sequences
 #'
 #' @description
-#' A convenience wrapper that validates the common arguments for
-#' **`filter_receptors()`** and returns them in the required list form.
+#' Create sequence comparison options for the `seq_options` argument of
+#' [filter_immundata()] or [mutate_immundata()]. Use these options to compare a
+#' sequence column with one or more reference sequences or patterns.
 #'
-#' @param query_col Character(1). Name of the receptor column to compare
-#'   (e.g. `"cdr3_aa"`).
-#' @param patterns  Character vector of sequences or regular expressions to
-#'   search for.
-#' @param method    One of `"exact"`, `"regex"`, `"lev"` (Levenshtein), or
-#'   `"hamm"` (Hamming).  Defaults to `"exact"`.
-#' @param max_dist  Numeric distance threshold for `"lev"` / `"hamm"`
-#'   filtering.  Use `NA` (default) to keep all rows after annotation.
-#' @param name_type Passed straight to `annotate_tbl_distance()`; either
-#'   `"index"` (default) or `"pattern"`.
+#' @param query_col Name of the sequence column to compare, such as `"cdr3_aa"`.
+#' @param patterns One or more reference sequences or regular-expression
+#'   patterns.
+#' @param method Comparison method: `"exact"`, `"regex"`, `"lev"`
+#'   (Levenshtein distance), or `"hamm"` (Hamming distance). The default is
+#'   `"exact"`.
+#' @param max_dist Maximum distance accepted by [filter_immundata()] when
+#'   `method = "lev"` or `method = "hamm"`. A value is required when filtering
+#'   with either distance method. This argument has no effect on
+#'   [mutate_immundata()], which reports every calculated distance.
+#' @param name_type How result columns created by [mutate_immundata()] are named.
+#'   `"index"`, the default, creates short numbered names. `"pattern"` includes
+#'   the reference pattern in each name. This argument does not change which
+#'   receptors are kept by [filter_immundata()].
 #'
-#' @return A named list suitable for the `seq_options` argument of
-#'   [filter_receptors()].
+#' @return A named list for the `seq_options` argument of [filter_immundata()] or
+#'   [mutate_immundata()].
 #'
-#' @seealso [filter_receptors()], [annotate_receptors()]
+#' @seealso [filter_immundata()], [mutate_immundata()], [annotate_receptors()]
 #'
 #' @concept utils
 #' @export
@@ -103,34 +108,9 @@ annotate_tbl_distance <- function(tbl_data,
   name_type <- match.arg(name_type)
 
   uniq <- tbl_data |>
-    distinct(!!rlang::sym(query_col)) |>
-    as_tbl()
+    distinct(!!rlang::sym(query_col))
 
-  con <- dbplyr::remote_con(uniq)
-  query_col_sql <- dbplyr::escape(
-    dbplyr::ident(query_col),
-    con = con
-  )
-
-  # TODO: settings for kmers
-  if (!is.na(max_dist)) {
-    kmer_left_sql <- dbplyr::build_sql(
-      query_col_sql,
-      "[:3]",
-      con = con
-    )
-    kmer_right_sql <- dbplyr::build_sql(
-      query_col_sql,
-      "[-2:]",
-      con = con
-    )
-
-    uniq <- uniq |>
-      mutate(
-        kmer_left = dbplyr::sql(kmer_left_sql),
-        kmer_right = dbplyr::sql(kmer_right_sql)
-      )
-  }
+  query_col_expr <- rlang::sym(query_col)
 
   if (method == "lev") {
     col_prefix <- imd_schema("sim_lev")
@@ -148,7 +128,6 @@ annotate_tbl_distance <- function(tbl_data,
   # TODO: lump together multiple patterns in batches
   for (i in seq_along(patterns)) {
     p <- patterns[[i]]
-    pattern_sql <- dbplyr::escape(p, con = con)
     col_name_out <- dist_cols[i]
 
     #
@@ -157,24 +136,21 @@ annotate_tbl_distance <- function(tbl_data,
     if (method == "lev") {
       if (!is.na(max_dist)) {
         len_p <- nchar(p)
-        sql_expr <- dbplyr::build_sql(
-          "CASE WHEN kmer_left = ", query_col_sql, "[:3]",
-          " AND kmer_right = ", query_col_sql, "[-2:]",
-          " AND length(", query_col_sql, ") >= ", len_p - max_dist,
-          " AND length(", query_col_sql, ") <= ", len_p + max_dist,
-          " THEN levenshtein(", query_col_sql, ", ", pattern_sql, ")",
-          " ELSE NULL END",
-          con = con
-        )
+        uniq <- uniq |>
+          mutate(
+            {{ col_name_out }} := dplyr::if_else(
+              dd$length(!!query_col_expr) >= len_p - max_dist &
+                dd$length(!!query_col_expr) <= len_p + max_dist,
+              dd$levenshtein(!!query_col_expr, p),
+              NA_real_
+            )
+          )
       } else {
-        sql_expr <- dbplyr::build_sql(
-          "levenshtein(", query_col_sql, ", ", pattern_sql, ")",
-          con = con
-        )
+        uniq <- uniq |>
+          mutate(
+            {{ col_name_out }} := dd$levenshtein(!!query_col_expr, p)
+          )
       }
-
-      uniq <- uniq |>
-        mutate({{ col_name_out }} := dbplyr::sql(sql_expr))
     }
 
     #
@@ -182,20 +158,18 @@ annotate_tbl_distance <- function(tbl_data,
     #
     else {
       len_p <- nchar(p)
-      sql_expr <- dbplyr::build_sql(
-        "CASE WHEN length(", query_col_sql, ") = ", len_p,
-        " THEN hamming(", query_col_sql, ", ", pattern_sql, ")",
-        " ELSE NULL END",
-        con = con
-      )
-
       uniq <- uniq |>
-        mutate({{ col_name_out }} := dbplyr::sql(sql_expr))
+        mutate(
+          {{ col_name_out }} := dplyr::if_else(
+            dd$length(!!query_col_expr) == len_p,
+            dd$hamming(!!query_col_expr, p),
+            NA_real_
+          )
+        )
     }
   }
 
   #
-  # TODO: In case of max_dist, pre-optimize for levenshtein by filtering out too short or too long distances
   # TODO: benchmark 1 - distinct vs no distinct
   # TODO: benchmark 2 - pre-optimize vs no optimize
 
@@ -208,28 +182,21 @@ annotate_tbl_distance <- function(tbl_data,
   # 3) step-by-step filtering out "good" sequences
   # 4) precompute sequence length before (!) any filtering, on data loading, and don't compute it here
 
-  # TODO: max dist. Left join - compute. Right join - filter
-
-  if (is.na(max_dist)) {
-    uniq <- uniq |>
-      as_duckdb_tibble()
-  } else {
-    dist_cols_sql <- dbplyr::escape(
-      dbplyr::ident(dist_cols),
-      collapse = ", ",
-      con = con
-    )
-    sql_expr <- dbplyr::build_sql(
-      "LEAST(", dist_cols_sql, ") <= ", max_dist,
-      con = con
-    )
+  if (!is.na(max_dist)) {
+    within_max_dist <- lapply(
+      dist_cols,
+      function(col) rlang::expr(!!rlang::sym(col) <= !!max_dist)
+    ) |>
+      Reduce(
+        f = function(left, right) rlang::expr((!!left) | (!!right))
+      )
 
     uniq <- uniq |>
-      filter(dbplyr::sql(sql_expr)) |>
-      as_duckdb_tibble()
+      filter(!!within_max_dist)
   }
 
-  uniq |> compute()
+  uniq |>
+    compute(name = basename(tempfile(pattern = "immundata_")))
 }
 
 
