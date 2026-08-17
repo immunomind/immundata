@@ -2,8 +2,6 @@
 
 # Get Annotation Dimnames from ImmunData
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_dimnames.R#L13)
-
 ## Description
 
 Returns dimension names for an <code>ImmunData</code> object so that

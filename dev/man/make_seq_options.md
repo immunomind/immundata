@@ -1,14 +1,13 @@
 
 
-# Build a <code>seq_options</code> list for sequence‑based receptor filtering
-
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_utils.R#L25)
+# Create options for comparing receptor sequences
 
 ## Description
 
-A convenience wrapper that validates the common arguments for
-<strong><code>filter_receptors()</code></strong> and returns them in the
-required list form.
+Create sequence comparison options for the <code>seq_options</code>
+argument of <code>filter_immundata()</code> or
+<code>mutate_immundata()</code>. Use these options to compare a sequence
+column with one or more reference sequences or patterns.
 
 ## Usage
 
@@ -29,8 +28,7 @@ required list form.
 <code id="query_col">query_col</code>
 </td>
 <td>
-Character(1). Name of the receptor column to compare
-(e.g. <code>“cdr3_aa”</code>).
+Name of the sequence column to compare, such as <code>“cdr3_aa”</code>.
 </td>
 </tr>
 <tr>
@@ -38,7 +36,7 @@ Character(1). Name of the receptor column to compare
 <code id="patterns">patterns</code>
 </td>
 <td>
-Character vector of sequences or regular expressions to search for.
+One or more reference sequences or regular-expression patterns.
 </td>
 </tr>
 <tr>
@@ -46,9 +44,9 @@ Character vector of sequences or regular expressions to search for.
 <code id="method">method</code>
 </td>
 <td>
-One of <code>“exact”</code>, <code>“regex”</code>, <code>“lev”</code>
-(Levenshtein), or <code>“hamm”</code> (Hamming). Defaults to
-<code>“exact”</code>.
+Comparison method: <code>“exact”</code>, <code>“regex”</code>,
+<code>“lev”</code> (Levenshtein distance), or <code>“hamm”</code>
+(Hamming distance). The default is <code>“exact”</code>.
 </td>
 </tr>
 <tr>
@@ -56,9 +54,11 @@ One of <code>“exact”</code>, <code>“regex”</code>, <code>“lev”</code
 <code id="max_dist">max_dist</code>
 </td>
 <td>
-Numeric distance threshold for <code>“lev”</code> / <code>“hamm”</code>
-filtering. Use <code>NA</code> (default) to keep all rows after
-annotation.
+Maximum distance accepted by <code>filter_immundata()</code> when
+<code>method = “lev”</code> or <code>method = “hamm”</code>. A value is
+required when filtering with either distance method. This argument has
+no effect on <code>mutate_immundata()</code>, which reports every
+calculated distance.
 </td>
 </tr>
 <tr>
@@ -66,17 +66,21 @@ annotation.
 <code id="name_type">name_type</code>
 </td>
 <td>
-Passed straight to <code>annotate_tbl_distance()</code>; either
-<code>“index”</code> (default) or <code>“pattern”</code>.
+How result columns created by <code>mutate_immundata()</code> are named.
+<code>“index”</code>, the default, creates short numbered names.
+<code>“pattern”</code> includes the reference pattern in each name. This
+argument does not change which receptors are kept by
+<code>filter_immundata()</code>.
 </td>
 </tr>
 </table>
 
 ## Value
 
-A named list suitable for the <code>seq_options</code> argument of
-<code>filter_receptors()</code>.
+A named list for the <code>seq_options</code> argument of
+<code>filter_immundata()</code> or <code>mutate_immundata()</code>.
 
 ## See Also
 
-<code>filter_receptors()</code>, <code>annotate_receptors()</code>
+<code>filter_immundata()</code>, <code>mutate_immundata()</code>,
+<code>annotate_receptors()</code>

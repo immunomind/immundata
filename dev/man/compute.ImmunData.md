@@ -2,8 +2,6 @@
 
 # Compute ImmunData annotations
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_compute_collect.R#L16)
-
 ## Description
 
 Materializes the annotation table of an <code>ImmunData</code> object

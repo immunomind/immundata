@@ -2,8 +2,6 @@
 
 # Aggregate repertoires into strata
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_agg_strata.R#L42)
-
 ## Description
 
 Creates a strata layer above repertoires by grouping

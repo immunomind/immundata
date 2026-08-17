@@ -2,8 +2,6 @@
 
 # Load a saved ImmunData from disk
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_immundata_read.R#L74)
-
 ## Description
 
 Reconstructs an <code>ImmunData</code> object from files previously

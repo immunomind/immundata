@@ -2,8 +2,6 @@
 
 # Create or validate a receptor schema object
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_utils.R#L315)
-
 ## Description
 
 Helper functions for defining and validating the <code>schema</code>

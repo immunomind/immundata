@@ -2,8 +2,6 @@
 
 # Aggregate AIRR data into repertoires
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_agg_repertoires.R#L89)
-
 ## Description
 
 Groups the annotation table of an <code>ImmunData</code> object by

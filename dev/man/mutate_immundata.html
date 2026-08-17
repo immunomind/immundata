@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#modify-or-add-columns-to-immundata-annotations" class="md-skip">
+        <a href="#add-or-change-annotation-columns-in-immundata" class="md-skip">
           Skip to content
         </a>
       
@@ -1772,21 +1772,20 @@
   
 
 
-<h1 id="modify-or-add-columns-to-immundata-annotations">Modify or Add Columns to ImmunData Annotations<a class="headerlink" href="#modify-or-add-columns-to-immundata-annotations" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_mutate.R#L157"><strong>Source code</strong></a></p>
+<h1 id="add-or-change-annotation-columns-in-immundata">Add or change annotation columns in ImmunData<a class="headerlink" href="#add-or-change-annotation-columns-in-immundata" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Applies transformations to the
-<code style="white-space: pre;">$annotations</code> table within an
-<code>ImmunData</code> object, similar to <code>dplyr::mutate</code>. It
-allows adding new columns or modifying existing non-schema columns using
-standard <code>dplyr</code> expressions. Additionally, it can add new
-columns based on sequence comparisons (exact match, regular expression
-matching, or distance calculation) against specified patterns.</p>
+<p>Use <code>mutate()</code> to add information to each row of an ImmunData
+object. For example, you can calculate CDR3 length, mark sequences of
+interest, or compare receptor sequences with reference sequences.</p>
+<p>The function returns a new ImmunData object. The original object is not
+changed.</p>
+<p>This function is a direct implementation of dplyr::mutate. Alternative
+function name is <code>mutate_immundata</code>.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<pre><code class='language-R'>mutate_immundata(idata, ..., seq_options = NULL)
+<pre><code class='language-R'>mutate_immundata(idata, ..., .by = NULL, seq_options = NULL)
 
 # S3 method for class 'ImmunData'
-mutate(.data, ..., seq_options = NULL)
+mutate(.data, ..., .by = NULL, seq_options = NULL)
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
@@ -1796,7 +1795,7 @@ mutate(.data, ..., seq_options = NULL)
 <code id="idata">idata</code>, <code id=".data">.data</code>
 </td>
 <td>
-An <code>ImmunData</code> object.
+An ImmunData object.
 </td>
 </tr>
 <tr>
@@ -1804,12 +1803,21 @@ An <code>ImmunData</code> object.
 <code id="...">…</code>
 </td>
 <td>
-<code>dplyr::mutate</code>-style named expressions (e.g., <code>new_col
-= existing_col \* 2</code>, <code>category = ifelse(value \> 10, “high”,
-“low”)</code>). These are applied first. <strong>Important</strong>: You
-cannot use names for new or modified columns that conflict with internal
-<code>ImmunData</code> columns, receptor features, or
-repertoire-defining columns.
+One or more named calculations in the form <code>new_column =
+calculation</code>. Refer to existing columns directly by name. You can
+add new annotation columns or change columns that are not protected.
+</td>
+</tr>
+<tr>
+<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
+<code id=".by">.by</code>
+</td>
+<td>
+Optional columns used to form temporary groups for this operation. For
+example, <code>.by = Response</code> calculates separately for each
+response, and <code>.by = c(Response, imd_group_id)</code> uses each
+response and receptor-cluster combination. The grouping applies only to
+this <code>mutate()</code> call.
 </td>
 </tr>
 <tr>
@@ -1817,155 +1825,307 @@ repertoire-defining columns.
 <code id="seq_options">seq_options</code>
 </td>
 <td>
-Optional named list specifying sequence-based annotation options. Use
-<code>make_seq_options()</code> for convenient creation. See
-<code>filter_immundata</code> documentation
-(<code>?filter_immundata</code>) or the details section here for the
-list structure (<code>query_col</code>, <code>patterns</code>,
-<code>method</code>, <code>name_type</code>). <code>max_dist</code> is
-ignored for mutation. If <code>NULL</code> (the default), no
-sequence-based columns are added.
+Options for comparing sequences with reference sequences or patterns.
+Create these options with <code>make_seq_options()</code>. If
+<code>NULL</code>, the default, no sequence comparisons are performed.
 </td>
 </tr>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>The function operates in two main steps:</p>
-<ol>
-<li>
-
-<strong>Standard Mutations (<code>…</code>)</strong>: Applies the
-standard <code>dplyr::mutate</code>-style expressions provided in
-<code>…</code> to the
-<code style="white-space: pre;">$annotations</code> table. You can
-create new columns or modify existing ones, but you <em>cannot</em>
-modify internal system columns, receptor features, or
-repertoire-defining columns. An error will occur if you attempt to do
-so.
-
-</li>
-<li>
-
-<strong>Sequence-based Annotations (<code>seq_options</code>)</strong>:
-If <code>seq_options</code> is provided, the function calculates
-sequence similarities or distances and adds corresponding new columns to
-the <code style="white-space: pre;">$annotations</code> table.
-
+<p>You can use <code>mutate()</code> in three ways:</p>
 <ul>
 <li>
 
-<code>method = “exact”</code>: Adds boolean columns (TRUE/FALSE)
-indicating whether the <code>query_col</code> value exactly matches each
-<code>pattern</code>. Column names are generated using a prefix (e.g.,
-<code>sim_exact\_</code>) and the pattern or its index.
+Supply named calculations in <code>…</code> to create annotation columns
+from existing data. For example, <code>cmv_specific = cdr3_aa %in%
+cmv_cdr3s</code> adds a column containing <code>TRUE</code> or
+<code>FALSE</code> for each row.
 
 </li>
 <li>
 
-<code>method = “regex”</code>: Uses <code>annotate_tbl_regex</code> to
-add columns indicating matches for each regular expression pattern
-against the <code>query_col</code>. The exact nature of the added
-columns depends on <code>annotate_tbl_regex</code> (e.g., boolean flags
-or captured groups).
+Supply <code>.by</code> to perform calculations separately for temporary
+groups. The number of rows does not change. A group statistic is
+repeated for all rows in that group.
 
 </li>
 <li>
 
-<code>method = “lev”</code> or <code>method = “hamm”</code>: Uses
-<code>annotate_tbl_distance</code> to calculate Levenshtein or Hamming
-distances between the <code>query_col</code> and each
-<code>pattern</code>, adding columns containing these numeric distances.
-<code>max_dist</code> is ignored in this context (internally treated as
-<code>NA</code>) as all distances are calculated and added, not used for
-filtering.
-
-</li>
-<li>
-
-The naming of the new sequence-based columns depends on the
-<code>name_type</code> option within <code>seq_options</code> and
-internal helper functions like <code>make_pattern_columns</code>.
-Prefixes like <code>sim_exact\_</code>, <code>sim_regex\_</code>,
-<code>dist_lev\_</code>, <code>dist_hamm\_</code> are typically used
-based on the schema.
+Supply <code>seq_options</code>, created with
+<code>make_seq_options()</code>, to compare a sequence column with one
+or more reference sequences or patterns. One result column is added for
+each reference.
 
 </li>
 </ul>
-</li>
-</ol>
 
-<p>The <code style="white-space: pre;">$repertoires</code> and
-<code style="white-space: pre;">$strata</code> tables, if present in the
-input <code>idata</code>, are copied to the output object without
-modification. This function only affects the
-<code style="white-space: pre;">$annotations</code> table.</p>
+<p>Named calculations in <code>…</code> are performed before sequence
+comparisons.</p>
+<p>Most grouped calculations are translated directly to DuckDB. Some group
+statistics, such as <code>n_distinct()</code>, are not available as
+DuckDB window calculations when a large dataset must stay on disk. In
+that case, <code>mutate()</code> automatically calculates one summary
+row per group and joins the values back to the annotation rows. This
+remains lazy and does not load the full dataset into R memory.</p>
+<p>The automatic fallback works when every calculation in the call produces
+one value per group. If a call combines a row-level calculation with a
+group statistic that needs the fallback, use two <code>mutate()</code>
+calls. Also use a second call when a later calculation refers to a group
+statistic created by the fallback. See the examples below.</p>
+<p>Columns used to identify receptors or repertoires, and identifiers
+managed by <code>ImmunData</code>, are protected. This prevents
+accidental changes that would make the object inconsistent. You can add
+new columns and change other annotation columns.</p>
+<p>Sequence comparison methods are:</p>
+<ul>
+<li>
+
+<code>“exact”</code>: <code>TRUE</code> when the sequence is identical
+to the reference.
+
+</li>
+<li>
+
+<code>“regex”</code>: <code>TRUE</code> when the sequence matches a
+regular-expression pattern. This is an advanced option for matching text
+patterns.
+
+</li>
+<li>
+
+<code>“lev”</code>: the number of substitutions, insertions, or
+deletions needed to change one sequence into the other.
+
+</li>
+<li>
+
+<code>“hamm”</code>: the number of different positions between sequences
+of the same length. Sequences with different lengths receive
+<code>NA</code>.
+
+</li>
+</ul>
+
+<p>For the distance methods, <code>0</code> means an exact match and
+smaller values mean more similar sequences. With <code>name_type =
+“index”</code>, the result columns have short names such as
+<code>imd_sim_exact_1</code> or <code>imd_sim_lev_1</code>. With
+<code>name_type = “pattern”</code>, each column name includes its
+reference pattern.</p>
+<p><code>max_dist</code> is used by <code>filter_immundata()</code> but has
+no effect here because <code>mutate()</code> reports every calculated
+distance.</p>
+<p>Existing repertoire and strata summaries are carried to the new object
+without modification.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>A <em>new</em> <code>ImmunData</code> object with the
-<code style="white-space: pre;">$annotations</code> table modified
-according to the provided expressions and <code>seq_options</code>. The
-<code style="white-space: pre;">$repertoires</code> and
-<code style="white-space: pre;">$strata</code> tables (if present) are
-carried over unchanged from the input <code>idata</code>.</p>
+<p>A new ImmunData object containing the added or changed annotation
+columns. Existing repertoire and strata summaries are preserved.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><code>dplyr::mutate()</code>, <code>make_seq_options()</code>,
-<code>filter_immundata()</code>, ImmunData,
-<code>vignette(“immundata-classes”, package = “immunarch”)</code>
-(replace with actual package name if different)</p>
+<code>filter_immundata()</code>, <code>annotate_receptors()</code>,
+<code>agg_repertoires()</code>, ImmunData</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Basic setup (assuming idata_test is a valid ImmunData object)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># print(idata_test)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Example 1: Add a simple derived column</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">idata_mut1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mutate</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">V_family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">substr</span><span class="p">(</span><span class="n">V_gene</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">5</span><span class="p">))</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata_mut1</span><span class="o">$</span><span class="n">annotations</span><span class="p">)</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Example 2: Add multiple columns and modify one (if &#39;custom_score&#39; exists)</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Note: Avoid modifying core schema columns like &#39;V_gene&#39; itself.</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">idata_mut2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mutate</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="n">V_basic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">gsub</span><span class="p">(</span><span class="s">&quot;-.*&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">V_gene</span><span class="p">),</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="n">J_len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">nchar</span><span class="p">(</span><span class="n">J_gene</span><span class="p">),</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="n">custom_score</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">custom_score</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1.1</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">)</span><span class="w"> </span><span class="c1"># Fails if custom_score doesn&#39;t exist</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata_mut2</span><span class="o">$</span><span class="n">annotations</span><span class="p">)</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># Example 3: Add boolean columns for exact CDR3 matches</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="n">cdr3_patterns</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;CARGLGLVFYGMDVW&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;CARDNRGAVAGVFGEAFYW&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="n">seq_opts_exact</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;CDR3_aa&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">  </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cdr3_patterns</span><span class="p">,</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;exact&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">  </span><span class="n">name_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pattern&quot;</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="p">)</span><span class="w"> </span><span class="c1"># Name cols by pattern</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="n">idata_mut_exact</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mutate</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq_opts_exact</span><span class="p">)</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="c1"># Look for new columns like &#39;sim_exact_CARGLGLVFYGMDVW&#39;</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata_mut_exact</span><span class="o">$</span><span class="n">annotations</span><span class="p">)</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="c1"># Example 4: Add Levenshtein distance columns for a CDR3 pattern</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="n">seq_opts_lev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">  </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;CDR3_aa&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">  </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;CARGLGLVFYGMDVW&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;lev&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="n">name_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;index&quot;</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="p">)</span><span class="w"> </span><span class="c1"># Name col like &#39;dist_lev_1&#39;</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="n">idata_mut_lev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mutate</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq_opts_lev</span><span class="p">)</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="c1"># Look for new column &#39;dist_lev_1&#39; (or similar based on schema)</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata_mut_lev</span><span class="o">$</span><span class="n">annotations</span><span class="p">)</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="c1"># Example 5: Combine standard mutation and sequence annotation</span>
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="n">seq_opts_regex</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="w">  </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;V_gene&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="w">  </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">ighv1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;^IGHV1-&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ighv3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;^IGHV3-&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;regex&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">  </span><span class="n">name_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pattern&quot;</span>
-<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="p">)</span>
-<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="n">idata_mut_combo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mutate</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span>
-<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="w">  </span><span class="n">chain_upper</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">toupper</span><span class="p">(</span><span class="n">chain</span><span class="p">),</span>
-<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a><span class="w">  </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq_opts_regex</span>
-<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="p">)</span>
-<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="c1"># Look for &#39;chain_upper&#39; and regex match columns (e.g., &#39;sim_regex_ighv1&#39;)</span>
-<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata_mut_combo</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Load data included with immundata</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">get_test_idata</span><span class="p">()</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Add the length of each CDR3 amino acid sequence</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">idata_with_length</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span><span class="n">cdr3_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dd</span><span class="o">$</span><span class="nf">length</span><span class="p">(</span><span class="n">cdr3_aa</span><span class="p">))</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">idata_with_length</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">cdr3_aa</span><span class="p">,</span><span class="w"> </span><span class="n">cdr3_length</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="nf">slice_head</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="c1">#   cdr3_aa       cdr3_length</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="c1">#   ASFPVLSPYNEQF          13</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="c1">#   ASRAGAGTGELF           12</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="c1">#   ASSPGQGLDTQY           12</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="c1"># Compare CDR3 sequences with one reference sequence</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="n">reference_cdr3</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">"ASFPVLSPYNEQF"</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="n">idata_with_matches</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">    </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">      </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"cdr3_aa"</span><span class="p">,</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">      </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reference_cdr3</span><span class="p">,</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">      </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"exact"</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="p">)</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="n">idata_with_matches</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">  </span><span class="nf">count</span><span class="p">(</span><span class="n">imd_sim_exact_1</span><span class="p">)</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="c1">#   imd_sim_exact_1     n</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="c1">#   FALSE            1901</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="c1">#   TRUE                1</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="c1"># Calculate Levenshtein distance from the reference sequence</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="n">idata_with_distance</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="w">    </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="w">      </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"cdr3_aa"</span><span class="p">,</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="w">      </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reference_cdr3</span><span class="p">,</span>
+<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a><span class="w">      </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"lev"</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="w">    </span><span class="p">)</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>
+<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a><span class="n">idata_with_distance</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">cdr3_aa</span><span class="p">,</span><span class="w"> </span><span class="n">imd_sim_lev_1</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">imd_sim_lev_1</span><span class="p">,</span><span class="w"> </span><span class="n">cdr3_aa</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a><span class="w">  </span><span class="nf">slice_head</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a><span class="c1">#   cdr3_aa       imd_sim_lev_1</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a><span class="c1">#   ASFPVLSPYNEQF             0</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a><span class="c1">#   ASSPDSPSYNEQF             4</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a><span class="c1">#   ASSPGLAAYNEQF             4</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a><span class="c1"># Mark selected sequences</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a><span class="n">cmv_cdr3s</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a><span class="w">  </span><span class="s">"ASFPVLSPYNEQF"</span><span class="p">,</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a><span class="w">  </span><span class="s">"ASRAGAGTGELF"</span>
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="p">)</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>
+<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a><span class="n">marked_sequences</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a><span class="w">    </span><span class="n">cmv_specific</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cdr3_aa</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="n">cmv_cdr3s</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>
+<a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a><span class="n">marked_sequences</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a><span class="w">  </span><span class="nf">count</span><span class="p">(</span><span class="n">cmv_specific</span><span class="p">)</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a><span class="c1">#   cmv_specific     n</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a><span class="c1">#   FALSE         1900</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a><span class="c1">#   TRUE             2</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>
+<a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a><span class="c1"># Mark selected receptor identities</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a><span class="n">cmv_hits</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tibble</span><span class="p">(</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a><span class="w">  </span><span class="n">imd_receptor_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="m">105L</span><span class="p">),</span>
+<a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a><span class="w">  </span><span class="n">cmv_specific</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span>
+<a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a><span class="p">)</span>
+<a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>
+<a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a><span class="n">marked_receptors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a><span class="w">  </span><span class="nf">annotate_receptors</span><span class="p">(</span><span class="n">cmv_hits</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a><span class="w">    </span><span class="n">cmv_specific</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">coalesce</span><span class="p">(</span><span class="n">cmv_specific</span><span class="p">,</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a>
+<a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a><span class="n">marked_receptors</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a><span class="w">  </span><span class="nf">count</span><span class="p">(</span><span class="n">cmv_specific</span><span class="p">)</span>
+<a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a><span class="c1">#   cmv_specific     n</span>
+<a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a><span class="c1">#   FALSE         1898</span>
+<a id="__codelineno-0-103" name="__codelineno-0-103" href="#__codelineno-0-103"></a><span class="c1">#   TRUE             4</span>
+<a id="__codelineno-0-104" name="__codelineno-0-104" href="#__codelineno-0-104"></a>
+<a id="__codelineno-0-105" name="__codelineno-0-105" href="#__codelineno-0-105"></a><span class="c1"># Add response-level statistics to every annotation row</span>
+<a id="__codelineno-0-106" name="__codelineno-0-106" href="#__codelineno-0-106"></a><span class="c1"># `.by` means: calculate separately for each response.</span>
+<a id="__codelineno-0-107" name="__codelineno-0-107" href="#__codelineno-0-107"></a><span class="n">response_stats</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-108" name="__codelineno-0-108" href="#__codelineno-0-108"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-109" name="__codelineno-0-109" href="#__codelineno-0-109"></a><span class="w">    </span><span class="n">response_n_rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n</span><span class="p">(),</span>
+<a id="__codelineno-0-110" name="__codelineno-0-110" href="#__codelineno-0-110"></a><span class="w">    </span><span class="n">response_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">),</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111" href="#__codelineno-0-111"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Response</span>
+<a id="__codelineno-0-112" name="__codelineno-0-112" href="#__codelineno-0-112"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-113" name="__codelineno-0-113" href="#__codelineno-0-113"></a>
+<a id="__codelineno-0-114" name="__codelineno-0-114" href="#__codelineno-0-114"></a><span class="n">response_stats</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-115" name="__codelineno-0-115" href="#__codelineno-0-115"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116" href="#__codelineno-0-116"></a><span class="w">  </span><span class="nf">distinct</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span><span class="w"> </span><span class="n">response_n_rows</span><span class="p">,</span><span class="w"> </span><span class="n">response_n_receptors</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-117" name="__codelineno-0-117" href="#__codelineno-0-117"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">Response</span><span class="p">)</span>
+<a id="__codelineno-0-118" name="__codelineno-0-118" href="#__codelineno-0-118"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-0-119" name="__codelineno-0-119" href="#__codelineno-0-119"></a><span class="c1">#   Response response_n_rows response_n_receptors</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120" href="#__codelineno-0-120"></a><span class="c1">#   FR                   955                  871</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121" href="#__codelineno-0-121"></a><span class="c1">#   PR                   947                  867</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122" href="#__codelineno-0-122"></a>
+<a id="__codelineno-0-123" name="__codelineno-0-123" href="#__codelineno-0-123"></a><span class="c1"># A grouped calculation can also produce a different value for every row.</span>
+<a id="__codelineno-0-124" name="__codelineno-0-124" href="#__codelineno-0-124"></a><span class="n">response_centered</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-125" name="__codelineno-0-125" href="#__codelineno-0-125"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-126" name="__codelineno-0-126" href="#__codelineno-0-126"></a><span class="w">    </span><span class="n">centered_counts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">counts</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span>
+<a id="__codelineno-0-127" name="__codelineno-0-127" href="#__codelineno-0-127"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Response</span>
+<a id="__codelineno-0-128" name="__codelineno-0-128" href="#__codelineno-0-128"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-129" name="__codelineno-0-129" href="#__codelineno-0-129"></a>
+<a id="__codelineno-0-130" name="__codelineno-0-130" href="#__codelineno-0-130"></a><span class="c1"># Do not combine that row-level calculation with a statistic that needs the</span>
+<a id="__codelineno-0-131" name="__codelineno-0-131" href="#__codelineno-0-131"></a><span class="c1"># automatic summary fallback in the same call:</span>
+<a id="__codelineno-0-132" name="__codelineno-0-132" href="#__codelineno-0-132"></a><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-133" name="__codelineno-0-133" href="#__codelineno-0-133"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-134" name="__codelineno-0-134" href="#__codelineno-0-134"></a><span class="w">    </span><span class="n">centered_counts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">counts</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span>
+<a id="__codelineno-0-135" name="__codelineno-0-135" href="#__codelineno-0-135"></a><span class="w">    </span><span class="n">response_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">),</span>
+<a id="__codelineno-0-136" name="__codelineno-0-136" href="#__codelineno-0-136"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Response</span>
+<a id="__codelineno-0-137" name="__codelineno-0-137" href="#__codelineno-0-137"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-138" name="__codelineno-0-138" href="#__codelineno-0-138"></a>
+<a id="__codelineno-0-139" name="__codelineno-0-139" href="#__codelineno-0-139"></a>
+<a id="__codelineno-0-140" name="__codelineno-0-140" href="#__codelineno-0-140"></a><span class="c1"># Use two mutate calls instead. The work remains lazy in DuckDB.</span>
+<a id="__codelineno-0-141" name="__codelineno-0-141" href="#__codelineno-0-141"></a><span class="n">response_details</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-142" name="__codelineno-0-142" href="#__codelineno-0-142"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-143" name="__codelineno-0-143" href="#__codelineno-0-143"></a><span class="w">    </span><span class="n">centered_counts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">counts</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span>
+<a id="__codelineno-0-144" name="__codelineno-0-144" href="#__codelineno-0-144"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Response</span>
+<a id="__codelineno-0-145" name="__codelineno-0-145" href="#__codelineno-0-145"></a><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-146" name="__codelineno-0-146" href="#__codelineno-0-146"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-147" name="__codelineno-0-147" href="#__codelineno-0-147"></a><span class="w">    </span><span class="n">response_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">),</span>
+<a id="__codelineno-0-148" name="__codelineno-0-148" href="#__codelineno-0-148"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Response</span>
+<a id="__codelineno-0-149" name="__codelineno-0-149" href="#__codelineno-0-149"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-150" name="__codelineno-0-150" href="#__codelineno-0-150"></a>
+<a id="__codelineno-0-151" name="__codelineno-0-151" href="#__codelineno-0-151"></a><span class="c1"># Also use a second call when a new calculation uses a statistic created by</span>
+<a id="__codelineno-0-152" name="__codelineno-0-152" href="#__codelineno-0-152"></a><span class="c1"># the fallback.</span>
+<a id="__codelineno-0-153" name="__codelineno-0-153" href="#__codelineno-0-153"></a><span class="n">response_details</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-154" name="__codelineno-0-154" href="#__codelineno-0-154"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-155" name="__codelineno-0-155" href="#__codelineno-0-155"></a><span class="w">    </span><span class="n">response_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">),</span>
+<a id="__codelineno-0-156" name="__codelineno-0-156" href="#__codelineno-0-156"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Response</span>
+<a id="__codelineno-0-157" name="__codelineno-0-157" href="#__codelineno-0-157"></a><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-158" name="__codelineno-0-158" href="#__codelineno-0-158"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-159" name="__codelineno-0-159" href="#__codelineno-0-159"></a><span class="w">    </span><span class="n">twice_response_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">response_n_receptors</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">2</span>
+<a id="__codelineno-0-160" name="__codelineno-0-160" href="#__codelineno-0-160"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-161" name="__codelineno-0-161" href="#__codelineno-0-161"></a>
+<a id="__codelineno-0-162" name="__codelineno-0-162" href="#__codelineno-0-162"></a><span class="c1"># Add synthetic receptor clusters</span>
+<a id="__codelineno-0-163" name="__codelineno-0-163" href="#__codelineno-0-163"></a><span class="c1"># The receptor table is reduced before collection, so only a small</span>
+<a id="__codelineno-0-164" name="__codelineno-0-164" href="#__codelineno-0-164"></a><span class="c1"># receptor-level result is loaded into memory.</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165" href="#__codelineno-0-165"></a><span class="n">clusters</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="o">$</span><span class="n">receptors</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-166" name="__codelineno-0-166" href="#__codelineno-0-166"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-167" name="__codelineno-0-167" href="#__codelineno-0-167"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-168" name="__codelineno-0-168" href="#__codelineno-0-168"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-169" name="__codelineno-0-169" href="#__codelineno-0-169"></a><span class="w">    </span><span class="n">imd_group_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170" href="#__codelineno-0-170"></a><span class="w">      </span><span class="s">"cluster_"</span><span class="p">,</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171" href="#__codelineno-0-171"></a><span class="w">      </span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="w"> </span><span class="o">%%</span><span class="w"> </span><span class="m">3L</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span>
+<a id="__codelineno-0-172" name="__codelineno-0-172" href="#__codelineno-0-172"></a><span class="w">    </span><span class="p">)</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173" href="#__codelineno-0-173"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174" href="#__codelineno-0-174"></a>
+<a id="__codelineno-0-175" name="__codelineno-0-175" href="#__codelineno-0-175"></a><span class="n">clustered</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176" href="#__codelineno-0-176"></a><span class="w">  </span><span class="nf">annotate_receptors</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177" href="#__codelineno-0-177"></a>
+<a id="__codelineno-0-178" name="__codelineno-0-178" href="#__codelineno-0-178"></a><span class="c1"># Add statistics for each response and receptor-cluster combination</span>
+<a id="__codelineno-0-179" name="__codelineno-0-179" href="#__codelineno-0-179"></a><span class="n">clustered_with_stats</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">clustered</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180" href="#__codelineno-0-180"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181" href="#__codelineno-0-181"></a><span class="w">    </span><span class="n">cluster_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">),</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182" href="#__codelineno-0-182"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span><span class="w"> </span><span class="n">imd_group_id</span><span class="p">)</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183" href="#__codelineno-0-183"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184" href="#__codelineno-0-184"></a>
+<a id="__codelineno-0-185" name="__codelineno-0-185" href="#__codelineno-0-185"></a><span class="c1"># Compute repertoire statistics for each cluster</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186" href="#__codelineno-0-186"></a><span class="n">cluster_repertoires</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">clustered</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187" href="#__codelineno-0-187"></a><span class="w">  </span><span class="nf">agg_repertoires</span><span class="p">(</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188" href="#__codelineno-0-188"></a><span class="w">    </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Response"</span><span class="p">,</span><span class="w"> </span><span class="s">"imd_group_id"</span><span class="p">)</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189" href="#__codelineno-0-189"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190" href="#__codelineno-0-190"></a>
+<a id="__codelineno-0-191" name="__codelineno-0-191" href="#__codelineno-0-191"></a><span class="n">cluster_repertoires</span><span class="o">$</span><span class="n">repertoires</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192" href="#__codelineno-0-192"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span><span class="w"> </span><span class="n">imd_group_id</span><span class="p">)</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193" href="#__codelineno-0-193"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194" href="#__codelineno-0-194"></a><span class="c1">#   imd_repertoire_id Response imd_group_id n_barcodes n_receptors</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195" href="#__codelineno-0-195"></a><span class="c1">#                   1 FR       cluster_1           322         289</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196" href="#__codelineno-0-196"></a><span class="c1">#                   2 FR       cluster_2           334         292</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197" href="#__codelineno-0-197"></a><span class="c1">#                   3 FR       cluster_3           299         290</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198" href="#__codelineno-0-198"></a><span class="c1">#                   4 PR       cluster_1           314         286</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199" href="#__codelineno-0-199"></a><span class="c1">#                   5 PR       cluster_2           328         291</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200" href="#__codelineno-0-200"></a><span class="c1">#                   6 PR       cluster_3           305         290</span>
 </code></pre></div>
 
 

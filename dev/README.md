@@ -1026,6 +1026,89 @@ The key functions for this are `mutate` (`dplyr`-compatible) / `mutate_immundata
       ```r
       idata |> mutate(found_pattern = if_else(cdr3 == "CASSVHPQYF", 1, 0))
       ```
+
+  4. **Add statistics for groups without removing receptor rows**
+
+      Use `.by` to calculate separately for each group. Unlike
+      `summarise()`, `mutate()` keeps every annotation row and repeats the
+      group result for rows in the same group.
+
+      ```r
+      example_idata <- get_test_idata()
+
+      response_stats <- example_idata |>
+        mutate(
+          response_n_rows = n(),
+          response_n_receptors = n_distinct(imd_receptor_id),
+          .by = Response
+        )
+
+      response_stats |>
+        collect() |>
+        distinct(Response, response_n_rows, response_n_receptors) |>
+        arrange(Response)
+      # Response response_n_rows response_n_receptors
+      # FR                   955                  871
+      # PR                   947                  867
+      ```
+
+      `n()` counts annotation rows. Use
+      `n_distinct(imd_receptor_id)` when you need the number of different
+      receptors.
+
+  5. **Split complex grouped calculations when needed**
+
+      A grouped `mutate()` can calculate a different value for every row:
+
+      ```r
+      response_centered <- example_idata |>
+        mutate(
+          centered_counts = counts - mean(counts, na.rm = TRUE),
+          .by = Response
+        )
+      ```
+
+      Some group statistics, including `n_distinct()`, use an automatic
+      summary-and-join calculation for large datasets. Do not combine such a
+      statistic with a row-level calculation in the same call:
+
+      ```r
+      # This call is not supported:
+      example_idata |>
+        mutate(
+          centered_counts = counts - mean(counts, na.rm = TRUE),
+          response_n_receptors = n_distinct(imd_receptor_id),
+          .by = Response
+        )
+      ```
+
+      Use two calls instead. The calculations remain lazy in DuckDB:
+
+      ```r
+      response_details <- example_idata |>
+        mutate(
+          centered_counts = counts - mean(counts, na.rm = TRUE),
+          .by = Response
+        ) |>
+        mutate(
+          response_n_receptors = n_distinct(imd_receptor_id),
+          .by = Response
+        )
+      ```
+
+      Use a second call also when the next calculation uses a statistic that
+      was just created:
+
+      ```r
+      response_details <- example_idata |>
+        mutate(
+          response_n_receptors = n_distinct(imd_receptor_id),
+          .by = Response
+        ) |>
+        mutate(
+          twice_response_n_receptors = response_n_receptors * 2
+        )
+      ```
 ---
 
 ## 📈 Analysis

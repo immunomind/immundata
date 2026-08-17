@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#filter-immundata-by-receptor-features-barcodes-or-any-annotations" class="md-skip">
+        <a href="#keep-selected-rows-or-receptors-in-immundata" class="md-skip">
           Skip to content
         </a>
       
@@ -1772,19 +1772,18 @@
   
 
 
-<h1 id="filter-immundata-by-receptor-features-barcodes-or-any-annotations">Filter ImmunData by receptor features, barcodes or any annotations<a class="headerlink" href="#filter-immundata-by-receptor-features-barcodes-or-any-annotations" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_filter.R#L146"><strong>Source code</strong></a></p>
+<h1 id="keep-selected-rows-or-receptors-in-immundata">Keep selected rows or receptors in ImmunData<a class="headerlink" href="#keep-selected-rows-or-receptors-in-immundata" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Provides flexible filtering options for an <code>ImmunData</code>
-object.</p>
-<p><code>filter()</code> is the main function, allowing filtering based on
-receptor features (e.g., CDR3 sequence) using various matching methods
-(exact, regex, fuzzy) and/or standard <code>dplyr</code>-style filtering
-on annotation columns.</p>
-<p><code>filter_barcodes()</code> is a convenience function to filter by
-specific cell barcodes.</p>
-<p><code>filter_receptors()</code> is a convenience function to filter by
-specific receptor identifiers.</p>
+<p>Use <code>filter()</code> to keep selected rows in an ImmunData object.
+For example, you can keep rows from one response group, rows using a
+selected V gene, or receptors containing a CDR3 sequence similar to a
+reference sequence.</p>
+<p>The function returns a new ImmunData object. The original object is not
+changed.</p>
+<p>This function is a direct implementation of dplyr::filter. Alternative
+function name is <code>filter_immundata</code>.</p>
+<p>Use <code>filter_barcodes()</code> to keep selected cell barcodes and
+<code>filter_receptors()</code> to keep selected receptor identifiers.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>filter_immundata(idata, ..., seq_options = NULL, keep_repertoires = TRUE)
 
@@ -1810,7 +1809,7 @@ filter_receptors(idata, receptors, keep_repertoires = TRUE)
 <code id="idata">idata</code>, <code id=".data">.data</code>
 </td>
 <td>
-An <code>ImmunData</code> object.
+An ImmunData object.
 </td>
 </tr>
 <tr>
@@ -1818,12 +1817,9 @@ An <code>ImmunData</code> object.
 <code id="...">…</code>
 </td>
 <td>
-For <code>filter</code>, these are regular <code>dplyr</code>-style
-filtering expressions (e.g., <code>V_gene == “IGHV1-1”</code>,
-<code>chain == “IGH”</code>) applied to the
-<code style="white-space: pre;">$annotations</code> table
-<em>before</em> sequence filtering. Ignored by
-<code>filter_barcodes</code> and <code>filter_receptors</code>.
+One or more conditions used to keep rows. Refer to annotation columns
+directly by name. Multiple conditions are combined with <code>&</code>.
+Conditions are applied before sequence matching.
 </td>
 </tr>
 <tr>
@@ -1831,52 +1827,9 @@ filtering expressions (e.g., <code>V_gene == “IGHV1-1”</code>,
 <code id="seq_options">seq_options</code>
 </td>
 <td>
-
-For <code>filter</code>, an optional named list specifying
-sequence-based filtering options. Use <code>make_seq_options()</code>
-for convenient creation. The list can contain:
-
-<ul>
-<li>
-
-<code>query_col</code> (Character scalar): The name of the column in
-<code style="white-space: pre;">$annotations</code> containing sequences
-to compare (e.g., <code>“CDR3_aa”</code>, <code>“FR1_nt”</code>).
-
-</li>
-<li>
-
-<code>patterns</code> (Character vector): A vector of sequences or
-regular expressions to match against <code>query_col</code>.
-
-</li>
-<li>
-
-<code>method</code> (Character scalar): The matching method. One of
-<code>“exact”</code>, <code>“regex”</code>, <code>“lev”</code>
-(Levenshtein distance), or <code>“hamm”</code> (Hamming distance).
-Defaults typically handled by <code>make_seq_options</code>.
-
-</li>
-<li>
-
-<code>max_dist</code> (Numeric scalar): For fuzzy methods
-(<code>“lev”</code>, <code>“hamm”</code>), the maximum allowed distance.
-Rows with distance \<= <code>max_dist</code> are kept. Defaults
-typically handled by <code>make_seq_options</code>.
-
-</li>
-<li>
-
-<code>name_type</code> (Character scalar): Determines column names in
-intermediate distance calculations if applicable (<code>“index”</code>
-or <code>“pattern”</code>). Passed through to internal annotation
-functions. Defaults typically handled by <code>make_seq_options</code>.
-If <code>seq_options</code> is <code>NULL</code> (the default), no
-sequence-based filtering is performed.
-
-</li>
-</ul>
+Options for matching sequences with reference sequences or patterns.
+Create these options with <code>make_seq_options()</code>. If
+<code>NULL</code>, the default, no sequence matching is performed.
 </td>
 </tr>
 <tr>
@@ -1884,32 +1837,19 @@ sequence-based filtering is performed.
 <code id="keep_repertoires">keep_repertoires</code>
 </td>
 <td>
-Logical scalar. If <code>TRUE</code> (the default) and the input
-<code>idata</code> has repertoire information
-(<code>idata$schema_repertoire</code> is not <code>NULL</code>), the
-repertoire summaries will be recalculated based on the filtered data
-using <code>agg_repertoires()</code>. If the input has strata, they are
-rebuilt from the existing strata schema and existing labels are
-retained. If <code>FALSE</code>, or if no repertoire schema exists, the
-returned <code>ImmunData</code> object will not contain repertoire
-summaries (<code style="white-space: pre;">$repertoires</code> will be
-<code>NULL</code>).
+If <code>TRUE</code>, the default, existing repertoire and strata
+summaries are recalculated from the filtered data. If
+<code>FALSE</code>, the returned object does not contain these
+summaries.
 </td>
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id=".by">.by</code>
+<code id=".by">.by</code>, <code id=".preserve">.preserve</code>
 </td>
 <td>
-Not used.
-</td>
-</tr>
-<tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id=".preserve">.preserve</code>
-</td>
-<td>
-Not used.
+Accepted for compatibility with <code>dplyr::filter()</code>, but
+currently not used for ImmunData objects.
 </td>
 </tr>
 <tr>
@@ -1917,8 +1857,8 @@ Not used.
 <code id="barcodes">barcodes</code>
 </td>
 <td>
-For <code>filter_barcodes</code>, a vector of cell identifiers
-(barcodes) to keep. Can be character, integer, or numeric.
+A character, integer, or numeric vector of cell barcodes to keep with
+<code>filter_barcodes()</code>.
 </td>
 </tr>
 <tr>
@@ -1926,157 +1866,205 @@ For <code>filter_barcodes</code>, a vector of cell identifiers
 <code id="receptors">receptors</code>
 </td>
 <td>
-For <code>filter_receptors</code>, a vector of receptor identifiers to
-keep. Can be character, integer, or numeric.
+A character, integer, or numeric vector of receptor identifiers to keep
+with <code>filter_receptors()</code>.
 </td>
 </tr>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>For <code>filter</code>:</p>
+<p>You can filter an ImmunData object in three ways:</p>
 <ul>
 <li>
 
-User-provided <code>dplyr</code>-style filters (<code>…</code>) are
-applied <em>before</em> any sequence-based filtering defined in
-<code>seq_options</code>.
+Supply conditions in <code>…</code> to filter using annotation columns.
+Refer to columns directly by name. For example, <code>Response ==
+“FR”</code> keeps rows from the <code>FR</code> response group.
 
 </li>
 <li>
 
-Sequence filtering compares values in the <code>query_col</code> of the
-annotations table against the provided <code>patterns</code>.
+Supply <code>seq_options</code>, created with
+<code>make_seq_options()</code>, to find receptors containing a sequence
+that matches one or more reference sequences or patterns.
 
 </li>
 <li>
 
-Supported sequence matching methods are:
-
-<ul>
-<li>
-
-<code>“exact”</code>: Keeps rows where <code>query_col</code> exactly
-matches any of the <code>patterns</code>.
-
-</li>
-<li>
-
-<code>“regex”</code>: Keeps rows where <code>query_col</code> matches
-any of the regular expressions in <code>patterns</code>.
-
-</li>
-<li>
-
-<code>“lev”</code> (Levenshtein distance): Keeps rows where the edit
-distance between <code>query_col</code> and any pattern is less than or
-equal to <code>max_dist</code>.
-
-</li>
-<li>
-
-<code>“hamm”</code> (Hamming distance): Keeps rows where the Hamming
-distance (for equal length strings) between <code>query_col</code> and
-any pattern is less than or equal to <code>max_dist</code>.
-
-</li>
-</ul>
-</li>
-<li>
-
-The filtering operations act on the
-<code style="white-space: pre;">$annotations</code> table. A new
-<code>ImmunData</code> object is created containing only the rows (and
-corresponding receptors) that pass the filter(s).
-
-</li>
-<li>
-
-If <code>keep_repertoires = TRUE</code> (and repertoire data exists in
-the input), the repertoire-level summaries
-(<code style="white-space: pre;">$repertoires</code> table) are
-recalculated based on the filtered annotations. Otherwise, the
-<code style="white-space: pre;">$repertoires</code> table in the output
-will be <code>NULL</code>.
+Use <code>filter_barcodes()</code> or <code>filter_receptors()</code>
+when you already have the identifiers that you want to keep.
 
 </li>
 </ul>
 
-<p>For <code>filter_barcodes</code> and <code>filter_receptors</code>:</p>
+<p>Conditions in <code>…</code> are applied before sequence matching.
+Sequence matching then identifies receptors from the remaining rows.
+When one chain matches, all remaining chains belonging to the same
+receptor are kept. A chain removed by a condition in <code>…</code> is
+not added back by sequence matching.</p>
+<p>Sequence matching methods are:</p>
 <ul>
 <li>
 
-These functions provide a simpler interface for common filtering tasks
-based on cell barcodes or receptor IDs, respectively. They use efficient
-<code>semi_join</code> operations internally.
+<code>“exact”</code>: the sequence must be identical to one of the
+references.
+
+</li>
+<li>
+
+<code>“regex”</code>: the sequence must match a regular-expression
+pattern. This is an advanced option for matching text patterns.
+
+</li>
+<li>
+
+<code>“lev”</code>: the Levenshtein distance counts the substitutions,
+insertions, or deletions needed to change one sequence into the other.
+
+</li>
+<li>
+
+<code>“hamm”</code>: the Hamming distance counts different positions
+between sequences of the same length. Sequences of different lengths do
+not match.
 
 </li>
 </ul>
 
+<p>For <code>“lev”</code> and <code>“hamm”</code>, provide
+<code>max_dist</code>. A sequence is accepted when its distance from at
+least one reference is less than or equal to this value. A distance of
+<code>0</code> means an exact match, and smaller values mean more
+similar sequences.</p>
+<p>By default, existing repertoire summaries are recalculated from the
+filtered data. Existing strata are also rebuilt, and their labels are
+retained. Set <code>keep_repertoires = FALSE</code> to return an object
+without repertoire or strata summaries.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>A new <code>ImmunData</code> object containing only the filtered
-annotations (and potentially recalculated repertoire summaries). The
-schema remains the same.</p>
+<p>A new ImmunData object containing the selected rows and receptors. If
+requested, repertoire and strata summaries are recalculated for the
+selected data.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p><code>make_seq_options()</code>, <code>dplyr::filter()</code>,
-<code>agg_repertoires()</code>, ImmunData</p>
+<p><code>dplyr::filter()</code>, <code>make_seq_options()</code>,
+<code>mutate_immundata()</code>, <code>agg_repertoires()</code>,
+ImmunData</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Basic setup (assuming idata_test is a valid ImmunData object)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># print(idata_test)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># --- filter examples ---</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Example 1: dplyr-style filtering on annotations</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">filtered_heavy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">chain</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;IGH&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nf">print</span><span class="p">(</span><span class="n">filtered_heavy</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Load data included with immundata</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">get_test_idata</span><span class="p">()</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Example 2: Exact sequence matching on CDR3 amino acid sequence</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">cdr3_patterns</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;CARGLGLVFYGMDVW&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;CARDNRGAVAGVFGEAFYW&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">seq_opts_exact</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;CDR3_aa&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cdr3_patterns</span><span class="p">)</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">filtered_exact_cdr3</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq_opts_exact</span><span class="p">)</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="nf">print</span><span class="p">(</span><span class="n">filtered_exact_cdr3</span><span class="p">)</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># Example 3: Combining dplyr-style and fuzzy sequence matching (Levenshtein)</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">seq_opts_lev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;CDR3_aa&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;CARGLGLVFYGMDVW&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;lev&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="n">max_dist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">)</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">filtered_combined</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">  </span><span class="n">chain</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;IGH&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="n">C_gene</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;IGHG1&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">  </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq_opts_lev</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="p">)</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="nf">print</span><span class="p">(</span><span class="n">filtered_combined</span><span class="p">)</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="c1"># Example 4: Regex matching on V gene</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="n">v_gene_pattern</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;^IGHV[13]-&quot;</span><span class="w"> </span><span class="c1"># Keep only IGHV1 or IGHV3 families</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="n">seq_opts_regex</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">  </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;V_gene&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v_gene_pattern</span><span class="p">,</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;regex&quot;</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="p">)</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="n">filtered_regex_v</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq_opts_regex</span><span class="p">)</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="nf">print</span><span class="p">(</span><span class="n">filtered_regex_v</span><span class="p">)</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="c1"># Example 5: Filtering without recalculating repertoires</span>
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="n">filtered_no_rep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">chain</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;IGK&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">keep_repertoires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="nf">print</span><span class="p">(</span><span class="n">filtered_no_rep</span><span class="p">)</span><span class="w"> </span><span class="c1"># $repertoires should be NULL</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>
-<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>
-<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="c1"># --- filter_barcodes example ---</span>
-<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="c1"># Assuming &#39;cell1_barcode&#39; and &#39;cell5_barcode&#39; exist in idata_test$annotations$cell_id</span>
-<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="n">specific_barcodes</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cell1_barcode&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cell5_barcode&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="n">filtered_cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">filter_barcodes</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">barcodes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">specific_barcodes</span><span class="p">)</span>
-<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="nf">print</span><span class="p">(</span><span class="n">filtered_cells</span><span class="p">)</span>
-<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>
-<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>
-<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="c1"># --- filter_receptors example ---</span>
-<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a><span class="c1"># Assuming receptor IDs 101 and 205 exist in idata_test$annotations$receptor_id</span>
-<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a><span class="n">specific_receptors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">101</span><span class="p">,</span><span class="w"> </span><span class="m">205</span><span class="p">)</span><span class="w"> </span><span class="c1"># Or character IDs if applicable</span>
-<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a><span class="n">filtered_recs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">filter_receptors</span><span class="p">(</span><span class="n">idata_test</span><span class="p">,</span><span class="w"> </span><span class="n">receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">specific_receptors</span><span class="p">)</span>
-<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a><span class="nf">print</span><span class="p">(</span><span class="n">filtered_recs</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Keep rows from one response group</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">fr_response</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nf">filter</span><span class="p">(</span><span class="n">Response</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">"FR"</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">fr_response</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nf">summarise</span><span class="p">(</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="n">n_rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n</span><span class="p">(),</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="n">n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 1 × 2
+#&gt;   n_rows n_receptors
+#&gt; *  &lt;int&gt;       &lt;dbl&gt;
+#&gt; 1    955         871
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">#   n_rows n_receptors</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#      955         871</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Keep receptors containing one reference CDR3 sequence</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">reference_cdr3</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">"ASFPVLSPYNEQF"</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">exact_match</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nf">filter</span><span class="p">(</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"cdr3_aa"</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reference_cdr3</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"exact"</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">)</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">exact_match</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">cdr3_aa</span><span class="p">,</span><span class="w"> </span><span class="n">v_call</span><span class="p">,</span><span class="w"> </span><span class="n">Response</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 1 × 3
+#&gt;   cdr3_aa       v_call    Response
+#&gt; * &lt;chr&gt;         &lt;chr&gt;     &lt;chr&gt;   
+#&gt; 1 ASFPVLSPYNEQF TRBV28*01 FR
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">#   cdr3_aa       v_call    Response</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1">#   ASFPVLSPYNEQF TRBV28*01 FR</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Keep receptors within four sequence changes of the reference</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">similar_sequences</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nf">filter</span><span class="p">(</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="n">seq_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_seq_options</span><span class="p">(</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="n">query_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"cdr3_aa"</span><span class="p">,</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">      </span><span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reference_cdr3</span><span class="p">,</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"lev"</span><span class="p">,</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="n">max_dist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="p">)</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">similar_sequences</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="nf">distinct</span><span class="p">(</span><span class="n">cdr3_aa</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">cdr3_aa</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 4 × 1
+#&gt;   cdr3_aa      
+#&gt; * &lt;chr&gt;        
+#&gt; 1 ASFPVLSPYNEQF
+#&gt; 2 ASSPDSPSYNEQF
+#&gt; 3 ASSPGLAAYNEQF
+#&gt; 4 ASSPTLYNEQF
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1">#   cdr3_aa</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1">#   ASFPVLSPYNEQF</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1">#   ASSPDSPSYNEQF</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1">#   ASSPGLAAYNEQF</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1">#   ASSPTLYNEQF</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># Keep two selected cell barcodes</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">selected_barcodes</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"S1_1"</span><span class="p">,</span><span class="w"> </span><span class="s">"S1_2"</span><span class="p">)</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">selected_cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="nf">filter_barcodes</span><span class="p">(</span><span class="n">selected_barcodes</span><span class="p">)</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">selected_cells</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="nf">distinct</span><span class="p">(</span><span class="n">imd_barcode</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 2 × 1
+#&gt;   imd_barcode
+#&gt; * &lt;chr&gt;      
+#&gt; 1 S1_1       
+#&gt; 2 S1_2
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">#   imd_barcode</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1">#   S1_1</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1">#   S1_2</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># The same approach can keep selected receptor identifiers</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">selected_receptors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="nf">distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="nf">slice_head</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="nf">pull</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="n">selected_receptors_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="nf">filter_receptors</span><span class="p">(</span><span class="n">selected_receptors</span><span class="p">)</span>
 </code></pre></div>
 
 

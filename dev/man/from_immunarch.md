@@ -2,8 +2,6 @@
 
 # Convert an immunarch Object into an ImmunData Dataset
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_immundata_conversion.R#L37)
-
 ## Description
 
 The <code>from_immunarch()</code> function takes an

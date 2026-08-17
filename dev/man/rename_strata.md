@@ -2,8 +2,6 @@
 
 # Rename strata labels
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_agg_strata.R#L146)
-
 ## Description
 
 Renames <code>strata_name</code> values for existing strata

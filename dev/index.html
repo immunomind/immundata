@@ -2689,7 +2689,7 @@ the most important changes – please read them. If something that used to work 
 documentation (<code>?function_name</code>) first.</p>
 <p><strong>Tip:</strong> if your analysis depends on a specific behaviour, pin the
 exact version with <code>renv</code> or use <code>pak</code> for installation:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immunomind/immundata@0.2.1&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">"immunomind/immundata@0.2.1"</span><span class="p">)</span>
 </code></pre></div>
 I'll keep publishing tagged releases with full docs so you can always
 roll back if needed.</p>
@@ -2756,20 +2756,20 @@ This README is huge. I'm not kidding. Please consider using navigation.</p>
 <h2 id="installation">📦 Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
 <p>Before installing any release or pre-release version of <code>immundata</code>, please install <code>pak</code> that will simplify the installation of any package, not just <code>immundata</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;pak&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">repos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sprintf</span><span class="p">(</span><span class="s">&quot;https://r-lib.github.io/p/pak/stable/%s/%s/%s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">.Platform</span><span class="o">$</span><span class="n">pkgType</span><span class="p">,</span><span class="w"> </span><span class="nf">R.Version</span><span class="p">()</span><span class="o">$</span><span class="n">os</span><span class="p">,</span><span class="w"> </span><span class="nf">R.Version</span><span class="p">()</span><span class="o">$</span><span class="n">arch</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">"pak"</span><span class="p">,</span><span class="w"> </span><span class="n">repos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"https://r-lib.github.io/p/pak/stable/%s/%s/%s"</span><span class="p">,</span><span class="w"> </span><span class="n">.Platform</span><span class="o">$</span><span class="n">pkgType</span><span class="p">,</span><span class="w"> </span><span class="nf">R.Version</span><span class="p">()</span><span class="o">$</span><span class="n">os</span><span class="p">,</span><span class="w"> </span><span class="nf">R.Version</span><span class="p">()</span><span class="o">$</span><span class="n">arch</span><span class="p">))</span>
 </code></pre></div>
 <p>More info if needed is available on <a href="https://pak.r-lib.org/#arrow_down-installation">pak website</a>.</p>
 <h3 id="install-the-latest-version">Install the latest version<a class="headerlink" href="#install-the-latest-version" title="Permanent link">&para;</a></h3>
 <p>To install the latest release of <code>immundata</code>, simply run:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immunomind/immundata&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">"immunomind/immundata"</span><span class="p">)</span>
 </code></pre></div>
 <p>Mind that this will install the package from our GitHub instead of CRAN. This method is much preferred due to limitations of CRAN and reliance on other packages, which are distributed via <code>pak</code> as well.</p>
 <h3 id="other-installation-options">Other installation options<a class="headerlink" href="#other-installation-options" title="Permanent link">&para;</a></h3>
 <p>We will periodically release <code>immundata</code> on CRAN. To install it from CRAN, run </p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
 </code></pre></div>
 <p>If you are willing to try unstable yet bleeding edge features, or if there are some hot fix for your open GitHub ticket, please install the development version:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">&quot;immunomind/immundata@dev&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">pak</span><span class="o">::</span><span class="nf">pkg_install</span><span class="p">(</span><span class="s">"immunomind/immundata@dev"</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="quick-start">⚡ Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
@@ -2778,12 +2778,12 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Manifest with additional sample-level information</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">manifest_path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">manifest_path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/tsv"</span><span class="p">,</span><span class="w"> </span><span class="s">"manifest.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># Two sample files</span>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">samples</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample_0_1k.tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">),</span><span class="w"> </span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample_1k_2k.tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/tsv"</span><span class="p">,</span><span class="w"> </span><span class="s">"sample_0_1k.tsv"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">),</span><span class="w"> </span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/tsv"</span><span class="p">,</span><span class="w"> </span><span class="s">"sample_1k_2k.tsv"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="p">)</span>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
 <a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1"># Read the manifest</span>
@@ -2791,15 +2791,15 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
 <a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
 <a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="c1"># Pass the file paths and the manifest to the function to read the dataset into R</span>
 <a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="n">imdata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="n">samples</span><span class="p">,</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">                           </span><span class="n">schema</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3_aa&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">                           </span><span class="n">schema</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"cdr3_aa"</span><span class="p">,</span><span class="w"> </span><span class="s">"v_call"</span><span class="p">),</span>
 <a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">                           </span><span class="n">manifest</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">manifest</span><span class="p">,</span>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">                           </span><span class="n">output_folder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;./immundata-quick-start&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">                           </span><span class="n">output_folder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"./immundata-quick-start"</span><span class="p">)</span>
 <a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
 <a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="c1"># Print the resultant object in the detailed yet manageable format</span>
 <a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="n">imdata</span>
 <a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
 <a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="c1"># Check the folder immundata created - this is where your dataset resides now</span>
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="nf">list.files</span><span class="p">(</span><span class="s">&quot;./immundata-quick-start&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="nf">list.files</span><span class="p">(</span><span class="s">"./immundata-quick-start"</span><span class="p">)</span>
 <a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
 <a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="c1"># Read sections below for data analysis</span>
 </code></pre></div>
@@ -2913,9 +2913,9 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
 <p>Steps marked with <code>(!)</code> are non-optional.</p>
 <p>The goal of the <strong>ingestion phase</strong> is to turn a folder of AIRR-seq files into an immutable on-disk <code>ImmunData</code> dataset.</p>
 <p>1) <strong>Read manifest:</strong></p>
-<div class="highlight"><pre><span></span><code>  `read_manifest()` pulls in any sample- or donor-level information, such as therapy arm, HLA type, age, etc., and stores it in a data frame that we can pass to the main reading functions `read_repertoires`. Attaching this context early means every chain you read later already &quot;knows&quot; which patient or time-point it belongs to.
+<div class="highlight"><pre><span></span><code>  `read_manifest()` pulls in any sample- or donor-level information, such as therapy arm, HLA type, age, etc., and stores it in a data frame that we can pass to the main reading functions `read_repertoires`. Attaching this context early means every chain you read later already "knows" which patient or time-point it belongs to.
 
-  You can safely skip it if you don&#39;t have per-sample or per-donor manifest annotations.
+  You can safely skip it if you don't have per-sample or per-donor manifest annotations.
 </code></pre></div>
 <p>2) <strong>Read repertoire files:</strong></p>
 <div class="highlight"><pre><span></span><code>  `read_repertoires()` streams Parquet/CSV/TSV files straight into DuckDB that powers `ImmunData` objects.
@@ -2930,7 +2930,7 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
 <div class="highlight"><pre><span></span><code>  A mirror step to **preprocess**: a convenient hook to run QC checks, add derived fields, attach reference-gene annotations, or compute per-chain quality metrics **after** the dataset is ready. You can pass any number of steps which will be executed in a sequential order.
 </code></pre></div>
 <p>5) <strong>Aggregate repertoires #1:</strong></p>
-<div class="highlight"><pre><span></span><code>  If you already know how to group chains into receptors, perhaps by `&quot;Sample&quot;` or `&quot;Donor&quot;` columns from the manifest, you can pass `repertoire_schema = c(&quot;Sample&quot;)` to `read_repertoires()`. Otherwise, skip and define repertoires later (common in single-cell workflows where you need cluster labels first).
+<div class="highlight"><pre><span></span><code>  If you already know how to group chains into receptors, perhaps by `"Sample"` or `"Donor"` columns from the manifest, you can pass `repertoire_schema = c("Sample")` to `read_repertoires()`. Otherwise, skip and define repertoires later (common in single-cell workflows where you need cluster labels first).
 </code></pre></div>
 <p>3) <strong>Write data on disk:</strong></p>
 <div class="highlight"><pre><span></span><code>  `read_repertoires` always persists what it just built: column-compressed Parquet parts plus a human-readable metadata in JSON. From here on, downstream steps can reopen the dataset instantly without touching the raw AIRR files again.
@@ -3015,11 +3015,11 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
   ```r
   library(immundata)
 
-  inp_file &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_0_1k.tsv&quot;, package = &quot;immundata&quot;)
+  inp_file &lt;- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
   idata &lt;- read_repertoires(
     path   = inp_file,
-    schema = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+    schema = c("cdr3_aa", "v_call")
   )
 
   print(idata)
@@ -3031,14 +3031,14 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
   ```r
   library(immundata)
 
-  inp_file1 &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_0_1k.tsv&quot;, package = &quot;immundata&quot;)
-  inp_file2 &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_1k_2k.tsv&quot;, package = &quot;immundata&quot;)
+  inp_file1 &lt;- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  inp_file2 &lt;- system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
 
   file_vec &lt;- c(inp_file1, inp_file2)
 
   idata &lt;- read_repertoires(
     path   = file_vec,
-    schema = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+    schema = c("cdr3_aa", "v_call")
   )
 
   print(idata)
@@ -3052,18 +3052,18 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
   ```r
   library(immundata)
 
-  folder_with_files &lt;- system.file(&quot;extdata/tsv&quot;, &quot;&quot;, package = &quot;immundata&quot;)
+  folder_with_files &lt;- system.file("extdata/tsv", "", package = "immundata")
 
-  glob_files &lt;- paste0(folder_with_files, &quot;sample*.tsv&quot;)
+  glob_files &lt;- paste0(folder_with_files, "sample*.tsv")
 
   print(glob_files)
-  # The output is something like &quot;/Library/Frameworks/.../immundata/extdata/tsv/*&quot;
-  # Mind the star &quot;*&quot; at the end
+  # The output is something like "/Library/Frameworks/.../immundata/extdata/tsv/*"
+  # Mind the star "*" at the end
 
-  # For example, all AIRR files in the &#39;samples/&#39; folder
+  # For example, all AIRR files in the 'samples/' folder
   idata &lt;- read_repertoires(
     path   = glob_files,
-    schema = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+    schema = c("cdr3_aa", "v_call")
   )
 
   print(idata)
@@ -3076,14 +3076,14 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
 
     1.  **Load a manifest** with `read_manifest()`.
 
-    2.  **Pass** the resulting data frame to `read_repertoires(path = &quot;&lt;manifest&gt;&quot;, ..., manifest = manifest_table)`. Mind the `&quot;&lt;manifest&gt;&quot;` string we pass to the function. It indicates that we should take file paths from the input manifest.
+    2.  **Pass** the resulting data frame to `read_repertoires(path = "&lt;manifest&gt;", ..., manifest = manifest_table)`. Mind the `"&lt;manifest&gt;"` string we pass to the function. It indicates that we should take file paths from the input manifest.
 
   An example code:
 
   ```r
   library(immundata)
 
-  manifest_path &lt;- system.file(&quot;extdata/tsv&quot;, &quot;manifest.csv&quot;, package = &quot;immundata&quot;)
+  manifest_path &lt;- system.file("extdata/tsv", "manifest.csv", package = "immundata")
 
   manifest_table &lt;- read_manifest(manifest_path)
 
@@ -3091,8 +3091,8 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
   ```
 
   ```
-  # The column &quot;file&quot; stores the file paths. If you have a different column name
-  # for files, use the `manifest_file_col = &quot;&lt;your column name&gt;&quot;` argument.
+  # The column "file" stores the file paths. If you have a different column name
+  # for files, use the `manifest_file_col = "&lt;your column name&gt;"` argument.
   # A tibble: 2 × 5
     file                       Therapy Response Prefix imd_filename
     &lt;chr&gt;                      &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;   
@@ -3102,9 +3102,9 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
 
   ```r
   idata &lt;- read_repertoires(
-    path     = &quot;&lt;manifest&gt;&quot;,
+    path     = "&lt;manifest&gt;",
     manifest = manifest_table,
-    schema   = c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+    schema   = c("cdr3_aa", "v_call")
   )
 
   print(idata)
@@ -3112,7 +3112,7 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
 
   This approach **unifies** sample-level annotations (e.g. donor ID, timepoint) with your repertoire data inside a single `ImmunData`.
 
-  You can pass the manifest separately along with the list of files as we did in the previous examples without the &quot;&lt;manifest&gt;&quot; directive, but in that case you would need to check the correctness of all filepaths by yourself. Which could be quite cumbersome, to say the least.
+  You can pass the manifest separately along with the list of files as we did in the previous examples without the "&lt;manifest&gt;" directive, but in that case you would need to check the correctness of all filepaths by yourself. Which could be quite cumbersome, to say the least.
 
   For more information on how to work with manifest files, please read the next section.
 </code></pre></div>
@@ -3122,13 +3122,13 @@ Replace <code>system.file</code> calls with your local file paths to run the cod
   ```r
   library(immundata)
   # Install old immunarch:
-  # pak::pkg_install(&quot;immunomind/immunarch@0.9.1&quot;)
-  data(immdata, package = &quot;immunarch&quot;)
+  # pak::pkg_install("immunomind/immunarch@0.9.1")
+  data(immdata, package = "immunarch")
 
   idata &lt;- from_immunarch(
     imm = immdata, 
-    schema = c(&quot;CDR3.aa&quot;, &quot;V.name&quot;), 
-    output_folder = &quot;./immdata-test&quot;)
+    schema = c("CDR3.aa", "V.name"), 
+    output_folder = "./immdata-test")
 
   print(idata)
   ```
@@ -3144,12 +3144,12 @@ merge manifest annotations and the repertoires table together.</p>
 </blockquote>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">manifest_path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/tsv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">manifest_path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/tsv"</span><span class="p">,</span><span class="w"> </span><span class="s">"manifest.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_path</span><span class="p">)</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Rows: 2 Columns: 4
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>── Column specification ─────────────────────────────────────────────────────────
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Delimiter: &quot;,&quot;
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Delimiter: ","
 <a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>chr (4): file, Therapy, Response, Prefix
 <a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
 <a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>ℹ Use `spec()` to retrieve the full column specification for this data.
@@ -3175,19 +3175,19 @@ merge manifest annotations and the repertoires table together.</p>
 </ul>
 <p>If you have only feature columns, you can usually pass the character vector with columns to functions. In a more advanced case with multiple chain data, <code>immundata</code> provides a helper function <code>make_receptor_schema()</code> for building schemas:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3_aa&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span>
-<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="n">chains</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;TRB&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"cdr3_aa"</span><span class="p">,</span><span class="w"> </span><span class="s">"v_call"</span><span class="p">),</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="n">chains</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"TRA"</span><span class="p">,</span><span class="w"> </span><span class="s">"TRB"</span><span class="p">)</span>
 <a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="p">)</span>
 </code></pre></div>
 <p>1. <strong>Chain-agnostic</strong></p>
-<div class="highlight"><pre><span></span><code>  Used for bulk or pre-filtered immune repertoire data. No filtering by chain data such as TRA or TRB. Each unique combination of features in the schema vector is assigned a unique receptor identifier and counts as a receptor. In the example below, the receptor features are &quot;cdr3_aa&quot; and &quot;v_call&quot; columns - CDR3 amino acid sequence and V gene segment columns respectively.
+<div class="highlight"><pre><span></span><code>  Used for bulk or pre-filtered immune repertoire data. No filtering by chain data such as TRA or TRB. Each unique combination of features in the schema vector is assigned a unique receptor identifier and counts as a receptor. In the example below, the receptor features are "cdr3_aa" and "v_call" columns - CDR3 amino acid sequence and V gene segment columns respectively.
 
   ```r
   library(immundata)
 
-  inp_file &lt;- system.file(&quot;extdata/tsv&quot;, &quot;sample_0_1k.tsv&quot;, package = &quot;immundata&quot;)
+  inp_file &lt;- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
 
-  schema &lt;- c(&quot;cdr3_aa&quot;, &quot;v_call&quot;)
+  schema &lt;- c("cdr3_aa", "v_call")
 
   idata &lt;- read_repertoires(
     path   = inp_file,
@@ -3201,7 +3201,7 @@ merge manifest annotations and the repertoires table together.</p>
 <div class="highlight"><pre><span></span><code>  &gt;[!NOTE]
   &gt; Please note that single-chain option does not (!) remove multiple chains per cell - yet.
   &gt; In other words, you will get multiple receptors per barcode. The paired chain option filter out
-  &gt; chains which don&#39;t have the max number of reads or umis per barcode. So receptor numbers and sequences
+  &gt; chains which don't have the max number of reads or umis per barcode. So receptor numbers and sequences
   &gt; could differ significantly.
 
   Used for paired-chain data such as single-cell data to focus on the analysis of immune receptors with a specific chain. The data is pre-filtered to leave the data units with the specified chain only.
@@ -3209,19 +3209,19 @@ merge manifest annotations and the repertoires table together.</p>
   ```r
   library(immundata)
 
-  inp_file &lt;- system.file(&quot;extdata/single_cell&quot;, &quot;lt6.csv.gz&quot;, package = &quot;immundata&quot;)
+  inp_file &lt;- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
 
   schema &lt;- make_receptor_schema(
-    features = c(&quot;cdr3&quot;, &quot;v_call&quot;),
-    chains   = &quot;TRA&quot;
+    features = c("cdr3", "v_call"),
+    chains   = "TRA"
   )
 
   idata &lt;- read_repertoires(
     path        = inp_file,
     schema      = schema,
-    barcode_col = &quot;barcode&quot;,
-    locus_col   = &quot;locus&quot;,
-    preprocess  = make_default_preprocessing(&quot;10x&quot;)
+    barcode_col = "barcode",
+    locus_col   = "locus",
+    preprocess  = make_default_preprocessing("10x")
   )
 
   print(idata)
@@ -3233,20 +3233,20 @@ merge manifest annotations and the repertoires table together.</p>
   ```r
   library(immundata)
 
-  inp_file &lt;- system.file(&quot;extdata/single_cell&quot;, &quot;lt6.csv.gz&quot;, package = &quot;immundata&quot;)
+  inp_file &lt;- system.file("extdata/single_cell", "lt6.csv.gz", package = "immundata")
 
   schema &lt;- make_receptor_schema(
-    features = c(&quot;cdr3&quot;, &quot;v_call&quot;),
-    chains   = c(&quot;TRA&quot;, &quot;TRB&quot;)
+    features = c("cdr3", "v_call"),
+    chains   = c("TRA", "TRB")
   )
 
   idata &lt;- read_repertoires(
     path        = inp_file,
     schema      = schema,
-    barcode_col = &quot;barcode&quot;,         # required for pairing
-    locus_col   = &quot;locus&quot;,           # column that says &quot;TRA&quot; / &quot;TRB&quot;
-    umi_col     = &quot;umis&quot;,            # choose chain with max UMIs per locus
-    preprocess  = make_default_preprocessing(&quot;10x&quot;)
+    barcode_col = "barcode",         # required for pairing
+    locus_col   = "locus",           # column that says "TRA" / "TRB"
+    umi_col     = "umis",            # choose chain with max UMIs per locus
+    preprocess  = make_default_preprocessing("10x")
   )
 
   print(idata)
@@ -3317,22 +3317,22 @@ group it. You can later plot or re‑group the resulting statistics, but the ord
 <p>The true power of regrouping repertoires opens up when you work with single-cell data.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
 <a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
-<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">inp_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;lt6.csv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
-<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">inp_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"lt6.csv.gz"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"manifest.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span>
-<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;TRB&quot;</span><span class="p">))</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"cdr3"</span><span class="p">,</span><span class="w"> </span><span class="s">"v_call"</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"TRA"</span><span class="p">,</span><span class="w"> </span><span class="s">"TRB"</span><span class="p">))</span>
 <a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>
 <a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span>
 <a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">  </span><span class="n">path</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">inp_file</span><span class="p">,</span>
 <a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="w">  </span><span class="n">schema</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span>
 <a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="w">  </span><span class="n">manifest</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span>
-<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">  </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w">         </span><span class="c1"># required for pairing</span>
-<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="w">  </span><span class="n">locus_col</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;locus&quot;</span><span class="p">,</span><span class="w">           </span><span class="c1"># column that says &quot;TRA&quot; / &quot;TRB&quot;</span>
-<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="w">  </span><span class="n">umi_col</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;umis&quot;</span><span class="p">,</span><span class="w">            </span><span class="c1"># choose chain with max UMIs per locus</span>
-<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="w">  </span><span class="n">preprocess</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">&quot;10x&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">  </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">,</span><span class="w">         </span><span class="c1"># required for pairing</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="w">  </span><span class="n">locus_col</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">"locus"</span><span class="p">,</span><span class="w">           </span><span class="c1"># column that says "TRA" / "TRB"</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="w">  </span><span class="n">umi_col</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s">"umis"</span><span class="p">,</span><span class="w">            </span><span class="c1"># choose chain with max UMIs per locus</span>
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="w">  </span><span class="n">preprocess</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">"10x"</span><span class="p">)</span>
 <a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="p">)</span>
 <a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a>
-<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cells.tsv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"cells.tsv.gz"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a><span class="n">cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readr</span><span class="o">::</span><span class="nf">read_tsv</span><span class="p">(</span><span class="n">cells_file</span><span class="p">)</span>
 <a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a>
 <a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="c1"># External cell annotations</span>
@@ -3341,13 +3341,13 @@ group it. You can later plot or re‑group the resulting statistics, but the ord
 <a id="__codelineno-23-24" name="__codelineno-23-24" href="#__codelineno-23-24"></a><span class="c1"># Annotate data with cell clusters</span>
 <a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span>
 <a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a><span class="w">  </span><span class="n">idata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">idata</span><span class="p">,</span>
-<a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a><span class="w">  </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cells</span><span class="p">[</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ident&quot;</span><span class="p">)],</span><span class="w"> </span>
-<a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">  </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a><span class="w">  </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cells</span><span class="p">[</span><span class="nf">c</span><span class="p">(</span><span class="s">"barcode"</span><span class="p">,</span><span class="w"> </span><span class="s">"ident"</span><span class="p">)],</span><span class="w"> </span>
+<a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">  </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">,</span><span class="w"> </span>
 <a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a><span class="w">  </span><span class="n">keep_repertoires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
 <a id="__codelineno-23-30" name="__codelineno-23-30" href="#__codelineno-23-30"></a><span class="p">)</span>
 <a id="__codelineno-23-31" name="__codelineno-23-31" href="#__codelineno-23-31"></a>
 <a id="__codelineno-23-32" name="__codelineno-23-32" href="#__codelineno-23-32"></a><span class="c1"># Aggregate repertoires to make cluster-specific repertoires</span>
-<a id="__codelineno-23-33" name="__codelineno-23-33" href="#__codelineno-23-33"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">agg_repertoires</span><span class="p">(</span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ident&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-33" name="__codelineno-23-33" href="#__codelineno-23-33"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">agg_repertoires</span><span class="p">(</span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"ident"</span><span class="p">)</span>
 <a id="__codelineno-23-34" name="__codelineno-23-34" href="#__codelineno-23-34"></a>
 <a id="__codelineno-23-35" name="__codelineno-23-35" href="#__codelineno-23-35"></a><span class="c1"># Take a look at the $repertoires table</span>
 <a id="__codelineno-23-36" name="__codelineno-23-36" href="#__codelineno-23-36"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata</span><span class="p">)</span>
@@ -3402,15 +3402,15 @@ group it. You can later plot or re‑group the resulting statistics, but the ord
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
 <a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
-<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="n">inp_files</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;/*.csv.gz&quot;</span><span class="p">)</span>
-<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="n">inp_files</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">),</span><span class="w"> </span><span class="s">"/*.csv.gz"</span><span class="p">)</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"manifest.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span>
-<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cells.tsv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"cells.tsv.gz"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="n">cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readr</span><span class="o">::</span><span class="nf">read_tsv</span><span class="p">(</span><span class="n">cells_file</span><span class="p">)</span>
 <a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>
-<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRB&quot;</span><span class="p">))</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"cdr3"</span><span class="p">,</span><span class="w"> </span><span class="s">"v_call"</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"TRB"</span><span class="p">))</span>
 <a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>
-<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inp_files</span><span class="p">,</span><span class="w"> </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span><span class="w"> </span><span class="n">manifest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span><span class="w"> </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">locus_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;locus&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">umi_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;umis&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">preprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">&quot;10x&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">repertoire_schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Tissue&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inp_files</span><span class="p">,</span><span class="w"> </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span><span class="w"> </span><span class="n">manifest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span><span class="w"> </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">,</span><span class="w"> </span><span class="n">locus_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"locus"</span><span class="p">,</span><span class="w"> </span><span class="n">umi_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"umis"</span><span class="p">,</span><span class="w"> </span><span class="n">preprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">"10x"</span><span class="p">),</span><span class="w"> </span><span class="n">repertoire_schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Tissue"</span><span class="p">)</span>
 <a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>
 <a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="nf">print</span><span class="p">(</span><span class="n">idata</span><span class="p">)</span>
 </code></pre></div>
@@ -3484,40 +3484,40 @@ group it. You can later plot or re‑group the resulting statistics, but the ord
 <p>Before running the code in the following subsections, execute the code below. Mind that for the example purposes, the data uses the TRB locus only. Change the input receptor schema and the column names to adapt it to the paired-chain case.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
 <a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
-<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="n">inp_files</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;/*.csv.gz&quot;</span><span class="p">)</span>
-<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manifest.csv&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="n">inp_files</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">),</span><span class="w"> </span><span class="s">"/*.csv.gz"</span><span class="p">)</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="n">manifest_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"manifest.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="n">manifest_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_manifest</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span>
-<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata/single_cell&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cells.tsv.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="n">cells_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">system.file</span><span class="p">(</span><span class="s">"extdata/single_cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"cells.tsv.gz"</span><span class="p">,</span><span class="w"> </span><span class="n">package</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="n">cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readr</span><span class="o">::</span><span class="nf">read_tsv</span><span class="p">(</span><span class="n">cells_file</span><span class="p">)</span>
 <a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>
-<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;cdr3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;v_call&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;TRB&quot;</span><span class="p">))</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="n">schema</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_receptor_schema</span><span class="p">(</span><span class="n">features</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"cdr3"</span><span class="p">,</span><span class="w"> </span><span class="s">"v_call"</span><span class="p">),</span><span class="w"> </span><span class="n">chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"TRB"</span><span class="p">))</span>
 <a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>
-<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inp_files</span><span class="p">,</span><span class="w"> </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span><span class="w"> </span><span class="n">manifest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span><span class="w"> </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">locus_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;locus&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">umi_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;umis&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">preprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">&quot;10x&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">repertoire_schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Tissue&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inp_files</span><span class="p">,</span><span class="w"> </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">schema</span><span class="p">,</span><span class="w"> </span><span class="n">manifest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">manifest_table</span><span class="p">,</span><span class="w"> </span><span class="n">barcode_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">,</span><span class="w"> </span><span class="n">locus_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"locus"</span><span class="p">,</span><span class="w"> </span><span class="n">umi_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"umis"</span><span class="p">,</span><span class="w"> </span><span class="n">preprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">"10x"</span><span class="p">),</span><span class="w"> </span><span class="n">repertoire_schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Tissue"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="filter">Filter<a class="headerlink" href="#filter" title="Permanent link">&para;</a></h3>
 <p>The key functions for filtering are <code>filter()</code> (<code>dplyr</code>-compatible) and <code>filter_immundata()</code>, which are the same function with a slightly different arguments due to the necessity to comply with <code>dplyr</code> interface. Repertoires are reaggregated automatically. Functions <code>filter_receptors()</code> and <code>filter_barcodes()</code> are used for filter receptor and barcode identifiers, correspondingly.</p>
 <p>To filter data, you simply pass predicates like in <code>dplyr</code>. Optionally, you can pass <code>seq_options</code> that allow you to filter by exact sequence match, regex pattern, or sequence distances using hamming or edit/levenshtein distances. You can pass multiple patterns via <code>patterns = c("pattern_1", "pattern_2")</code>.</p>
 <p>1. <strong>Filter by any annotation</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  idata |&gt; filter(v_call == &quot;TRBV2&quot;)
+  idata |&gt; filter(v_call == "TRBV2")
 
-  idata |&gt; filter(Tissue == &quot;Blood&quot;)
+  idata |&gt; filter(Tissue == "Blood")
   ```
 </code></pre></div>
 <p>2. <strong>Chain filters together</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
   # this expression:
-  idata |&gt; filter(v_call == &quot;TRBV2&quot;, imd_proportion &gt;= 0.0002)
+  idata |&gt; filter(v_call == "TRBV2", imd_proportion &gt;= 0.0002)
 
   # is the same as this one:
-  idata |&gt; filter(v_call == &quot;TRBV2&quot;) |&gt; filter(imd_proportion &gt;= 0.0002)
+  idata |&gt; filter(v_call == "TRBV2") |&gt; filter(imd_proportion &gt;= 0.0002)
   ```
 </code></pre></div>
 <p>3. <strong>Filter by sequence distance</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  idata |&gt; filter(seq_options = make_seq_options(patterns = &quot;CASSELAGYRGEQYF&quot;, query_col = &quot;cdr3&quot;, method = &quot;lev&quot;, max_dist = 3))
+  idata |&gt; filter(seq_options = make_seq_options(patterns = "CASSELAGYRGEQYF", query_col = "cdr3", method = "lev", max_dist = 3))
 
-  idata |&gt; filter(v_call == &quot;TRBV2&quot;, seq_options = make_seq_options(patterns = &quot;CASSELAGYRGEQYF&quot;, query_col = &quot;cdr3&quot;, method = &quot;lev&quot;, max_dist = 3))
+  idata |&gt; filter(v_call == "TRBV2", seq_options = make_seq_options(patterns = "CASSELAGYRGEQYF", query_col = "cdr3", method = "lev", max_dist = 3))
   ```
 </code></pre></div>
 <p>4. <strong>Filter by receptor identifiers</strong></p>
@@ -3535,32 +3535,32 @@ group it. You can later plot or re‑group the resulting statistics, but the ord
 <div class="highlight"><pre><span></span><code>  ```r
   idata |&gt; filter(imd_repertoire_id == 1)
 
-  idata |&gt; filter(Tissue %in% c(&quot;Blood&quot;, &quot;Tumor&quot;))
+  idata |&gt; filter(Tissue %in% c("Blood", "Tumor"))
   ```
 </code></pre></div>
 <h3 id="annotate">Annotate<a class="headerlink" href="#annotate" title="Permanent link">&para;</a></h3>
 <p>The key function for annotations are <code>annotate</code> and <code>annotate_immundata</code>. Functions <code>annotate_receptors()</code>, <code>annotate_barcodes()</code> and <code>annotate_chains()</code> are light-weight wrappers around <code>annotate_immundata()</code>.</p>
 <p>1. <strong>Annotate by any column</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  idata2 &lt;- annotate(idata = idata, annotations = cells[c(&quot;barcode&quot;, &quot;ident&quot;)], by = c(imd_barcode = &quot;barcode&quot;), keep_repertoires = FALSE)
+  idata2 &lt;- annotate(idata = idata, annotations = cells[c("barcode", "ident")], by = c(imd_barcode = "barcode"), keep_repertoires = FALSE)
   idata2 &lt;- idata2 |&gt; filter(!is.na(ident))
-  idata2 &lt;- idata2 |&gt; agg_repertoires(schema = &quot;ident&quot;)
+  idata2 &lt;- idata2 |&gt; agg_repertoires(schema = "ident")
 
   print(idata2)
   ```
 </code></pre></div>
 <p>2. <strong>Annotate by receptor identifiers</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  idata2 &lt;- annotate_receptors(idata = idata, annotations = tibble::tibble(receptor = c(1,2,3), important_data = c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)), annot_col = &quot;receptor&quot;)
+  idata2 &lt;- annotate_receptors(idata = idata, annotations = tibble::tibble(receptor = c(1,2,3), important_data = c("A", "B", "C")), annot_col = "receptor")
 
-  idata2 |&gt; filter(important_data %in% c(&quot;A&quot;, &quot;B&quot;))
+  idata2 |&gt; filter(important_data %in% c("A", "B"))
   ```
 </code></pre></div>
 <p>3. <strong>Annotate by barcodes</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  idata2 &lt;- annotate_barcodes(idata = idata, annotations = cells[c(&quot;barcode&quot;, &quot;ident&quot;)],  annot_col = &quot;barcode&quot;, keep_repertoires = FALSE)
+  idata2 &lt;- annotate_barcodes(idata = idata, annotations = cells[c("barcode", "ident")],  annot_col = "barcode", keep_repertoires = FALSE)
   idata2 &lt;- idata2 |&gt; filter(!is.na(ident))
-  idata2 &lt;- idata2 |&gt; agg_repertoires(schema = &quot;ident&quot;)
+  idata2 &lt;- idata2 |&gt; agg_repertoires(schema = "ident")
 
   print(idata2)
   ```
@@ -3569,50 +3569,131 @@ group it. You can later plot or re‑group the resulting statistics, but the ord
 <p>The key functions for this are <code>mutate</code> (<code>dplyr</code>-compatible) / <code>mutate_immundata</code> and the functions from the downstream analysis tools.</p>
 <p>1. <strong>Add or transform one or several annotation columns</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  idata |&gt; mutate(new_column = &quot;value&quot;)
+  idata |&gt; mutate(new_column = "value")
 
   idata |&gt; mutate(big_chains = umis &gt;= 10)
 
   # You can use duckdb functions via `dd$&lt;function&gt;`
-  idata |&gt; mutate(dist_to_pattern = dd$levenshtein(cdr3, &quot;CASSSVSGNSPLHF&quot;))
+  idata |&gt; mutate(dist_to_pattern = dd$levenshtein(cdr3, "CASSSVSGNSPLHF"))
   ```
 </code></pre></div>
 <p>2. <strong>Add columns with sequence distance to patterns</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  patterns &lt;- c(&quot;CASSVHPQYF&quot;, &quot;CAWSGQGWGGSTDTQYF&quot;, &quot;CASSPRPGSTGELFF&quot;)
-  idata |&gt; mutate(seq_options = make_seq_options(query_col = &quot;cdr3&quot;, patterns = patterns, method = &quot;lev&quot;))
+  patterns &lt;- c("CASSVHPQYF", "CAWSGQGWGGSTDTQYF", "CASSPRPGSTGELFF")
+  idata |&gt; mutate(seq_options = make_seq_options(query_col = "cdr3", patterns = patterns, method = "lev"))
 
-  idata |&gt; mutate(seq_options = make_seq_options(query_col = &quot;cdr3&quot;, patterns = patterns, method = &quot;lev&quot;, name_type = &quot;pattern&quot;))
+  idata |&gt; mutate(seq_options = make_seq_options(query_col = "cdr3", patterns = patterns, method = "lev", name_type = "pattern"))
   ```
 </code></pre></div>
 <p>3. <strong>Modify a subset of column values</strong></p>
 <div class="highlight"><pre><span></span><code>  ```r
-  idata |&gt; mutate(found_pattern = if_else(cdr3 == &quot;CASSVHPQYF&quot;, 1, 0))
+  idata |&gt; mutate(found_pattern = if_else(cdr3 == "CASSVHPQYF", 1, 0))
+  ```
+</code></pre></div>
+<p>4. <strong>Add statistics for groups without removing receptor rows</strong></p>
+<div class="highlight"><pre><span></span><code>  Use `.by` to calculate separately for each group. Unlike
+  `summarise()`, `mutate()` keeps every annotation row and repeats the
+  group result for rows in the same group.
+
+  ```r
+  example_idata &lt;- get_test_idata()
+
+  response_stats &lt;- example_idata |&gt;
+    mutate(
+      response_n_rows = n(),
+      response_n_receptors = n_distinct(imd_receptor_id),
+      .by = Response
+    )
+
+  response_stats |&gt;
+    collect() |&gt;
+    distinct(Response, response_n_rows, response_n_receptors) |&gt;
+    arrange(Response)
+  # Response response_n_rows response_n_receptors
+  # FR                   955                  871
+  # PR                   947                  867
+  ```
+
+  `n()` counts annotation rows. Use
+  `n_distinct(imd_receptor_id)` when you need the number of different
+  receptors.
+</code></pre></div>
+<p>5. <strong>Split complex grouped calculations when needed</strong></p>
+<div class="highlight"><pre><span></span><code>  A grouped `mutate()` can calculate a different value for every row:
+
+  ```r
+  response_centered &lt;- example_idata |&gt;
+    mutate(
+      centered_counts = counts - mean(counts, na.rm = TRUE),
+      .by = Response
+    )
+  ```
+
+  Some group statistics, including `n_distinct()`, use an automatic
+  summary-and-join calculation for large datasets. Do not combine such a
+  statistic with a row-level calculation in the same call:
+
+  ```r
+  # This call is not supported:
+  example_idata |&gt;
+    mutate(
+      centered_counts = counts - mean(counts, na.rm = TRUE),
+      response_n_receptors = n_distinct(imd_receptor_id),
+      .by = Response
+    )
+  ```
+
+  Use two calls instead. The calculations remain lazy in DuckDB:
+
+  ```r
+  response_details &lt;- example_idata |&gt;
+    mutate(
+      centered_counts = counts - mean(counts, na.rm = TRUE),
+      .by = Response
+    ) |&gt;
+    mutate(
+      response_n_receptors = n_distinct(imd_receptor_id),
+      .by = Response
+    )
+  ```
+
+  Use a second call also when the next calculation uses a statistic that
+  was just created:
+
+  ```r
+  response_details &lt;- example_idata |&gt;
+    mutate(
+      response_n_receptors = n_distinct(imd_receptor_id),
+      .by = Response
+    ) |&gt;
+    mutate(
+      twice_response_n_receptors = response_n_receptors * 2
+    )
   ```
 </code></pre></div>
 <hr />
 <h2 id="analysis">📈 Analysis<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h2>
 <h3 id="basic-analysis-using-immundata">Basic analysis using <code>immundata</code><a class="headerlink" href="#basic-analysis-using-immundata" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># Find receptors from several repertoires which have &gt;60 abundance</span>
-<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="c1"># and get their barcodes</span>
-<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="n">idata2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">imd_count</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">60</span><span class="p">)</span>
-<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="n">target_chains</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata2</span><span class="o">$</span><span class="n">annotations</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="n">imd_barcode</span><span class="p">,</span><span class="w"> </span><span class="n">imd_count</span><span class="p">,</span><span class="w"> </span><span class="n">cdr3</span><span class="p">,</span><span class="w"> </span><span class="n">v_call</span><span class="p">,</span><span class="w"> </span><span class="n">Tissue</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">collect</span><span class="p">()</span>
-<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="n">target_chains</span>
-<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>
-<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="c1"># You can then annotate those receptors in your single-cell data using</span>
-<a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a><span class="c1"># the `imd_barcode` column as a key.</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># Find receptors from several repertoires which have &gt;60 abundance</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="c1"># and get their barcodes</span>
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="n">idata2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">imd_count</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">60</span><span class="p">)</span>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="n">target_chains</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata2</span><span class="o">$</span><span class="n">annotations</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="n">imd_barcode</span><span class="p">,</span><span class="w"> </span><span class="n">imd_count</span><span class="p">,</span><span class="w"> </span><span class="n">cdr3</span><span class="p">,</span><span class="w"> </span><span class="n">v_call</span><span class="p">,</span><span class="w"> </span><span class="n">Tissue</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">collect</span><span class="p">()</span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a><span class="n">target_chains</span>
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>
+<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a><span class="c1"># You can then annotate those receptors in your single-cell data using</span>
+<a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a><span class="c1"># the `imd_barcode` column as a key.</span>
 </code></pre></div>
 <h3 id="advanced-analysis-using-immundata">Advanced analysis using <code>immundata</code><a class="headerlink" href="#advanced-analysis-using-immundata" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Install the latest pre-1.0 version of immunarch</span>
-<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="c1"># pak::pkg_install(immunomind/immunarch)</span>
-<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
-<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">immunarch</span><span class="p">)</span>
-<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>
-<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="n">ov_heatmap</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">airr_public_index</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;jaccard&quot;</span><span class="p">)</span>
-<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="n">pheatmap</span><span class="o">::</span><span class="nf">pheatmap</span><span class="p">(</span><span class="n">ov_heatmap</span><span class="p">)</span>
-<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>
-<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="n">clonal_space_homeo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">airr_clonality</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;prop&quot;</span><span class="p">)</span>
-<a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a><span class="n">ggplot2</span><span class="o">::</span><span class="nf">ggplot</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">clonal_space_homeo</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">geom_col</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Tissue</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">occupied_prop</span><span class="p">,</span><span class="w"> </span><span class="n">fill</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">clonal_prop_bin</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">theme_bw</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1"># Install the latest pre-1.0 version of immunarch</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="c1"># pak::pkg_install(immunomind/immunarch)</span>
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">immunarch</span><span class="p">)</span>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a><span class="n">ov_heatmap</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">airr_public_index</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="s">"jaccard"</span><span class="p">)</span>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="n">pheatmap</span><span class="o">::</span><span class="nf">pheatmap</span><span class="p">(</span><span class="n">ov_heatmap</span><span class="p">)</span>
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>
+<a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a><span class="n">clonal_space_homeo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">airr_clonality</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="s">"prop"</span><span class="p">)</span>
+<a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a><span class="n">ggplot2</span><span class="o">::</span><span class="nf">ggplot</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">clonal_space_homeo</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">geom_col</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Tissue</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">occupied_prop</span><span class="p">,</span><span class="w"> </span><span class="n">fill</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">clonal_prop_bin</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">theme_bw</span><span class="p">()</span>
 </code></pre></div>
 <hr />
 <h2 id="use-cases">🧩 Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
@@ -3636,32 +3717,32 @@ Tutorial on <code>immundata</code> + <code>immunarch</code> is available <a href
 🚧 Under construction. 🚧</p>
 </blockquote>
 <p>Make sure to pass <code>make_default_preprocessing("10x")</code>, <code>locus_col</code> and <code>barcode_col</code> to read paired-chain data. Drop the <code>locus_col</code> if you want to read single-chain data only.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">Seurat</span><span class="p">)</span><span class="w"> </span>
-<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>
-<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="n">sdata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the Seurat data</span>
-<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the corresponding AIRR data</span>
-<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>
-<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="c1"># Get both GEX and metadata</span>
-<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="n">smeta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
-<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="w">  </span><span class="n">barcode</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">sdata</span><span class="p">),</span>
-<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">  </span><span class="n">cluster</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">Idents</span><span class="p">(</span><span class="n">sdata</span><span class="p">),</span>
-<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">  </span><span class="n">gene_MS4A1</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">FetchData</span><span class="p">(</span><span class="n">sdata</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;MS4A1&quot;</span><span class="p">)[,</span><span class="m">1</span><span class="p">]</span>
-<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="p">)</span>
-<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a>
-<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">smeta</span><span class="p">,</span><span class="w"> </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">Seurat</span><span class="p">)</span><span class="w"> </span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="n">sdata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the Seurat data</span>
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the corresponding AIRR data</span>
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a><span class="c1"># Get both GEX and metadata</span>
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a><span class="n">smeta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a><span class="w">  </span><span class="n">barcode</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">sdata</span><span class="p">),</span>
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a><span class="w">  </span><span class="n">cluster</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">Idents</span><span class="p">(</span><span class="n">sdata</span><span class="p">),</span>
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a><span class="w">  </span><span class="n">gene_MS4A1</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">FetchData</span><span class="p">(</span><span class="n">sdata</span><span class="p">,</span><span class="w"> </span><span class="s">"MS4A1"</span><span class="p">)[,</span><span class="m">1</span><span class="p">]</span>
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a><span class="p">)</span>
+<a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a>
+<a id="__codelineno-46-13" name="__codelineno-46-13" href="#__codelineno-46-13"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">smeta</span><span class="p">,</span><span class="w"> </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">AnnDataR</span><span class="p">)</span>
-<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>
-<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="n">adata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the AnndataR data</span>
-<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the corresponding AIRR data</span>
-<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>
-<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="n">ameta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
-<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="w">  </span><span class="n">barcode</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">obs_names</span><span class="p">,</span>
-<a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="w">  </span><span class="n">cluster</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">obs</span><span class="o">$</span><span class="n">cell_type</span><span class="p">,</span>
-<a id="__codelineno-42-9" name="__codelineno-42-9" href="#__codelineno-42-9"></a><span class="w">  </span><span class="n">gene_GCG</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">X</span><span class="p">[,</span><span class="w"> </span><span class="s">&quot;GCG&quot;</span><span class="p">]</span>
-<a id="__codelineno-42-10" name="__codelineno-42-10" href="#__codelineno-42-10"></a><span class="p">)</span>
-<a id="__codelineno-42-11" name="__codelineno-42-11" href="#__codelineno-42-11"></a>
-<a id="__codelineno-42-12" name="__codelineno-42-12" href="#__codelineno-42-12"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">ameta</span><span class="p">,</span><span class="w"> </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">AnnDataR</span><span class="p">)</span>
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="n">adata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the AnndataR data</span>
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">...</span><span class="w">  </span><span class="c1"># Load the corresponding AIRR data</span>
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a>
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a><span class="n">ameta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a><span class="w">  </span><span class="n">barcode</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">obs_names</span><span class="p">,</span>
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a><span class="w">  </span><span class="n">cluster</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">obs</span><span class="o">$</span><span class="n">cell_type</span><span class="p">,</span>
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a><span class="w">  </span><span class="n">gene_GCG</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adata</span><span class="o">$</span><span class="n">X</span><span class="p">[,</span><span class="w"> </span><span class="s">"GCG"</span><span class="p">]</span>
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a><span class="p">)</span>
+<a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a>
+<a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate_barcodes</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">ameta</span><span class="p">,</span><span class="w"> </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="advanced-topics">🧠 Advanced Topics<a class="headerlink" href="#advanced-topics" title="Permanent link">&para;</a></h2>
@@ -3801,17 +3882,17 @@ Tutorial on <code>immundata</code> + <code>immunarch</code> is available <a href
 <li>
 <p><strong>Q: I don't want to use <code>pak</code>, how can I use the good old <code>install.packages</code> or <code>devtools</code>?</strong></p>
 <p>A: Nothing will stop you, eh? You are welcome, but I'm not responsible if something won't work due to issues with dependencies:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># CRAN release</span>
-<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
-<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>
-<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="c1"># GitHub release</span>
-<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="nf">install.packages</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;devtools&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;pkgload&quot;</span><span class="p">))</span>
-<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span><span class="s">&quot;immunomind/immundata&quot;</span><span class="p">)</span>
-<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">reload</span><span class="p">(</span><span class="n">pkgload</span><span class="o">::</span><span class="nf">inst</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">))</span>
-<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a>
-<a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="c1"># Development version</span>
-<a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span><span class="s">&quot;immunomind/immundata&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;dev&quot;</span><span class="p">)</span>
-<a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">reload</span><span class="p">(</span><span class="n">pkgload</span><span class="o">::</span><span class="nf">inst</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="c1"># CRAN release</span>
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a>
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a><span class="c1"># GitHub release</span>
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a><span class="nf">install.packages</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">"devtools"</span><span class="p">,</span><span class="w"> </span><span class="s">"pkgload"</span><span class="p">))</span>
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span><span class="s">"immunomind/immundata"</span><span class="p">)</span>
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">reload</span><span class="p">(</span><span class="n">pkgload</span><span class="o">::</span><span class="nf">inst</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">))</span>
+<a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a>
+<a id="__codelineno-48-9" name="__codelineno-48-9" href="#__codelineno-48-9"></a><span class="c1"># Development version</span>
+<a id="__codelineno-48-10" name="__codelineno-48-10" href="#__codelineno-48-10"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span><span class="s">"immunomind/immundata"</span><span class="p">,</span><span class="w"> </span><span class="n">ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span>
+<a id="__codelineno-48-11" name="__codelineno-48-11" href="#__codelineno-48-11"></a><span class="n">devtools</span><span class="o">::</span><span class="nf">reload</span><span class="p">(</span><span class="n">pkgload</span><span class="o">::</span><span class="nf">inst</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">))</span>
 </code></pre></div>
 </li>
 <li>

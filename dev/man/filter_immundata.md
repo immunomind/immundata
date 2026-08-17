@@ -1,24 +1,22 @@
 
 
-# Filter ImmunData by receptor features, barcodes or any annotations
-
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_filter.R#L146)
+# Keep selected rows or receptors in ImmunData
 
 ## Description
 
-Provides flexible filtering options for an <code>ImmunData</code>
-object.
+Use <code>filter()</code> to keep selected rows in an ImmunData object.
+For example, you can keep rows from one response group, rows using a
+selected V gene, or receptors containing a CDR3 sequence similar to a
+reference sequence.
 
-<code>filter()</code> is the main function, allowing filtering based on
-receptor features (e.g., CDR3 sequence) using various matching methods
-(exact, regex, fuzzy) and/or standard <code>dplyr</code>-style filtering
-on annotation columns.
+The function returns a new ImmunData object. The original object is not
+changed.
 
-<code>filter_barcodes()</code> is a convenience function to filter by
-specific cell barcodes.
+This function is a direct implementation of dplyr::filter. Alternative
+function name is <code>filter_immundata</code>.
 
-<code>filter_receptors()</code> is a convenience function to filter by
-specific receptor identifiers.
+Use <code>filter_barcodes()</code> to keep selected cell barcodes and
+<code>filter_receptors()</code> to keep selected receptor identifiers.
 
 ## Usage
 
@@ -47,7 +45,7 @@ filter_receptors(idata, receptors, keep_repertoires = TRUE)
 <code id="idata">idata</code>, <code id=".data">.data</code>
 </td>
 <td>
-An <code>ImmunData</code> object.
+An ImmunData object.
 </td>
 </tr>
 <tr>
@@ -55,12 +53,9 @@ An <code>ImmunData</code> object.
 <code id="...">…</code>
 </td>
 <td>
-For <code>filter</code>, these are regular <code>dplyr</code>-style
-filtering expressions (e.g., <code>V_gene == “IGHV1-1”</code>,
-<code>chain == “IGH”</code>) applied to the
-<code style="white-space: pre;">$annotations</code> table
-<em>before</em> sequence filtering. Ignored by
-<code>filter_barcodes</code> and <code>filter_receptors</code>.
+One or more conditions used to keep rows. Refer to annotation columns
+directly by name. Multiple conditions are combined with <code>&</code>.
+Conditions are applied before sequence matching.
 </td>
 </tr>
 <tr>
@@ -68,52 +63,9 @@ filtering expressions (e.g., <code>V_gene == “IGHV1-1”</code>,
 <code id="seq_options">seq_options</code>
 </td>
 <td>
-
-For <code>filter</code>, an optional named list specifying
-sequence-based filtering options. Use <code>make_seq_options()</code>
-for convenient creation. The list can contain:
-
-<ul>
-<li>
-
-<code>query_col</code> (Character scalar): The name of the column in
-<code style="white-space: pre;">$annotations</code> containing sequences
-to compare (e.g., <code>“CDR3_aa”</code>, <code>“FR1_nt”</code>).
-
-</li>
-<li>
-
-<code>patterns</code> (Character vector): A vector of sequences or
-regular expressions to match against <code>query_col</code>.
-
-</li>
-<li>
-
-<code>method</code> (Character scalar): The matching method. One of
-<code>“exact”</code>, <code>“regex”</code>, <code>“lev”</code>
-(Levenshtein distance), or <code>“hamm”</code> (Hamming distance).
-Defaults typically handled by <code>make_seq_options</code>.
-
-</li>
-<li>
-
-<code>max_dist</code> (Numeric scalar): For fuzzy methods
-(<code>“lev”</code>, <code>“hamm”</code>), the maximum allowed distance.
-Rows with distance \<= <code>max_dist</code> are kept. Defaults
-typically handled by <code>make_seq_options</code>.
-
-</li>
-<li>
-
-<code>name_type</code> (Character scalar): Determines column names in
-intermediate distance calculations if applicable (<code>“index”</code>
-or <code>“pattern”</code>). Passed through to internal annotation
-functions. Defaults typically handled by <code>make_seq_options</code>.
-If <code>seq_options</code> is <code>NULL</code> (the default), no
-sequence-based filtering is performed.
-
-</li>
-</ul>
+Options for matching sequences with reference sequences or patterns.
+Create these options with <code>make_seq_options()</code>. If
+<code>NULL</code>, the default, no sequence matching is performed.
 </td>
 </tr>
 <tr>
@@ -121,32 +73,19 @@ sequence-based filtering is performed.
 <code id="keep_repertoires">keep_repertoires</code>
 </td>
 <td>
-Logical scalar. If <code>TRUE</code> (the default) and the input
-<code>idata</code> has repertoire information
-(<code>idata$schema_repertoire</code> is not <code>NULL</code>), the
-repertoire summaries will be recalculated based on the filtered data
-using <code>agg_repertoires()</code>. If the input has strata, they are
-rebuilt from the existing strata schema and existing labels are
-retained. If <code>FALSE</code>, or if no repertoire schema exists, the
-returned <code>ImmunData</code> object will not contain repertoire
-summaries (<code style="white-space: pre;">$repertoires</code> will be
-<code>NULL</code>).
+If <code>TRUE</code>, the default, existing repertoire and strata
+summaries are recalculated from the filtered data. If
+<code>FALSE</code>, the returned object does not contain these
+summaries.
 </td>
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id=".by">.by</code>
+<code id=".by">.by</code>, <code id=".preserve">.preserve</code>
 </td>
 <td>
-Not used.
-</td>
-</tr>
-<tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id=".preserve">.preserve</code>
-</td>
-<td>
-Not used.
+Accepted for compatibility with <code>dplyr::filter()</code>, but
+currently not used for ImmunData objects.
 </td>
 </tr>
 <tr>
@@ -154,8 +93,8 @@ Not used.
 <code id="barcodes">barcodes</code>
 </td>
 <td>
-For <code>filter_barcodes</code>, a vector of cell identifiers
-(barcodes) to keep. Can be character, integer, or numeric.
+A character, integer, or numeric vector of cell barcodes to keep with
+<code>filter_barcodes()</code>.
 </td>
 </tr>
 <tr>
@@ -163,164 +102,223 @@ For <code>filter_barcodes</code>, a vector of cell identifiers
 <code id="receptors">receptors</code>
 </td>
 <td>
-For <code>filter_receptors</code>, a vector of receptor identifiers to
-keep. Can be character, integer, or numeric.
+A character, integer, or numeric vector of receptor identifiers to keep
+with <code>filter_receptors()</code>.
 </td>
 </tr>
 </table>
 
 ## Details
 
-For <code>filter</code>:
+You can filter an ImmunData object in three ways:
 
 <ul>
 <li>
 
-User-provided <code>dplyr</code>-style filters (<code>…</code>) are
-applied <em>before</em> any sequence-based filtering defined in
-<code>seq_options</code>.
+Supply conditions in <code>…</code> to filter using annotation columns.
+Refer to columns directly by name. For example, <code>Response ==
+“FR”</code> keeps rows from the <code>FR</code> response group.
 
 </li>
 <li>
 
-Sequence filtering compares values in the <code>query_col</code> of the
-annotations table against the provided <code>patterns</code>.
+Supply <code>seq_options</code>, created with
+<code>make_seq_options()</code>, to find receptors containing a sequence
+that matches one or more reference sequences or patterns.
 
 </li>
 <li>
 
-Supported sequence matching methods are:
+Use <code>filter_barcodes()</code> or <code>filter_receptors()</code>
+when you already have the identifiers that you want to keep.
+
+</li>
+</ul>
+
+Conditions in <code>…</code> are applied before sequence matching.
+Sequence matching then identifies receptors from the remaining rows.
+When one chain matches, all remaining chains belonging to the same
+receptor are kept. A chain removed by a condition in <code>…</code> is
+not added back by sequence matching.
+
+Sequence matching methods are:
 
 <ul>
 <li>
 
-<code>“exact”</code>: Keeps rows where <code>query_col</code> exactly
-matches any of the <code>patterns</code>.
+<code>“exact”</code>: the sequence must be identical to one of the
+references.
 
 </li>
 <li>
 
-<code>“regex”</code>: Keeps rows where <code>query_col</code> matches
-any of the regular expressions in <code>patterns</code>.
+<code>“regex”</code>: the sequence must match a regular-expression
+pattern. This is an advanced option for matching text patterns.
 
 </li>
 <li>
 
-<code>“lev”</code> (Levenshtein distance): Keeps rows where the edit
-distance between <code>query_col</code> and any pattern is less than or
-equal to <code>max_dist</code>.
+<code>“lev”</code>: the Levenshtein distance counts the substitutions,
+insertions, or deletions needed to change one sequence into the other.
 
 </li>
 <li>
 
-<code>“hamm”</code> (Hamming distance): Keeps rows where the Hamming
-distance (for equal length strings) between <code>query_col</code> and
-any pattern is less than or equal to <code>max_dist</code>.
-
-</li>
-</ul>
-</li>
-<li>
-
-The filtering operations act on the
-<code style="white-space: pre;">$annotations</code> table. A new
-<code>ImmunData</code> object is created containing only the rows (and
-corresponding receptors) that pass the filter(s).
-
-</li>
-<li>
-
-If <code>keep_repertoires = TRUE</code> (and repertoire data exists in
-the input), the repertoire-level summaries
-(<code style="white-space: pre;">$repertoires</code> table) are
-recalculated based on the filtered annotations. Otherwise, the
-<code style="white-space: pre;">$repertoires</code> table in the output
-will be <code>NULL</code>.
+<code>“hamm”</code>: the Hamming distance counts different positions
+between sequences of the same length. Sequences of different lengths do
+not match.
 
 </li>
 </ul>
 
-For <code>filter_barcodes</code> and <code>filter_receptors</code>:
+For <code>“lev”</code> and <code>“hamm”</code>, provide
+<code>max_dist</code>. A sequence is accepted when its distance from at
+least one reference is less than or equal to this value. A distance of
+<code>0</code> means an exact match, and smaller values mean more
+similar sequences.
 
-<ul>
-<li>
-
-These functions provide a simpler interface for common filtering tasks
-based on cell barcodes or receptor IDs, respectively. They use efficient
-<code>semi_join</code> operations internally.
-
-</li>
-</ul>
+By default, existing repertoire summaries are recalculated from the
+filtered data. Existing strata are also rebuilt, and their labels are
+retained. Set <code>keep_repertoires = FALSE</code> to return an object
+without repertoire or strata summaries.
 
 ## Value
 
-A new <code>ImmunData</code> object containing only the filtered
-annotations (and potentially recalculated repertoire summaries). The
-schema remains the same.
+A new ImmunData object containing the selected rows and receptors. If
+requested, repertoire and strata summaries are recalculated for the
+selected data.
 
 ## See Also
 
-<code>make_seq_options()</code>, <code>dplyr::filter()</code>,
-<code>agg_repertoires()</code>, ImmunData
+<code>dplyr::filter()</code>, <code>make_seq_options()</code>,
+<code>mutate_immundata()</code>, <code>agg_repertoires()</code>,
+ImmunData
 
 ## Examples
 
 ``` r
 library("immundata")
 
-# Basic setup (assuming idata_test is a valid ImmunData object)
-# print(idata_test)
+library(immundata)
+library(dplyr)
 
-# --- filter examples ---
-# Example 1: dplyr-style filtering on annotations
-filtered_heavy <- filter(idata_test, chain == "IGH")
-print(filtered_heavy)
+options(immundata.verbose = FALSE)
 
-# Example 2: Exact sequence matching on CDR3 amino acid sequence
-cdr3_patterns <- c("CARGLGLVFYGMDVW", "CARDNRGAVAGVFGEAFYW")
-seq_opts_exact <- make_seq_options(query_col = "CDR3_aa", patterns = cdr3_patterns)
-filtered_exact_cdr3 <- filter(idata_test, seq_options = seq_opts_exact)
-print(filtered_exact_cdr3)
+# Load data included with immundata
+idata <- get_test_idata()
 
-# Example 3: Combining dplyr-style and fuzzy sequence matching (Levenshtein)
-seq_opts_lev <- make_seq_options(
-  query_col = "CDR3_aa",
-  patterns = "CARGLGLVFYGMDVW",
-  method = "lev",
-  max_dist = 1
-)
-filtered_combined <- filter(idata_test,
-  chain == "IGH",
-  C_gene == "IGHG1",
-  seq_options = seq_opts_lev
-)
-print(filtered_combined)
+# Keep rows from one response group
+fr_response <- idata |>
+  filter(Response == "FR")
 
-# Example 4: Regex matching on V gene
-v_gene_pattern <- "^IGHV[13]-" # Keep only IGHV1 or IGHV3 families
-seq_opts_regex <- make_seq_options(
-  query_col = "V_gene",
-  patterns = v_gene_pattern,
-  method = "regex"
-)
-filtered_regex_v <- filter(idata_test, seq_options = seq_opts_regex)
-print(filtered_regex_v)
+fr_response |>
+  collect() |>
+  summarise(
+    n_rows = n(),
+    n_receptors = n_distinct(imd_receptor_id)
+  )
+```
 
-# Example 5: Filtering without recalculating repertoires
-filtered_no_rep <- filter(idata_test, chain == "IGK", keep_repertoires = FALSE)
-print(filtered_no_rep) # $repertoires should be NULL
+    #> # A tibble: 1 × 2
+    #>   n_rows n_receptors
+    #> *  <int>       <dbl>
+    #> 1    955         871
 
+``` r
+# Expected result:
+#   n_rows n_receptors
+#      955         871
 
-# --- filter_barcodes example ---
-# Assuming 'cell1_barcode' and 'cell5_barcode' exist in idata_test$annotations$cell_id
-specific_barcodes <- c("cell1_barcode", "cell5_barcode")
-filtered_cells <- filter_barcodes(idata_test, barcodes = specific_barcodes)
-print(filtered_cells)
+# Keep receptors containing one reference CDR3 sequence
+reference_cdr3 <- "ASFPVLSPYNEQF"
 
+exact_match <- idata |>
+  filter(
+    seq_options = make_seq_options(
+      query_col = "cdr3_aa",
+      patterns = reference_cdr3,
+      method = "exact"
+    )
+  )
 
-# --- filter_receptors example ---
-# Assuming receptor IDs 101 and 205 exist in idata_test$annotations$receptor_id
-specific_receptors <- c(101, 205) # Or character IDs if applicable
-filtered_recs <- filter_receptors(idata_test, receptors = specific_receptors)
-print(filtered_recs)
+exact_match |>
+  collect() |>
+  select(cdr3_aa, v_call, Response)
+```
+
+    #> # A tibble: 1 × 3
+    #>   cdr3_aa       v_call    Response
+    #> * <chr>         <chr>     <chr>   
+    #> 1 ASFPVLSPYNEQF TRBV28*01 FR
+
+``` r
+# Expected result:
+#   cdr3_aa       v_call    Response
+#   ASFPVLSPYNEQF TRBV28*01 FR
+
+# Keep receptors within four sequence changes of the reference
+similar_sequences <- idata |>
+  filter(
+    seq_options = make_seq_options(
+      query_col = "cdr3_aa",
+      patterns = reference_cdr3,
+      method = "lev",
+      max_dist = 4
+    )
+  )
+
+similar_sequences |>
+  collect() |>
+  distinct(cdr3_aa) |>
+  arrange(cdr3_aa)
+```
+
+    #> # A tibble: 4 × 1
+    #>   cdr3_aa      
+    #> * <chr>        
+    #> 1 ASFPVLSPYNEQF
+    #> 2 ASSPDSPSYNEQF
+    #> 3 ASSPGLAAYNEQF
+    #> 4 ASSPTLYNEQF
+
+``` r
+# Expected result:
+#   cdr3_aa
+#   ASFPVLSPYNEQF
+#   ASSPDSPSYNEQF
+#   ASSPGLAAYNEQF
+#   ASSPTLYNEQF
+
+# Keep two selected cell barcodes
+selected_barcodes <- c("S1_1", "S1_2")
+
+selected_cells <- idata |>
+  filter_barcodes(selected_barcodes)
+
+selected_cells |>
+  collect() |>
+  distinct(imd_barcode)
+```
+
+    #> # A tibble: 2 × 1
+    #>   imd_barcode
+    #> * <chr>      
+    #> 1 S1_1       
+    #> 2 S1_2
+
+``` r
+# Expected result:
+#   imd_barcode
+#   S1_1
+#   S1_2
+
+# The same approach can keep selected receptor identifiers
+selected_receptors <- idata |>
+  collect() |>
+  distinct(imd_receptor_id) |>
+  slice_head(n = 2) |>
+  pull(imd_receptor_id)
+
+selected_receptors_data <- idata |>
+  filter_receptors(selected_receptors)
 ```

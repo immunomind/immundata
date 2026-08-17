@@ -2,8 +2,6 @@
 
 # Save ImmunData to disk
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_immundata_write.R#L99)
-
 ## Description
 
 Serializes the essential components of an <code>ImmunData</code> object

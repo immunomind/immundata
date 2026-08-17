@@ -1,23 +1,17 @@
 
 
-# Read and process immune repertoire files to immundata
-
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_repertoires_read.R#L246)
+# Read immune repertoire files into ImmunData
 
 ## Description
 
-This is the main function for reading immune repertoire data into the
-<code>immundata</code> framework. It reads one or more repertoire files
-(AIRR TSV, 10X CSV, Parquet), performs optional preprocessing and column
-renaming, aggregates sequences into receptors based on a provided
-schema, optionally joins manifest annotations, performs optional
-postprocessing, and returns an <code>ImmunData</code> object.
+<code>read_repertoires()</code> is the main function for importing
+AIRR-seq data. It reads one or more repertoire files, defines biological
+receptors, adds sample information from an optional manifest, and
+returns an ImmunData object.
 
-The function handles different data types (bulk, single-cell) based on
-the presence of <code>barcode_col</code> and <code>count_col</code>. For
-efficiency with large datasets, it processes the data and saves
-intermediate results (annotations) as a Parquet file before loading them
-back into the final <code>ImmunData</code> object.
+The function saves the processed data in <code>output_folder</code>.
+This lets you work with large datasets without loading everything into
+memory and reopen the result later with <code>read_immundata()</code>.
 
 ## Usage
 
@@ -48,13 +42,15 @@ back into the final <code>ImmunData</code> object.
 <code id="path">path</code>
 </td>
 <td>
-Character vector. Path(s) to input repertoire files (e.g.,
-<code>“/path/to/data/\*.tsv.gz”</code>). Supports glob patterns via
-<code>Sys.glob()</code>. Files can be Parquet, CSV, TSV, or gzipped
-versions thereof. All files must be of the same type. Alternatively,
-pass the special string <code>“\<manifest\>”</code> to read file paths
-from the <code>manifest</code> table (see <code>manifest</code> and
-<code>manifest_file_col</code> params).
+
+One or more repertoire file paths, or a glob pattern such as
+<code>“/path/to/data/\*.tsv.gz”</code>. Supported formats are Parquet,
+CSV, TSV, and gzipped CSV or TSV. All input files must have the same
+file type.
+
+Use <code>“\<manifest\>”</code> to take file paths from
+<code>manifest</code> instead. In that case, <code>manifest</code> is
+required.
 </td>
 </tr>
 <tr>
@@ -63,24 +59,27 @@ from the <code>manifest</code> table (see <code>manifest</code> and
 </td>
 <td>
 
-Defines how unique receptors are identified. Can be:
+Definition of receptor identity. Supply either:
 
 <ul>
 <li>
 
-A character vector of column names (e.g., <code>c(“v_call”, “j_call”,
-“junction_aa”)</code>).
+A character vector naming the features that must match, such as
+<code>c(“v_call”, “j_call”, “junction_aa”)</code>.
 
 </li>
 <li>
 
-A schema object created by <code>make_receptor_schema()</code>, allowing
-specification of chains for pairing (e.g.,
-<code>make_receptor_schema(features = c(“v_call”, “junction_aa”), chains
-= c(“TRA”, “TRB”))</code>).
+An object created by <code>make_receptor_schema()</code> to select one
+locus or pair two loci from the same cell.
 
 </li>
 </ul>
+Use column names as they appear <em>after</em>
+<code>rename_columns</code> is applied. For example, if the input
+columns are <code>CDR3.aa</code> and <code>V.name</code>, use
+<code>rename_columns = c(cdr3_aa = “CDR3.aa”, v_call = “V.name”)</code>
+together with <code>schema = c(“cdr3_aa”, “v_call”)</code>.
 </td>
 </tr>
 <tr>
@@ -88,11 +87,12 @@ specification of chains for pairing (e.g.,
 <code id="manifest">manifest</code>
 </td>
 <td>
-Optional. A data frame containing per-file annotations to be joined with
-the repertoire data, read by <code>read_manifest()</code> function. If
-<code>path = “\<manifest\>”</code>, this table <em>must</em> be provided
-and contain the file paths column specified by
-<code>manifest_file_col</code>. Default: <code>NULL</code>.
+An optional data frame with one row per repertoire file and columns
+containing sample, donor, tissue, treatment, or other information. Use
+<code>read_manifest()</code> to read and validate a manifest file.
+Manifest paths must be unique. When <code>path = “\<manifest\>”</code>,
+the column named by <code>manifest_file_col</code> supplies the
+repertoire file paths. The default is <code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -100,10 +100,10 @@ and contain the file paths column specified by
 <code id="barcode_col">barcode_col</code>
 </td>
 <td>
-Character(1). Name of the column containing cell barcodes or other
-unique cell/clone identifiers for single-cell data. Triggers single-cell
-processing logic in <code>agg_receptors()</code>. Default:
-<code>NULL</code>.
+Name of the column containing cell barcodes. Supplying it selects
+single-cell processing, requires <code>umi_col</code>, and prevents use
+of <code>count_col</code>. Use the column name after renaming. The
+default is <code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -111,10 +111,9 @@ processing logic in <code>agg_receptors()</code>. Default:
 <code id="count_col">count_col</code>
 </td>
 <td>
-Character(1). Name of the column containing UMI counts or frequency
-counts for bulk sequencing data. Triggers bulk processing logic in
-<code>agg_receptors()</code>. Default: <code>NULL</code>. Cannot be
-specified if <code>barcode_col</code> is also specified.
+Name of the column containing non-negative abundance values for bulk
+repertoire data. It cannot be used with <code>barcode_col</code>. Use
+the column name after renaming. The default is <code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -122,9 +121,10 @@ specified if <code>barcode_col</code> is also specified.
 <code id="locus_col">locus_col</code>
 </td>
 <td>
-Character(1). Name of the column specifying the receptor chain locus
-(e.g., "TRA", "TRB", "IGH", "IGK", "IGL"). Required if
-<code>schema</code> specifies chains for pairing. Default:
+Name of the column containing receptor loci such as <code>“TRA”</code>,
+<code>“TRB”</code>, <code>“IGH”</code>, <code>“IGK”</code>, or
+<code>“IGL”</code>. It is required when <code>schema</code> selects or
+pairs chains. Use the column name after renaming. The default is
 <code>NULL</code>.
 </td>
 </tr>
@@ -133,10 +133,11 @@ Character(1). Name of the column specifying the receptor chain locus
 <code id="umi_col">umi_col</code>
 </td>
 <td>
-Character(1). Name of the column containing UMI counts for single-cell
-data. Required when <code>barcode_col</code> is used. It is used to
-select the most abundant chain within a barcode (and within a locus for
-paired-chain schemas). Default: <code>NULL</code>.
+Name of the column containing per-chain UMI or read counts. It is
+required whenever <code>barcode_col</code> is supplied and is used to
+choose one chain when a cell contains several chains from the same
+locus. Use the column name after renaming. The default is
+<code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -144,12 +145,13 @@ paired-chain schemas). Default: <code>NULL</code>.
 <code id="preprocess">preprocess</code>
 </td>
 <td>
-List. A named list of functions to apply sequentially to the raw data
-<em>before</em> receptor aggregation. Each function should accept a data
-frame (or duckplyr_df) as its first argument. See
-<code>make_default_preprocessing()</code> for examples. Default:
-<code>make_default_preprocessing()</code>. Set to <code>NULL</code> or
-<code>list()</code> to disable.
+A named list of functions applied in order before receptors are defined.
+Each function must accept a duckplyr table as its first argument and
+return a duckplyr table. By default,
+<code>make_default_preprocessing()</code> removes selected technical
+columns and keeps productive sequences when a <code>productive</code>
+column is available. Use <code>NULL</code> or <code>list()</code> to
+disable preprocessing.
 </td>
 </tr>
 <tr>
@@ -157,12 +159,12 @@ frame (or duckplyr_df) as its first argument. See
 <code id="postprocess">postprocess</code>
 </td>
 <td>
-List. A named list of functions to apply sequentially to the annotation
-data <em>after</em> receptor aggregation and manifest joining. Each
-function should accept a data frame (or duckplyr_df) as its first
-argument. See <code>make_default_postprocessing()</code> for examples.
-Default: <code>make_default_postprocessing()</code>. Set to
-<code>NULL</code> or <code>list()</code> to disable.
+A named list of functions applied in order after receptors are defined
+and manifest information is added. Each function must accept and return
+a duckplyr table. By default, <code>make_default_postprocessing()</code>
+prefixes cell barcodes when the manifest contains a <code>Prefix</code>
+column. Use <code>NULL</code> or <code>list()</code> to disable
+postprocessing.
 </td>
 </tr>
 <tr>
@@ -170,12 +172,13 @@ Default: <code>make_default_postprocessing()</code>. Set to
 <code id="rename_columns">rename_columns</code>
 </td>
 <td>
-Named character vector. Optional mapping to rename columns in the input
-files using <code>dplyr::rename()</code> syntax (e.g., <code>c(new_name
-= “old_name”, barcode = “cell_id”)</code>). Renaming happens
-<em>before</em> preprocessing and schema application. See
-<code>imd_rename_cols()</code> for presets. Default:
-<code>imd_rename_cols(“10x”)</code>.
+An optional named character vector in the form <code>c(new_name =
+“old_name”)</code>. Renaming occurs before preprocessing and receptor
+definition. The default, <code>imd_rename_cols(“10x”)</code>,
+standardizes common 10x names such as <code>v_gene</code> to
+<code>v_call</code> and <code>chain</code> to <code>locus</code> when
+those source columns are present. Use <code>NULL</code> to preserve all
+input names.
 </td>
 </tr>
 <tr>
@@ -183,10 +186,10 @@ files using <code>dplyr::rename()</code> syntax (e.g., <code>c(new_name
 <code id="enforce_schema">enforce_schema</code>
 </td>
 <td>
-Logical(1). If <code>TRUE</code> (default), reading multiple files
-requires them to have the exact same columns and types. If
-<code>FALSE</code>, columns are unioned across files (potentially
-slower, requires more memory). Default: <code>TRUE</code>.
+Whether multiple input files must have the same columns and column
+types. The default is <code>TRUE</code>. If <code>FALSE</code>, columns
+are combined by name and missing values are added where necessary. This
+is slower and can require more memory.
 </td>
 </tr>
 <tr>
@@ -194,9 +197,10 @@ slower, requires more memory). Default: <code>TRUE</code>.
 <code id="manifest_file_col">manifest_file_col</code>
 </td>
 <td>
-Character(1). The name of the column in the <code>manifest</code> table
-that contains the full paths to the repertoire files. Only used when
-<code>path = “\<manifest\>”</code>. Default: <code>“file”</code>.
+Name of the manifest column containing repertoire file paths when
+<code>path = “\<manifest\>”</code>. The default is <code>“file”</code>.
+Use the same name passed as <code>file_col</code> to
+<code>read_manifest()</code> when it is not <code>“file”</code>.
 </td>
 </tr>
 <tr>
@@ -204,14 +208,13 @@ that contains the full paths to the repertoire files. Only used when
 <code id="output_folder">output_folder</code>
 </td>
 <td>
-Character(1). Path to a directory where intermediate processed
-annotation data will be saved as <code>annotations.parquet</code> and
-<code>metadata.json</code>. If <code>NULL</code> (default), a folder
-named
-<code style="white-space: pre;">immundata-\<basename_without_ext\></code>
-is created in the same directory as the first input file specified in
-<code>path</code>. The final <code>ImmunData</code> object reads from
-these saved files. Default: <code>NULL</code>.
+Directory in which to write <code>annotations.parquet</code> and
+<code>metadata.json</code>. These files are the persistent backing
+storage for the returned object. If <code>NULL</code>, a folder
+beginning with <code style="white-space: pre;">immundata-</code> is
+created beside the first input file. Supplying an existing folder
+replaces its <code>annotations.parquet</code> and
+<code>metadata.json</code>. The default is <code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -219,14 +222,35 @@ these saved files. Default: <code>NULL</code>.
 <code id="repertoire_schema">repertoire_schema</code>
 </td>
 <td>
-Character vector, Function, <code>NULL</code>, or a special string.
-Defines columns used to group annotations into distinct repertoires
-(e.g., by sample or donor). <code>“\<manifest\>”</code> means group by
-input file / manifest row. <code>“\<auto\>”</code> chooses
-<code>“\<manifest\>”</code> behavior when <code>path =
-“\<manifest\>”</code>, otherwise it groups by the internal input
-filename column. If <code>NULL</code>, no repertoires are created.
-Default: <code>“\<auto\>”</code>.
+
+Definition of repertoires. Supply one of:
+
+<ul>
+<li>
+
+A character vector naming columns that define one repertoire, such as
+<code>c(“donor”, “timepoint”)</code>.
+
+</li>
+<li>
+
+<code>“\<auto\>”</code>, the default. This creates one repertoire per
+input file, or one per manifest row when <code>path =
+“\<manifest\>”</code>.
+
+</li>
+<li>
+
+<code>“\<manifest\>”</code>, which uses all manifest columns when a
+manifest is available, or the input filename otherwise.
+
+</li>
+<li>
+
+<code>NULL</code> to leave repertoires undefined.
+
+</li>
+</ul>
 </td>
 </tr>
 <tr>
@@ -234,7 +258,7 @@ Default: <code>“\<auto\>”</code>.
 <code id="verbose">verbose</code>
 </td>
 <td>
-Logical(1). Whether to print informative messages. Defaults to
+Whether to print progress and summary messages. Defaults to
 <code>getOption(“immundata.verbose”, TRUE)</code>.
 </td>
 </tr>
@@ -242,177 +266,301 @@ Logical(1). Whether to print informative messages. Defaults to
 
 ## Details
 
-The function executes the following steps:
+The required arguments depend on how receptor observations are
+represented in the input files.
+
+## Value
+
+A disk-backed ImmunData object containing the retained chain rows,
+receptor definitions, manifest annotations, and ingestion provenance. If
+<code>repertoire_schema</code> is not <code>NULL</code>, it also
+contains repertoire definitions and summary statistics calculated by
+<code>agg_repertoires()</code>.
+
+## Choose arguments for your data
+
+<ul>
+<li>
+
+<strong>Uncounted repertoire table:</strong> Supply <code>schema</code>.
+Leave <code>barcode_col</code> and <code>count_col</code> as
+<code>NULL</code>. Each retained row represents one observed chain.
+
+</li>
+<li>
+
+<strong>Bulk repertoire with abundance:</strong> Supply
+<code>schema</code> and <code>count_col</code>. The abundance values are
+preserved for later repertoire statistics.
+
+</li>
+<li>
+
+<strong>Single-cell, one selected chain:</strong> Use
+<code>make_receptor_schema()</code> with one chain and supply
+<code>barcode_col</code>, <code>locus_col</code>, and
+<code>umi_col</code>.
+
+</li>
+<li>
+
+<strong>Single-cell, paired chains:</strong> Use
+<code>make_receptor_schema()</code> with two chains and supply
+<code>barcode_col</code>, <code>locus_col</code>, and
+<code>umi_col</code>. Only cells containing both requested chains are
+retained.
+
+</li>
+<li>
+
+<strong>Single-cell, relaxed paired chains:</strong> Use a schema such
+as <code>chains = c(“IGH”, “IGL|IGK”)</code> with
+<code>barcode_col</code>, <code>locus_col</code>, and
+<code>umi_col</code>. This accepts either an IGH-IGL or IGH-IGK
+receptor.
+
+</li>
+</ul>
+
+In single-cell data, the chain with the highest <code>umi_col</code>
+value is retained when a cell contains several chains from the same
+locus.
+
+## What happens by default
+
+Unless you override the relevant arguments,
+<code>read_repertoires()</code>:
+
+<ul>
+<li>
+
+standardizes common 10x column names;
+
+</li>
+<li>
+
+removes selected technical columns;
+
+</li>
+<li>
+
+keeps productive sequences when productivity information is present;
+
+</li>
+<li>
+
+prefixes barcodes when a manifest <code>Prefix</code> column is present;
+
+</li>
+<li>
+
+creates repertoires automatically; and
+
+</li>
+<li>
+
+writes the completed dataset to disk.
+
+</li>
+</ul>
+
+Set <code>rename_columns</code>, <code>preprocess</code>,
+<code>postprocess</code>, or <code>repertoire_schema</code> to
+<code>NULL</code> to disable the corresponding behavior.
+
+## Processing order
+
+The function:
 
 <ol>
 <li>
 
-Validates inputs.
+finds and reads the input files as one duckplyr table;
 
 </li>
 <li>
 
-Determines the list of input files based on <code>path</code> and
-<code>manifest</code>. Checks file extensions.
+renames columns;
 
 </li>
 <li>
 
-Reads data using <code>duckplyr</code> (<code>read_parquet_duckdb</code>
-or <code>read_csv_duckdb</code>). Handles <code>.gz</code>.
+applies preprocessing;
 
 </li>
 <li>
 
-Applies column renaming if <code>rename_columns</code> is provided.
+defines receptors using <code>schema</code>;
 
 </li>
 <li>
 
-Applies preprocessing steps sequentially if <code>preprocess</code> is
-provided.
+adds manifest information;
 
 </li>
 <li>
 
-Aggregates sequences into receptors using <code>agg_receptors()</code>,
-based on <code>schema</code>, <code>barcode_col</code>,
-<code>count_col</code>, <code>locus_col</code>, and
-<code>umi_col</code>. This creates the core annotation table.
+applies postprocessing;
 
 </li>
 <li>
 
-Joins the <code>manifest</code> table if provided.
+defines repertoires when requested; and
 
 </li>
 <li>
 
-Applies postprocessing steps sequentially if <code>postprocess</code> is
-provided.
-
-</li>
-<li>
-
-Creates a temporary <code>ImmunData</code> object in memory.
-
-</li>
-<li>
-
-Determines the <code>output_folder</code> path.
-
-</li>
-<li>
-
-If <code>repertoire_schema</code> resolves to columns, calls
-<code>agg_repertoires()</code> to define and summarize repertoires.
-
-</li>
-<li>
-
-Saves the processed annotation table and metadata using
-<code>write_immundata()</code> to the <code>output_folder</code>.
-
-</li>
-<li>
-
-Loads the data back from the saved Parquet files using
-<code>read_immundata()</code> to create the final <code>ImmunData</code>
-object. This ensures the returned object is backed by efficient storage.
-
-</li>
-<li>
-
-Returns the final <code>ImmunData</code> object.
+writes and reopens the completed ImmunData dataset.
 
 </li>
 </ol>
 
-## Value
+## Manifests and repertoires
 
-An <code>ImmunData</code> object containing the processed receptor
-annotations. If <code>repertoire_schema</code> resolves to columns, the
-object will also contain repertoire definitions and summaries calculated
-by <code>agg_repertoires()</code>.
+A manifest <em>annotates</em> each input file with biological
+information. The <code>repertoire_schema</code> argument chooses which
+annotation columns <em>define a repertoire</em> and therefore determine
+receptor counts and proportions.
+
+With <code>path = “\<manifest\>”</code> and the default
+<code>repertoire_schema = “\<auto\>”</code>, all manifest columns are
+used and each manifest row becomes one repertoire. With an explicit file
+path or vector of paths, <code>“\<auto\>”</code> creates one repertoire
+per input file.
+
+## Output storage
+
+The output folder is not a temporary cache. The returned object reads
+its receptor annotations from <code>annotations.parquet</code>, while
+<code>metadata.json</code> stores its schemas, repertoire summaries, and
+provenance. Keep this folder for as long as you need the object, or
+reopen it later with <code>read_immundata()</code>.
+
+<strong>Important:</strong> Reusing the same <code>output_folder</code>
+replaces the existing <code>annotations.parquet</code> and
+<code>metadata.json</code> without creating a new version.
 
 ## See Also
 
-ImmunData, <code>read_immundata()</code>,
-<code>write_immundata()</code>, <code>read_manifest()</code>,
+<code>read_manifest()</code>, <code>make_receptor_schema()</code>,
 <code>agg_receptors()</code>, <code>agg_repertoires()</code>,
-<code>make_receptor_schema()</code>,
 <code>make_default_preprocessing()</code>,
-<code>make_default_postprocessing()</code>
+<code>make_default_postprocessing()</code>,
+<code>read_immundata()</code>, <code>write_immundata()</code>, ImmunData
 
 ## Examples
 
 ``` r
 library("immundata")
 
-#
-# Example 1: single-chain, one file
-#
-# Read a single AIRR TSV file, defining receptors by V/J/CDR3_aa
-# Assume "my_sample.tsv" exists and follows AIRR format
+library(immundata)
+library(dplyr)
 
-# Create a dummy file for illustration
-airr_data <- data.frame(
-  sequence_id = paste0("seq", 1:5),
-  v_call = c("TRBV1", "TRBV1", "TRBV2", "TRBV1", "TRBV3"),
-  j_call = c("TRBJ1", "TRBJ1", "TRBJ2", "TRBJ1", "TRBJ1"),
-  junction_aa = c("CASSL...", "CASSL...", "CASSD...", "CASSL...", "CASSF..."),
-  productive = c(TRUE, TRUE, TRUE, FALSE, TRUE),
-  locus = c("TRB", "TRB", "TRB", "TRB", "TRB")
-)
-readr::write_tsv(airr_data, "my_sample.tsv")
+options(immundata.verbose = FALSE)
 
-# Define receptor schema
-receptor_def <- c("v_call", "j_call", "junction_aa")
-
-# Specify output folder
-out_dir <- tempfile("immundata_output_")
-
-# Read the data (disabling default preprocessing for this simple example)
-idata <- read_repertoires(
-  path = "my_sample.tsv",
-  schema = receptor_def,
-  output_folder = out_dir,
-  preprocess = NULL, # Disable default productive filter for demo
-  postprocess = NULL # Disable default barcode prefixing
+# Read one bulk AIRR file and preserve its abundance column
+bulk_file <- system.file(
+  "extdata/tsv",
+  "sample_0_1k.tsv",
+  package = "immundata"
 )
 
-print(idata)
-print(idata$annotations)
-
-#
-# Example 2: single-chain, multiple files
-#
-# Read multiple files using a manifest
-# Create dummy files and a manifest
-readr::write_tsv(airr_data[1:2, ], "sample1.tsv")
-readr::write_tsv(airr_data[3:5, ], "sample2.tsv")
-manifest <- data.frame(
-  SampleID = c("S1", "S2"),
-  Tissue = c("PBMC", "Tumor"),
-  file = c(normalizePath("sample1.tsv"), normalizePath("sample2.tsv"))
+bulk_idata <- read_repertoires(
+  path = bulk_file,
+  schema = c("cdr3_aa", "v_call"),
+  count_col = "counts",
+  output_folder = tempfile("immundata-bulk-")
 )
-readr::write_csv(manifest, "manifest.csv")
 
-idata_multi <- read_repertoires(
+tibble(
+  n_records = bulk_idata |> count() |> pull(n),
+  n_receptors = bulk_idata$receptors |> count() |> collect() |> pull(n),
+  n_repertoires = nrow(bulk_idata$repertoires)
+)
+```
+
+    #> # A tibble: 1 × 3
+    #>   n_records n_receptors n_repertoires
+    #>       <int>       <int>         <int>
+    #> 1       955         871             1
+
+``` r
+# Expected result:
+#   n_records n_receptors n_repertoires
+#         955         871             1
+
+# Read multiple files and their sample information from a manifest
+manifest_path <- system.file(
+  "extdata/tsv",
+  "manifest.csv",
+  package = "immundata"
+)
+manifest <- read_manifest(manifest_path)
+
+manifest_idata <- read_repertoires(
   path = "<manifest>",
   manifest = manifest,
-  schema = receptor_def,
-  repertoire_schema = "SampleID", # Aggregate by SampleID
-  output_folder = tempfile("immundata_multi_"),
-  preprocess = make_default_preprocessing("airr"), # Use default AIRR filters
-  postprocess = NULL
+  schema = c("cdr3_aa", "v_call"),
+  count_col = "counts",
+  output_folder = tempfile("immundata-manifest-")
 )
 
-print(idata_multi)
-print(idata_multi$repertoires) # Check repertoire summary
+manifest_idata$repertoires |>
+  select(Therapy, Response, n_barcodes, n_receptors) |>
+  arrange(Response)
+```
 
-# Clean up dummy files
-file.remove("my_sample.tsv", "sample1.tsv", "sample2.tsv", "manifest.csv")
-unlink(out_dir, recursive = TRUE)
-unlink(attr(idata_multi, "output_folder"), recursive = TRUE) # Get path used by function
+    #> # A tibble: 2 × 4
+    #>   Therapy Response n_barcodes n_receptors
+    #> * <chr>   <chr>         <int>       <int>
+    #> 1 ICI     FR             4725         871
+    #> 2 CAR-T   PR             4758         867
+
+``` r
+# Expected result:
+#   Therapy Response n_barcodes n_receptors
+#   ICI     FR             4725         871
+#   CAR-T   PR             4758         867
+
+# Read paired TRA-TRB receptors from a small single-cell table
+paired_input <- tibble(
+  cell_id = c("cell1", "cell1", "cell2", "cell2", "cell3"),
+  locus = c("TRA", "TRB", "TRA", "TRB", "TRA"),
+  v_call = c("TRAV1", "TRBV1", "TRAV1", "TRBV1", "TRAV2"),
+  j_call = c("TRAJ1", "TRBJ1", "TRAJ1", "TRBJ1", "TRAJ2"),
+  junction_aa = c("CAVA", "CASSB", "CAVA", "CASSB", "CAVC"),
+  umi_count = c(10L, 8L, 12L, 9L, 7L)
+)
+paired_file <- tempfile(fileext = ".tsv")
+readr::write_tsv(paired_input, paired_file)
+
+paired_idata <- read_repertoires(
+  path = paired_file,
+  schema = make_receptor_schema(
+    features = c("v_call", "j_call", "junction_aa"),
+    chains = c("TRA", "TRB")
+  ),
+  barcode_col = "cell_id",
+  locus_col = "locus",
+  umi_col = "umi_count",
+  repertoire_schema = NULL,
+  output_folder = tempfile("immundata-paired-")
+)
+
+tibble(
+  n_chains = paired_idata |> count() |> pull(n),
+  n_cells = paired_idata |> collect() |> distinct(imd_barcode) |> nrow(),
+  n_receptors = paired_idata$receptors |> count() |> collect() |> pull(n)
+)
+```
+
+    #> # A tibble: 1 × 3
+    #>   n_chains n_cells n_receptors
+    #>      <int>   <int>       <int>
+    #> 1        4       2           1
+
+``` r
+# Expected result:
+#   n_chains n_cells n_receptors
+#          4       2           1
 ```

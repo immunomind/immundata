@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#annotate-immundata-object" class="md-skip">
+        <a href="#add-external-information-to-immundata" class="md-skip">
           Skip to content
         </a>
       
@@ -1143,10 +1143,76 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#warning" class="md-nav__link">
+  <a href="#choose-a-function" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Warning
+        Choose a function
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-matching-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How matching works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#annotation-identifiers-must-be-unique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotation identifiers must be unique
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#existing-annotation-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing annotation columns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repertoire-and-strata-summaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repertoire and strata summaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#very-wide-annotation-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Very wide annotation tables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
       
     </span>
   </a>
@@ -1731,10 +1797,76 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#warning" class="md-nav__link">
+  <a href="#choose-a-function" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Warning
+        Choose a function
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-matching-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How matching works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#annotation-identifiers-must-be-unique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotation identifiers must be unique
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#existing-annotation-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing annotation columns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repertoire-and-strata-summaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repertoire and strata summaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#very-wide-annotation-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Very wide annotation tables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
       
     </span>
   </a>
@@ -1772,14 +1904,16 @@
   
 
 
-<h1 id="annotate-immundata-object">Annotate ImmunData object<a class="headerlink" href="#annotate-immundata-object" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_annotate.R#L108"><strong>Source code</strong></a></p>
+<h1 id="add-external-information-to-immundata">Add external information to ImmunData<a class="headerlink" href="#add-external-information-to-immundata" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Joins additional annotation data to the annotations slot of an
-<code>ImmunData</code> object.</p>
-<p>This function allows you to add extra information to your repertoire
-data by joining a dataframe of annotations based on specified columns.
-It supports joining by one or more columns.</p>
+<p>Use the <code style="white-space: pre;">annotate_*()</code> functions
+to add information stored in another data frame to an ImmunData object.
+For example, you can add cell types from a single-cell analysis, antigen
+labels for receptors, or clinical information for samples.</p>
+<p>When matching identifiers are unique, the functions keep every row in
+<code>idata</code>. When a row has no match in <code>annotations</code>,
+the new columns contain <code>NA</code>. Each function returns a new
+ImmunData object. The original object is not changed.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>annotate_immundata(
   idata,
@@ -1834,8 +1968,7 @@ annotate_chains(
 <code id="idata">idata</code>
 </td>
 <td>
-An <code>ImmunData</code> R6 object containing repertoire and annotation
-data.
+An ImmunData object.
 </td>
 </tr>
 <tr>
@@ -1843,7 +1976,9 @@ data.
 <code id="annotations">annotations</code>
 </td>
 <td>
-A data frame containing the annotations to be joined.
+A data frame containing the information to add. It must contain the
+columns used for matching and at most one row for each matching
+identifier or combination of identifiers.
 </td>
 </tr>
 <tr>
@@ -1851,10 +1986,10 @@ A data frame containing the annotations to be joined.
 <code id="by">by</code>
 </td>
 <td>
-A named character vector specifying the columns to join by. The names of
-the vector should be the column names in <code>idata$annotations</code>
-and the values should be the corresponding column names in the
-<code>annotations</code> data frame.
+A named character vector describing how columns are matched. Names are
+columns in <code>idata</code>; values are the corresponding columns in
+<code>annotations</code>. For example, <code>c(Response =
+“response_code”)</code>.
 </td>
 </tr>
 <tr>
@@ -1862,11 +1997,9 @@ and the values should be the corresponding column names in the
 <code id="keep_repertoires">keep_repertoires</code>
 </td>
 <td>
-Logical. If <code>TRUE</code> (default), the existing repertoire and
-strata tables, schemas, identifiers, and derived metrics are preserved
-without re-aggregation. Set to <code>FALSE</code> to return an
-annotations-only object; repertoire- and strata-derived columns are then
-removed from the annotation table as well.
+Whether to preserve existing repertoire and strata summaries without
+recalculation. The default is <code>TRUE</code>. If <code>FALSE</code>,
+these summaries and their derived annotation columns are removed.
 </td>
 </tr>
 <tr>
@@ -1874,12 +2007,9 @@ removed from the annotation table as well.
 <code id="remove_limit">remove_limit</code>
 </td>
 <td>
-Logical. If <code>FALSE</code> (default), a warning will be issued if
-the <code>annotations</code> data frame has 100 or more columns,
-suggesting potential performance issues. Set to <code>TRUE</code> to
-disable this warning and allow joining of annotations with an arbitrary
-number of columns. Use with caution, as joining wide dataframes can be
-memory-intensive and slow.
+Whether to allow an annotation table with 100 or more columns. The
+default is <code>FALSE</code>, which stops the operation for such
+tables. Set to <code>TRUE</code> only when the wide join is intentional.
 </td>
 </tr>
 <tr>
@@ -1887,11 +2017,10 @@ memory-intensive and slow.
 <code id="conflicts">conflicts</code>
 </td>
 <td>
-Character scalar controlling annotation value columns that already exist
-in <code>idata$annotations</code>. <code>“error”</code> (default)
-rejects the collision. <code>“replace”</code> drops the existing columns
-before joining the new annotations. Columns defining receptor,
-repertoire, or strata state cannot be replaced.
+How to handle new annotation columns whose names already exist in
+<code>idata</code>. <code>“error”</code>, the default, stops the
+operation. <code>“replace”</code> replaces existing columns that are not
+protected by <code>ImmunData</code>.
 </td>
 </tr>
 <tr>
@@ -1899,85 +2028,247 @@ repertoire, or strata state cannot be replaced.
 <code id="annot_col">annot_col</code>
 </td>
 <td>
-A character vector specifying the column with receptor, barcode or chain
-identifiers to annotate a corresponding receptors, barode or chains in
-<code>idata</code>.
+Name of the identifier column in <code>annotations</code>. For
+<code>annotate_receptors()</code> and <code>annotate_chains()</code>,
+the default is the standard <code>ImmunData</code> receptor or chain
+identifier. For <code>annotate_barcodes()</code>, the default
+<code>“\<rownames\>”</code> uses the row names of
+<code>annotations</code>. Supplying an explicit barcode column is
+usually clearer.
 </td>
 </tr>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>The function performs a left join operation, keeping all rows from
-<code>idata$annotations</code> and adding matching columns from the
-<code>annotations</code> data frame.</p>
-<p>Annotation join keys are subject to a many-to-one contract: each
-combination of the right-hand key columns specified by the values of
-<code>by</code> must occur at most once in <code>annotations</code>.
-This contract is not checked at runtime because validating a very large
-annotation source would require an additional full aggregation.
-Supplying non-unique right-hand keys violates the contract and may
-expand annotation rows, invalidating the preserved repertoire counts and
-proportions.</p>
-<p>With <code>keep_repertoires = TRUE</code>, annotation is treated as a
-metadata-only transformation. The existing repertoire and strata state
-is carried forward unchanged and <code>agg_repertoires()</code> is not
-called.</p>
-<p>The function uses <code>checkmate</code> to validate the input types and
-structure.</p>
-<p>A check is performed to ensure that the columns specified in
-<code>by</code> exist in both <code>idata$annotations</code> and the
-<code>annotations</code> data frame.</p>
-<p>The <code>annotations</code> data frame is converted to a duckdb tibble
-internally for efficient joining, especially with large datasets.</p>
+<p>The functions differ in how they select the columns used for matching.
+The rules for duplicate identifiers, column conflicts, and preserved
+summaries are the same for all functions.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>A new <code>ImmunData</code> object with the annotations joined to the
-<code>annotations</code> slot.</p>
-<h2 id="warning">Warning<a class="headerlink" href="#warning" title="Permanent link">&para;</a></h2>
-<p>By default (<code>remove_limit = FALSE</code>), joining an
-<code>annotations</code> data frame with 100 or more columns will
-trigger a warning. This is a safeguard to prevent accidental joining of
-very wide data (e.g., gene expression data) that could lead to
-performance degradation or crashes. If you understand the risks and
-intend to join a wide data frame, set <code>remove_limit = TRUE</code>.</p>
+<p>A new ImmunData object containing the added annotation columns. Existing
+repertoire and strata summaries are preserved when
+<code>keep_repertoires = TRUE</code>.</p>
+<h2 id="choose-a-function">Choose a function<a class="headerlink" href="#choose-a-function" title="Permanent link">&para;</a></h2>
+<p>Use the function that matches the type of information you want to add:</p>
+<ul>
+<li>
+
+<code>annotate_barcodes()</code> matches cell or barcode identifiers.
+
+</li>
+<li>
+
+<code>annotate_receptors()</code> matches receptor identifiers. All rows
+belonging to a matched receptor receive the new information.
+
+</li>
+<li>
+
+<code>annotate_chains()</code> matches chain identifiers.
+
+</li>
+<li>
+
+<code>annotate()</code> matches any one or more columns that you specify
+in <code>by</code>.
+
+</li>
+</ul>
+
+<p>The first three functions select the correct <code>ImmunData</code>
+identifier for you. <code>annotate_immundata()</code> is an alternative
+name for <code>annotate()</code>.</p>
+<h2 id="how-matching-works">How matching works<a class="headerlink" href="#how-matching-works" title="Permanent link">&para;</a></h2>
+<p>For <code>annotate_barcodes()</code>, <code>annotate_receptors()</code>,
+and <code>annotate_chains()</code>, <code>annot_col</code> names the
+identifier column in <code>annotations</code>. For example,
+<code>annot_col = “barcode”</code> matches the <code>barcode</code>
+column in <code>annotations</code> with the barcode identifier in
+<code>idata</code>.</p>
+<p>For general matching, supply <code>by</code> in the form
+<code>c(immundata_column = “annotation_column”)</code>. For example,
+<code>by = c(Response = “response_code”)</code> matches the
+<code>Response</code> column in <code>idata</code> with the
+<code>response_code</code> column in <code>annotations</code>. To match
+columns with the same name, use a value such as <code>by = c(Response =
+“Response”)</code>. You can include more than one pair of columns in
+<code>by</code>.</p>
+<p>Columns from <code>annotations</code> that are not used for matching are
+added to the result. Rows in <code>idata</code> without a match receive
+<code>NA</code>. Rows in <code>annotations</code> without a match are
+ignored.</p>
+<h2 id="annotation-identifiers-must-be-unique">Annotation identifiers must be unique<a class="headerlink" href="#annotation-identifiers-must-be-unique" title="Permanent link">&para;</a></h2>
+<p><code>annotations</code> must contain at most one row for each
+identifier, or each combination of identifiers when matching several
+columns. For example, a barcode annotation table must contain at most
+one row per barcode.</p>
+<p>The function does not check this rule because the annotation table may
+be very large. If an identifier occurs several times, the corresponding
+rows in <code>idata</code> are repeated. This can make receptor counts,
+proportions, and other summaries incorrect.</p>
+<h2 id="existing-annotation-columns">Existing annotation columns<a class="headerlink" href="#existing-annotation-columns" title="Permanent link">&para;</a></h2>
+<p>By default, the function stops if a new annotation column has the same
+name as a column already present in <code>idata</code>. This prevents
+accidental replacement.</p>
+<p>Use <code>conflicts = “replace”</code> to replace existing annotation
+columns. Columns that define receptors, repertoires, strata, or other
+<code>ImmunData</code> state are protected and cannot be replaced. The
+old column is removed before matching, so rows without a new match
+receive <code>NA</code>.</p>
+<h2 id="repertoire-and-strata-summaries">Repertoire and strata summaries<a class="headerlink" href="#repertoire-and-strata-summaries" title="Permanent link">&para;</a></h2>
+<p>With the default <code>keep_repertoires = TRUE</code>, existing
+repertoire and strata summaries are copied to the new object without
+recalculation. Use this option when you are only adding information and
+the matching identifiers in <code>annotations</code> are unique.</p>
+<p>Set <code>keep_repertoires = FALSE</code> when you plan to filter rows
+or define new repertoires using the added information. This removes
+existing repertoire and strata summaries and their derived columns.
+After annotation and filtering, use <code>agg_repertoires()</code> to
+define the new repertoires.</p>
+<h2 id="very-wide-annotation-tables">Very wide annotation tables<a class="headerlink" href="#very-wide-annotation-tables" title="Permanent link">&para;</a></h2>
+<p>By default, the function stops when <code>annotations</code> contains
+100 or more columns. Adding a very wide table, such as a complete
+gene-expression matrix, can be slow and require a large amount of
+memory. If you understand this cost, set <code>remove_limit =
+TRUE</code> to allow the operation.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<p><code>dplyr::left_join()</code>, <code>agg_repertoires()</code>,
+<code>filter_immundata()</code>, <code>mutate_immundata()</code>,
+ImmunData</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">&quot;immundata&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Assuming &#39;my_immun_data&#39; is an ImmunData object and &#39;sample_info&#39; is a data frame</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># with a column &#39;sample_id&#39; matching &#39;sample&#39; in my_immun_data$annotations</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># and additional columns like &#39;treatment&#39; and &#39;disease_status&#39;.</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">sample_info</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">sample_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;sample1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample4&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="n">treatment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;Treatment A&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Treatment B&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Treatment A&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Treatment C&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">disease_status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;Healthy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Disease&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Healthy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Disease&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="w"> </span><span class="c1"># Important to keep characters as characters</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">)</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># Join sample information using the &#39;sample&#39; column</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">my_immun_data_annotated</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate</span><span class="p">(</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="n">idata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_immun_data</span><span class="p">,</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sample_info</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;sample&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;sample_id&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="p">)</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="c1"># New sample_info</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Load data included with immundata</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">get_test_idata</span><span class="p">()</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Add cell types by matching barcode identifiers</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">cell_labels</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tibble</span><span class="p">(</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="n">barcode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"S1_1"</span><span class="p">,</span><span class="w"> </span><span class="s">"S1_2"</span><span class="p">),</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="n">cell_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"CD8 T cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"CD4 T cell"</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">idata_with_cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="nf">annotate_barcodes</span><span class="p">(</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cell_labels</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="p">)</span>
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="c1"># Join data by multiple columns, e.g., &#39;sample&#39; and &#39;barcode&#39;</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="c1"># Assuming &#39;cell_annotations&#39; is a data frame with &#39;sample_barcode&#39; and &#39;cell_type&#39;</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="n">my_immun_data_cell_annotated</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate</span><span class="p">(</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="n">idata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_immun_data</span><span class="p">,</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">  </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cell_annotations</span><span class="p">,</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;sample&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;sample&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;sample_barcode&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="p">)</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="c1"># Join a wide dataframe, suppressing the column limit warning</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="c1"># Assuming &#39;gene_expression&#39; is a data frame with &#39;barcode&#39; and many gene columns</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="n">my_immun_data_gene_expression</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">annotate</span><span class="p">(</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">  </span><span class="n">idata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_immun_data</span><span class="p">,</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gene_expression</span><span class="p">,</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;barcode&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;barcode&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">  </span><span class="n">remove_limit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="p">)</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="n">idata_with_cells</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">  </span><span class="nf">filter</span><span class="p">(</span><span class="n">imd_barcode</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"S1_1"</span><span class="p">,</span><span class="w"> </span><span class="s">"S1_2"</span><span class="p">,</span><span class="w"> </span><span class="s">"S1_3"</span><span class="p">))</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">imd_barcode</span><span class="p">,</span><span class="w"> </span><span class="n">cell_type</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">imd_barcode</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 3 × 2
+#&gt;   imd_barcode cell_type 
+#&gt; * &lt;chr&gt;       &lt;chr&gt;     
+#&gt; 1 S1_1        CD8 T cell
+#&gt; 2 S1_2        CD4 T cell
+#&gt; 3 S1_3        &lt;NA&gt;
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">#   imd_barcode cell_type</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#   S1_1        CD8 T cell</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">#   S1_2        CD4 T cell</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">#   S1_3        NA</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Add antigen labels to selected receptors</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">receptor_labels</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tibble</span><span class="p">(</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="n">receptor_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">738L</span><span class="p">,</span><span class="w"> </span><span class="m">1567L</span><span class="p">),</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="n">antigen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"CMV"</span><span class="p">,</span><span class="w"> </span><span class="s">"CMV"</span><span class="p">)</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">)</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">idata_with_antigens</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="nf">annotate_receptors</span><span class="p">(</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">receptor_labels</span><span class="p">,</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"receptor_id"</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="n">idata_with_antigens</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="nf">filter</span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="n">antigen</span><span class="p">))</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="nf">distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">,</span><span class="w"> </span><span class="n">cdr3_aa</span><span class="p">,</span><span class="w"> </span><span class="n">antigen</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 2 × 3
+#&gt;   imd_receptor_id cdr3_aa       antigen
+#&gt; *           &lt;int&gt; &lt;chr&gt;         &lt;chr&gt;  
+#&gt; 1             738 SVWTSGGNNEQF  CMV    
+#&gt; 2            1567 ASSLEMEGTGELF CMV
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">#   imd_receptor_id cdr3_aa       antigen</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1">#               738 ASRAGAGTGELF  CMV</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">#              1567 ASFPVLSPYNEQF CMV</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Match columns with different names</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">response_info</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tibble</span><span class="p">(</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="n">response_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"FR"</span><span class="p">,</span><span class="w"> </span><span class="s">"PR"</span><span class="p">),</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="n">response_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Full response"</span><span class="p">,</span><span class="w"> </span><span class="s">"Partial response"</span><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">idata_with_response</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="nf">annotate</span><span class="p">(</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">response_info</span><span class="p">,</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">Response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"response_code"</span><span class="p">)</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="n">idata_with_response</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="nf">distinct</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span><span class="w"> </span><span class="n">response_label</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">Response</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 2 × 2
+#&gt;   Response response_label  
+#&gt; * &lt;chr&gt;    &lt;chr&gt;           
+#&gt; 1 FR       Full response   
+#&gt; 2 PR       Partial response
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1">#   Response response_label</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1">#   FR       Full response</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1">#   PR       Partial response</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Replace an annotation column intentionally</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">revised_cell_labels</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tibble</span><span class="p">(</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="n">barcode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"S1_1"</span><span class="p">,</span><span class="w"> </span><span class="s">"S1_2"</span><span class="p">),</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="n">cell_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Cytotoxic T cell"</span><span class="p">,</span><span class="w"> </span><span class="s">"Helper T cell"</span><span class="p">)</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="p">)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="n">idata_with_revised_cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata_with_cells</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="nf">annotate_barcodes</span><span class="p">(</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">revised_cell_labels</span><span class="p">,</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">,</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="n">conflicts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"replace"</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="p">)</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># Remove old repertoire summaries before defining repertoires by cell type</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="n">cell_repertoires</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">  </span><span class="nf">annotate_barcodes</span><span class="p">(</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="n">annotations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cell_labels</span><span class="p">,</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="n">annot_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"barcode"</span><span class="p">,</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">    </span><span class="n">keep_repertoires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">  </span><span class="nf">filter</span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="n">cell_type</span><span class="p">))</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">  </span><span class="nf">agg_repertoires</span><span class="p">(</span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"cell_type"</span><span class="p">)</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="n">cell_repertoires</span><span class="o">$</span><span class="n">repertoires</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">cell_type</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 2 × 4
+#&gt;   imd_repertoire_id cell_type  n_barcodes n_receptors
+#&gt; *             &lt;int&gt; &lt;chr&gt;           &lt;dbl&gt;       &lt;int&gt;
+#&gt; 1                 1 CD4 T cell          1           1
+#&gt; 2                 2 CD8 T cell          1           1
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">#   imd_repertoire_id cell_type  n_barcodes n_receptors</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1">#                   1 CD4 T cell          1           1</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1">#                   2 CD8 T cell          1           1</span>
 </code></pre></div>
 
 

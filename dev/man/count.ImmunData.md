@@ -2,8 +2,6 @@
 
 # Count the number of chains in ImmunData
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_count.R#L12)
-
 ## Description
 
 Count the number of chains in ImmunData

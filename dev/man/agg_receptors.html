@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#aggregates-airr-data-into-receptors" class="md-skip">
+        <a href="#group-airr-sequence-rows-into-receptors" class="md-skip">
           Skip to content
         </a>
       
@@ -1750,37 +1750,20 @@
   
 
 
-<h1 id="aggregates-airr-data-into-receptors">Aggregates AIRR data into receptors<a class="headerlink" href="#aggregates-airr-data-into-receptors" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_agg_receptors.R#L88"><strong>Source code</strong></a></p>
+<h1 id="group-airr-sequence-rows-into-receptors">Group AIRR sequence rows into receptors<a class="headerlink" href="#group-airr-sequence-rows-into-receptors" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Processes a table of immune receptor sequences (chains or clonotypes) to
-identify unique receptors based on a specified schema. It assigns a
-unique identifier (<code>imd_receptor_id</code>) to each distinct
-receptor signature and returns an annotated table linking the original
-sequence data to these receptor IDs.</p>
-<p>This function is a core component used within
-<code>read_repertoires()</code> and handles different input data
-structures:</p>
-<ul>
-<li>
-
-Simple tables (no counts, no cell IDs).
-
-</li>
-<li>
-
-Bulk sequencing data (using a count column).
-
-</li>
-<li>
-
-Single-cell data (using a barcode/cell ID column). For single-cell data,
-it can perform chain pairing if the schema specifies multiple chains
-(e.g., TRA and TRB).
-
-</li>
-</ul>
-
+<p><code>agg_receptors()</code> is a low-level function used during AIRR
+data ingestion. It decides which sequence rows represent the same
+biological receptor and adds package-standard identifiers and counts to
+the input table.</p>
+<p>A receptor can be one chain or a pair of chains from the same cell. The
+<code>schema</code> argument defines which sequence features and loci
+make two receptors identical.</p>
+<p>This function works with a prepared duckplyr table and returns a
+duckplyr table. It does not accept or return an ImmunData object. Most
+analysis workflows should provide the same arguments to
+<code>read_repertoires()</code>, which calls
+<code>agg_receptors()</code> during import.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>agg_receptors(
   dataset,
@@ -1800,12 +1783,11 @@ it can perform chain pairing if the schema specifies multiple chains
 <code id="dataset">dataset</code>
 </td>
 <td>
-A <code>duckplyr_df</code> containing AIRR data. Must include columns
-specified in <code>schema</code> and potentially
-<code>barcode_col</code>, <code>count_col</code>,
-<code>locus_col</code>, <code>umi_col</code>. Expected
-<code>idata$annotations</code>, support for <code>ImmunData</code> will
-probably be added later.
+A duckplyr table containing AIRR sequence data, with one row per chain
+or bulk clonotype. It must contain the columns named in
+<code>schema</code> and in any of <code>barcode_col</code>,
+<code>count_col</code>, <code>locus_col</code>, and <code>umi_col</code>
+that are supplied.
 </td>
 </tr>
 <tr>
@@ -1814,27 +1796,26 @@ probably be added later.
 </td>
 <td>
 
-Defines how a unique receptor is identified. Can be:
+Definition of receptor identity. Supply either:
 
 <ul>
 <li>
 
-A character vector of column names representing receptor features (e.g.,
-<code>c(“v_call”, “j_call”, “junction_aa”)</code>).
+A character vector naming the features that must match, such as
+<code>c(“v_call”, “j_call”, “junction_aa”)</code>.
 
 </li>
 <li>
 
-A list created by <code>make_receptor_schema()</code>, specifying both
-<code>features</code> (character vector) and optionally
-<code>chains</code> (character vector of locus names like
-<code>“TRA”</code>, <code>“TRB”</code>, <code>“IGH”</code>,
-<code>“IGK”</code>, <code>“IGL”</code>, max length 2). Specifying
-<code>chains</code> triggers filtering by locus and enables pairing
-logic if two chains are given.
+An object created by <code>make_receptor_schema()</code>. Its
+<code>features</code> define chain identity, while its optional
+<code>chains</code> select one locus or define a pair of loci.
 
 </li>
 </ul>
+A schema can contain at most two chain entries. Use syntax such as
+<code>c(“IGH”, “IGL|IGK”)</code> to accept either IGH-IGL or IGH-IGK
+pairs.
 </td>
 </tr>
 <tr>
@@ -1842,11 +1823,11 @@ logic if two chains are given.
 <code id="barcode_col">barcode_col</code>
 </td>
 <td>
-Character(1). The name of the column containing cell identifiers
-(barcodes). Required for single-cell processing and chain pairing. When
-the internal source-file column <code>imd_filename</code> is present,
-single-cell identity is scoped by both source file and barcode during
-aggregation. Default: <code>NULL</code>.
+Name of the column containing cell barcodes. Supply this for single-cell
+data. <code>umi_col</code> is then also required, and
+<code>count_col</code> cannot be supplied. If <code>imd_filename</code>
+is present, identical barcode values from different source files are
+treated as different cells. The default is <code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -1854,10 +1835,10 @@ aggregation. Default: <code>NULL</code>.
 <code id="count_col">count_col</code>
 </td>
 <td>
-Character(1). The name of the column containing counts (e.g., UMI counts
-for bulk, clonotype frequency). Used for bulk data processing. Default:
-<code>NULL</code>. Cannot be specified if <code>barcode_col</code> is
-set.
+Name of the column containing non-negative abundance values in bulk
+repertoire data. These values are copied to <code>imd_n_chains</code>.
+<code>count_col</code> cannot be used together with
+<code>barcode_col</code>. The default is <code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -1865,9 +1846,10 @@ set.
 <code id="locus_col">locus_col</code>
 </td>
 <td>
-Character(1). The name of the column specifying the chain locus (e.g.,
-"TRA", "TRB"). Required if <code>schema</code> includes
-<code>chains</code> for filtering or pairing. Default:
+Name of the column containing loci such as <code>“TRA”</code>,
+<code>“TRB”</code>, or <code>“IGH”</code>. It is required when
+<code>schema</code> specifies one or more chains. The column is renamed
+to the standard name <code>locus</code> when necessary. The default is
 <code>NULL</code>.
 </td>
 </tr>
@@ -1876,11 +1858,10 @@ Character(1). The name of the column specifying the chain locus (e.g.,
 <code id="umi_col">umi_col</code>
 </td>
 <td>
-Character(1). The name of the column containing UMI counts. Required for
-single-cell data (<code>barcode_col</code> is set). Used to select the
-most abundant chain within each barcode and, for paired schemas, within
-each barcode/locus group when multiple chains are present. Default:
-<code>NULL</code>.
+Name of the column containing per-chain UMI or read counts. It is
+required when <code>barcode_col</code> is supplied and is used to choose
+one chain when a cell contains several chains from the same locus. The
+default is <code>NULL</code>.
 </td>
 </tr>
 <tr>
@@ -1888,126 +1869,99 @@ each barcode/locus group when multiple chains are present. Default:
 <code id="verbose">verbose</code>
 </td>
 <td>
-Logical(1). Whether to print informative messages. Defaults to
-<code>getOption(“immundata.verbose”, TRUE)</code>.
+Whether to print information about the selected processing mode and
+loci. Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
 </td>
 </tr>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>The function performs the following main steps:</p>
-<ol>
-<li>
-
-<strong>Validation:</strong> Checks inputs, schema validity, and
-existence of required columns.
-
-</li>
-<li>
-
-<strong>Schema Parsing:</strong> Determines receptor features and target
-chains from <code>schema</code>.
-
-</li>
-<li>
-
-<strong>Locus Filtering:</strong> If <code>schema$chains</code> is
-provided, filters the dataset to include only rows matching the
-specified locus/loci.
-
-</li>
-<li>
-
-<strong>Processing Logic (based on <code>barcode_col</code> and
-<code>count_col</code>):</strong>
-
+<p>The receptor features are the columns that define the identity of one
+chain. Two chains with the same values in all feature columns receive
+the same receptor identity in a single-chain analysis. Common features
+include V gene, J gene, and CDR3 amino acid sequence.</p>
+<p>The function supports three input modes:</p>
 <ul>
 <li>
 
-<strong>Simple Table/Bulk (No Barcodes):</strong> Assigns unique
-internal barcode/chain IDs. Identifies unique receptors based on
-<code>schema$features</code>. Calculates <code>imd_chain_count</code> (1
-for simple table, from <code>count_col</code> for bulk).
+<strong>Uncounted sequence table:</strong> If neither
+<code>barcode_col</code> nor <code>count_col</code> is supplied, every
+input row is treated as one observed chain. A synthetic barcode is
+created for each row, and <code>imd_n_chains</code> is set to
+<code>1</code>.
 
 </li>
 <li>
 
-<strong>Single-Cell (Barcodes Provided):</strong> Uses
-<code>barcode_col</code> for <code>imd_barcode_id</code>.
-
-<ul>
-<li>
-
-<strong>Single Chain:</strong> (<code>length(schema$chains) \<=
-1</code>). Identifies unique receptors based on
-<code>schema$features</code>. Uses <code>umi_col</code> to keep one
-chain per barcode when needed. <code>imd_chain_count</code> is 1.
+<strong>Bulk repertoire:</strong> If <code>count_col</code> is supplied,
+every input row receives a synthetic barcode and its abundance is copied
+to <code>imd_n_chains</code>.
 
 </li>
 <li>
 
-<strong>Paired Chain:</strong> (<code>length(schema$chains) ==
-2</code>). Requires <code>locus_col</code> and <code>umi_col</code>.
-Filters chains within each cell/locus group based on max
-<code>umi_col</code>. Creates paired receptors by joining the two
-specified loci for each cell based on <code>schema$features</code> from
-both. Assigns a unique <code>imd_receptor_id</code> to each
-<em>pair</em>. <code>imd_chain_count</code> is 1 (representing the chain
-record).
+<strong>Single-cell repertoire:</strong> If <code>barcode_col</code> is
+supplied, rows are grouped by cell. <code>umi_col</code> is required and
+<code>imd_n_chains</code> is set to <code>1</code> for every retained
+cell-chain observation.
 
 </li>
 </ul>
-</li>
-</ul>
-</li>
-<li>
 
-<strong>Output:</strong> Returns an annotated data frame containing
-original columns plus internal identifiers
-(<code>imd_receptor_id</code>, <code>imd_barcode_id</code>,
-<code>imd_chain_id</code>) and counts (<code>imd_chain_count</code>).
-
-</li>
-</ol>
-
-<p>Internal column names are typically managed by
-<code>immundata:::imd_schema()</code>.</p>
+<p>When one chain is specified in <code>schema</code>, only that locus is
+retained. If a cell contains several chains from that locus, the row
+with the highest value in <code>umi_col</code> is retained. If the
+highest values are tied, the first row is retained.</p>
+<p>When two chains are specified, only cells containing both requested loci
+are retained. The selected chains are paired by barcode, and both rows
+receive the same <code>imd_receptor_id</code>. Cells with incomplete
+pairs are excluded.</p>
+<p>A relaxed pair such as <code>c(“IGH”, “IGL|IGK”)</code> requires IGH and
+exactly one of the two alternative light-chain loci. Cells containing
+both IGL and IGK are excluded.</p>
+<p>Numeric <code>imd_receptor_id</code> values identify receptors within
+the returned table. The particular number assigned to a receptor is not
+a biological identifier and may change when the data are aggregated
+again.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>A <code>duckplyr_df</code> (or data frame) representing the annotated
-sequences. This table links each original sequence record (chain) to a
-defined receptor and includes standardized columns:</p>
+<p>A duckplyr table containing the retained input rows and these
+package-standard columns:</p>
 <ul>
 <li>
 
-<code>imd_receptor_id</code>: Integer ID unique to each distinct
-receptor signature.
+<code>imd_receptor_id</code>: links rows that belong to the same
+receptor.
 
 </li>
 <li>
 
-<code>imd_barcode_id</code>: Integer ID unique to each cell/barcode (or
-row if no barcode).
+<code>imd_barcode</code>: contains the input cell barcode, or a
+synthetic row-level barcode for uncounted and bulk data.
 
 </li>
 <li>
 
-<code>imd_chain_id</code>: Integer ID unique to each input row (chain).
+<code>imd_chain_id</code>: identifies an individual retained chain row.
 
 </li>
 <li>
 
-<code>imd_chain_count</code>: Integer count associated with the chain (1
-for SC/simple, from <code>count_col</code> for bulk). This output is
-typically assigned to the
-<code style="white-space: pre;">$annotations</code> field of an
-<code>ImmunData</code> object.
+<code>imd_n_chains</code>: contains <code>1</code> for uncounted and
+single-cell data, or the value from <code>count_col</code> for bulk
+data.
+
+</li>
+<li>
+
+<code>imd_count</code>: initialized to <code>0</code>; receptor counts
+are calculated later by <code>agg_repertoires()</code>.
 
 </li>
 </ul>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><code>read_repertoires()</code>, <code>make_receptor_schema()</code>,
-ImmunData</p>
+<code>agg_repertoires()</code>, ImmunData</p>
 
 
 

@@ -2,8 +2,6 @@
 
 # Downsample ImmunData annotations at the repertoire level
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_downsample.R#L31)
-
 ## Description
 
 Downsamples an <code>ImmunData</code> object by selecting barcodes

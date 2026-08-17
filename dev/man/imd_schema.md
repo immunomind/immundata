@@ -2,8 +2,6 @@
 
 # Get Immundata internal schema field names
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/globals.R#L146)
-
 ## Description
 
 Returns the standardized field names used across Immundata objects and
