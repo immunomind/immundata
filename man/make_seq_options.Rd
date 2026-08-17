@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_seq.R
 \name{make_seq_options}
 \alias{make_seq_options}
-\title{Build a \code{seq_options} list for sequence‑based receptor filtering}
+\title{Create options for comparing receptor sequences}
 \usage{
 make_seq_options(
   query_col,
@@ -13,30 +13,35 @@ make_seq_options(
 )
 }
 \arguments{
-\item{query_col}{Character(1). Name of the receptor column to compare
-(e.g. \code{"cdr3_aa"}).}
+\item{query_col}{Name of the sequence column to compare, such as \code{"cdr3_aa"}.}
 
-\item{patterns}{Character vector of sequences or regular expressions to
-search for.}
+\item{patterns}{One or more reference sequences or regular-expression
+patterns.}
 
-\item{method}{One of \code{"exact"}, \code{"regex"}, \code{"lev"} (Levenshtein), or
-\code{"hamm"} (Hamming).  Defaults to \code{"exact"}.}
+\item{method}{Comparison method: \code{"exact"}, \code{"regex"}, \code{"lev"}
+(Levenshtein distance), or \code{"hamm"} (Hamming distance). The default is
+\code{"exact"}.}
 
-\item{max_dist}{Numeric distance threshold for \code{"lev"} / \code{"hamm"}
-filtering.  Use \code{NA} (default) to keep all rows after annotation.}
+\item{max_dist}{Maximum distance accepted by \code{\link[=filter_immundata]{filter_immundata()}} when
+\code{method = "lev"} or \code{method = "hamm"}. A value is required when filtering
+with either distance method. This argument has no effect on
+\code{\link[=mutate_immundata]{mutate_immundata()}}, which reports every calculated distance.}
 
-\item{name_type}{Passed straight to \code{annotate_tbl_distance()}; either
-\code{"index"} (default) or \code{"pattern"}.}
+\item{name_type}{How result columns created by \code{\link[=mutate_immundata]{mutate_immundata()}} are named.
+\code{"index"}, the default, creates short numbered names. \code{"pattern"} includes
+the reference pattern in each name. This argument does not change which
+receptors are kept by \code{\link[=filter_immundata]{filter_immundata()}}.}
 }
 \value{
-A named list suitable for the \code{seq_options} argument of
-\code{\link[=filter_receptors]{filter_receptors()}}.
+A named list for the \code{seq_options} argument of \code{\link[=filter_immundata]{filter_immundata()}} or
+\code{\link[=mutate_immundata]{mutate_immundata()}}.
 }
 \description{
-A convenience wrapper that validates the common arguments for
-\strong{\code{filter_receptors()}} and returns them in the required list form.
+Create sequence comparison options for the \code{seq_options} argument of
+\code{\link[=filter_immundata]{filter_immundata()}} or \code{\link[=mutate_immundata]{mutate_immundata()}}. Use these options to compare a
+sequence column with one or more reference sequences or patterns.
 }
 \seealso{
-\code{\link[=filter_receptors]{filter_receptors()}}, \code{\link[=annotate_receptors]{annotate_receptors()}}
+\code{\link[=filter_immundata]{filter_immundata()}}, \code{\link[=mutate_immundata]{mutate_immundata()}}, \code{\link[=annotate_receptors]{annotate_receptors()}}
 }
 \concept{utils}

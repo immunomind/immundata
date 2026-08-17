@@ -1,106 +1,225 @@
-#' @title Annotate ImmunData object
+#' @title Add external information to ImmunData
 #'
-#' @description Joins additional annotation data to the annotations slot of an `ImmunData` object.
+#' @description
+#' Use the `annotate_*()` functions to add information stored in another data
+#' frame to an [ImmunData] object. For example, you can add cell types from a
+#' single-cell analysis, antigen labels for receptors, or clinical information
+#' for samples.
 #'
-#' This function allows you to add extra information to your repertoire data by joining a
-#' dataframe of annotations based on specified columns. It supports joining by
-#' one or more columns.
+#' When matching identifiers are unique, the functions keep every row in
+#' `idata`. When a row has no match in `annotations`, the new columns contain
+#' `NA`. Each function returns a new [ImmunData] object. The original object is
+#' not changed.
 #'
-#' @param idata An `ImmunData` R6 object containing repertoire and annotation data.
-#' @param annotations A data frame containing the annotations to be joined.
-#' @param by A named character vector specifying the columns to join by. The names of the
-#'   vector should be the column names in `idata$annotations` and the values should be
-#'   the corresponding column names in the `annotations` data frame.
-#' @param annot_col A character vector specifying the column with receptor, barcode or chain identifiers
-#'   to annotate a corresponding receptors, barode or chains in `idata`.
-#' @param keep_repertoires Logical. If `TRUE` (default), the existing repertoire
-#'   and strata tables, schemas, identifiers, and derived metrics are preserved
-#'   without re-aggregation. Set to `FALSE` to return an annotations-only object;
-#'   repertoire- and strata-derived columns are then removed from the annotation
-#'   table as well.
-#' @param remove_limit Logical. If `FALSE` (default), a warning will be issued if the
-#'   `annotations` data frame has 100 or more columns, suggesting potential performance
-#'   issues. Set to `TRUE` to disable this warning and allow joining of annotations
-#'   with an arbitrary number of columns. Use with caution, as joining wide dataframes
-#'   can be memory-intensive and slow.
-#' @param conflicts Character scalar controlling annotation value columns that
-#'   already exist in `idata$annotations`. `"error"` (default) rejects the
-#'   collision. `"replace"` drops the existing columns before joining the new
-#'   annotations. Columns defining receptor, repertoire, or strata state cannot
-#'   be replaced.
+#' @details
+#' The functions differ in how they select the columns used for matching. The
+#' rules for duplicate identifiers, column conflicts, and preserved summaries
+#' are the same for all functions.
 #'
-#' @return A new `ImmunData` object with the annotations joined to the `annotations` slot.
+#' @section Choose a function:
 #'
-#' @details The function performs a left join operation, keeping all rows from
-#'   `idata$annotations` and adding matching columns from the `annotations` data frame.
+#' Use the function that matches the type of information you want to add:
 #'
-#'   Annotation join keys are subject to a many-to-one contract: each combination
-#'   of the right-hand key columns specified by the values of `by` must occur at
-#'   most once in `annotations`. This contract is not checked at runtime because
-#'   validating a very large annotation source would require an additional full
-#'   aggregation. Supplying non-unique right-hand keys violates the contract and
-#'   may expand annotation rows, invalidating the preserved repertoire counts and
-#'   proportions.
+#' * [annotate_barcodes()] matches cell or barcode identifiers.
+#' * [annotate_receptors()] matches receptor identifiers. All rows belonging to
+#'   a matched receptor receive the new information.
+#' * [annotate_chains()] matches chain identifiers.
+#' * `annotate()` matches any one or more columns that you specify in `by`.
 #'
-#'   With `keep_repertoires = TRUE`, annotation is treated as a metadata-only
-#'   transformation. The existing repertoire and strata state is carried forward
-#'   unchanged and `agg_repertoires()` is not called.
+#' The first three functions select the correct `ImmunData` identifier for you.
+#' `annotate_immundata()` is an alternative name for `annotate()`.
 #'
-#'   The function uses `checkmate` to validate the input types and structure.
+#' @section How matching works:
 #'
-#'   A check is performed to ensure that the columns specified in `by` exist in both
-#'   `idata$annotations` and the `annotations` data frame.
+#' For `annotate_barcodes()`, `annotate_receptors()`, and `annotate_chains()`,
+#' `annot_col` names the identifier column in `annotations`. For example,
+#' `annot_col = "barcode"` matches the `barcode` column in `annotations` with
+#' the barcode identifier in `idata`.
 #'
-#'   The `annotations` data frame is converted to a duckdb tibble internally for
-#'   efficient joining, especially with large datasets.
+#' For general matching, supply `by` in the form
+#' `c(immundata_column = "annotation_column")`. For example,
+#' `by = c(Response = "response_code")` matches the `Response` column in
+#' `idata` with the `response_code` column in `annotations`. To match columns
+#' with the same name, use a value such as `by = c(Response = "Response")`.
+#' You can include more than one pair of columns in `by`.
 #'
-#' @section Warning:
-#' By default (`remove_limit = FALSE`), joining an `annotations` data frame with 100 or
-#' more columns will trigger a warning. This is a safeguard to prevent accidental
-#' joining of very wide data (e.g., gene expression data) that could lead to
-#' performance degradation or crashes. If you understand the risks and intend to join
-#' a wide data frame, set `remove_limit = TRUE`.
+#' Columns from `annotations` that are not used for matching are added to the
+#' result. Rows in `idata` without a match receive `NA`. Rows in `annotations`
+#' without a match are ignored.
 #'
-#' @concept Annotation
+#' @section Annotation identifiers must be unique:
+#'
+#' `annotations` must contain at most one row for each identifier, or each
+#' combination of identifiers when matching several columns. For example, a
+#' barcode annotation table must contain at most one row per barcode.
+#'
+#' The function does not check this rule because the annotation table may be
+#' very large. If an identifier occurs several times, the corresponding rows in
+#' `idata` are repeated. This can make receptor counts, proportions, and other
+#' summaries incorrect.
+#'
+#' @section Existing annotation columns:
+#'
+#' By default, the function stops if a new annotation column has the same name
+#' as a column already present in `idata`. This prevents accidental replacement.
+#'
+#' Use `conflicts = "replace"` to replace existing annotation columns. Columns
+#' that define receptors, repertoires, strata, or other `ImmunData` state are
+#' protected and cannot be replaced. The old column is removed before matching,
+#' so rows without a new match receive `NA`.
+#'
+#' @section Repertoire and strata summaries:
+#'
+#' With the default `keep_repertoires = TRUE`, existing repertoire and strata
+#' summaries are copied to the new object without recalculation. Use this option
+#' when you are only adding information and the matching identifiers in
+#' `annotations` are unique.
+#'
+#' Set `keep_repertoires = FALSE` when you plan to filter rows or define new
+#' repertoires using the added information. This removes existing repertoire and
+#' strata summaries and their derived columns. After annotation and filtering,
+#' use [agg_repertoires()] to define the new repertoires.
+#'
+#' @section Very wide annotation tables:
+#'
+#' By default, the function stops when `annotations` contains 100 or more
+#' columns. Adding a very wide table, such as a complete gene-expression matrix,
+#' can be slow and require a large amount of memory. If you understand this cost,
+#' set `remove_limit = TRUE` to allow the operation.
+#'
+#' @param idata An [ImmunData] object.
+#' @param annotations A data frame containing the information to add. It must
+#'   contain the columns used for matching and at most one row for each matching
+#'   identifier or combination of identifiers.
+#' @param by A named character vector describing how columns are matched. Names
+#'   are columns in `idata`; values are the corresponding columns in
+#'   `annotations`. For example, `c(Response = "response_code")`.
+#' @param annot_col Name of the identifier column in `annotations`. For
+#'   `annotate_receptors()` and `annotate_chains()`, the default is the standard
+#'   `ImmunData` receptor or chain identifier. For `annotate_barcodes()`, the
+#'   default `"<rownames>"` uses the row names of `annotations`. Supplying an
+#'   explicit barcode column is usually clearer.
+#' @param keep_repertoires Whether to preserve existing repertoire and strata
+#'   summaries without recalculation. The default is `TRUE`. If `FALSE`, these
+#'   summaries and their derived annotation columns are removed.
+#' @param remove_limit Whether to allow an annotation table with 100 or more
+#'   columns. The default is `FALSE`, which stops the operation for such tables.
+#'   Set to `TRUE` only when the wide join is intentional.
+#' @param conflicts How to handle new annotation columns whose names already
+#'   exist in `idata`. `"error"`, the default, stops the operation. `"replace"`
+#'   replaces existing columns that are not protected by `ImmunData`.
+#'
+#' @return A new [ImmunData] object containing the added annotation columns.
+#' Existing repertoire and strata summaries are preserved when
+#' `keep_repertoires = TRUE`.
+#'
+#' @seealso [dplyr::left_join()], [agg_repertoires()], [filter_immundata()],
+#'   [mutate_immundata()], [ImmunData]
+#'
 #' @examples
-#' \dontrun{
-#' # Assuming 'my_immun_data' is an ImmunData object and 'sample_info' is a data frame
-#' # with a column 'sample_id' matching 'sample' in my_immun_data$annotations
-#' # and additional columns like 'treatment' and 'disease_status'.
+#' library(immundata)
+#' library(dplyr)
 #'
-#' sample_info <- data.frame(
-#'   sample_id = c("sample1", "sample2", "sample3", "sample4"),
-#'   treatment = c("Treatment A", "Treatment B", "Treatment A", "Treatment C"),
-#'   disease_status = c("Healthy", "Disease", "Healthy", "Disease"),
-#'   stringsAsFactors = FALSE # Important to keep characters as characters
+#' options(immundata.verbose = FALSE)
+#'
+#' # Load data included with immundata
+#' idata <- get_test_idata()
+#'
+#' # Add cell types by matching barcode identifiers
+#' cell_labels <- tibble(
+#'   barcode = c("S1_1", "S1_2"),
+#'   cell_type = c("CD8 T cell", "CD4 T cell")
 #' )
 #'
-#' # Join sample information using the 'sample' column
-#' my_immun_data_annotated <- annotate(
-#'   idata = my_immun_data,
-#'   annotations = sample_info,
-#'   by = c("sample" = "sample_id")
+#' idata_with_cells <- idata |>
+#'   annotate_barcodes(
+#'     annotations = cell_labels,
+#'     annot_col = "barcode"
+#'   )
+#'
+#' idata_with_cells |>
+#'   collect() |>
+#'   filter(imd_barcode %in% c("S1_1", "S1_2", "S1_3")) |>
+#'   select(imd_barcode, cell_type) |>
+#'   arrange(imd_barcode)
+#' # Expected result:
+#' #   imd_barcode cell_type
+#' #   S1_1        CD8 T cell
+#' #   S1_2        CD4 T cell
+#' #   S1_3        NA
+#'
+#' # Add antigen labels to selected receptors
+#' receptor_labels <- tibble(
+#'   receptor_id = c(738L, 1567L),
+#'   antigen = c("CMV", "CMV")
 #' )
 #'
-#' # New sample_info
+#' idata_with_antigens <- idata |>
+#'   annotate_receptors(
+#'     annotations = receptor_labels,
+#'     annot_col = "receptor_id"
+#'   )
 #'
-#' # Join data by multiple columns, e.g., 'sample' and 'barcode'
-#' # Assuming 'cell_annotations' is a data frame with 'sample_barcode' and 'cell_type'
-#' my_immun_data_cell_annotated <- annotate(
-#'   idata = my_immun_data,
-#'   annotations = cell_annotations,
-#'   by = c("sample" = "sample", "barcode" = "sample_barcode")
+#' idata_with_antigens |>
+#'   collect() |>
+#'   filter(!is.na(antigen)) |>
+#'   distinct(imd_receptor_id, cdr3_aa, antigen) |>
+#'   arrange(imd_receptor_id)
+#' # Expected result:
+#' #   imd_receptor_id cdr3_aa       antigen
+#' #               738 ASRAGAGTGELF  CMV
+#' #              1567 ASFPVLSPYNEQF CMV
+#'
+#' # Match columns with different names
+#' response_info <- tibble(
+#'   response_code = c("FR", "PR"),
+#'   response_label = c("Full response", "Partial response")
 #' )
 #'
-#' # Join a wide dataframe, suppressing the column limit warning
-#' # Assuming 'gene_expression' is a data frame with 'barcode' and many gene columns
-#' my_immun_data_gene_expression <- annotate(
-#'   idata = my_immun_data,
-#'   annotations = gene_expression,
-#'   by = c("barcode" = "barcode"),
-#'   remove_limit = TRUE
+#' idata_with_response <- idata |>
+#'   annotate(
+#'     annotations = response_info,
+#'     by = c(Response = "response_code")
+#'   )
+#'
+#' idata_with_response |>
+#'   collect() |>
+#'   distinct(Response, response_label) |>
+#'   arrange(Response)
+#' # Expected result:
+#' #   Response response_label
+#' #   FR       Full response
+#' #   PR       Partial response
+#'
+#' # Replace an annotation column intentionally
+#' revised_cell_labels <- tibble(
+#'   barcode = c("S1_1", "S1_2"),
+#'   cell_type = c("Cytotoxic T cell", "Helper T cell")
 #' )
-#' }
+#'
+#' idata_with_revised_cells <- idata_with_cells |>
+#'   annotate_barcodes(
+#'     annotations = revised_cell_labels,
+#'     annot_col = "barcode",
+#'     conflicts = "replace"
+#'   )
+#'
+#' # Remove old repertoire summaries before defining repertoires by cell type
+#' cell_repertoires <- idata |>
+#'   annotate_barcodes(
+#'     annotations = cell_labels,
+#'     annot_col = "barcode",
+#'     keep_repertoires = FALSE
+#'   ) |>
+#'   filter(!is.na(cell_type)) |>
+#'   agg_repertoires(schema = "cell_type")
+#'
+#' cell_repertoires$repertoires |>
+#'   arrange(cell_type)
+#' # Expected result:
+#' #   imd_repertoire_id cell_type  n_barcodes n_receptors
+#' #                   1 CD4 T cell          1           1
+#' #                   2 CD8 T cell          1           1
 #'
 #' @concept annotation
 #' @rdname annotate_immundata

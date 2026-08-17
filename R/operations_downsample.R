@@ -99,8 +99,7 @@ downsample_immundata <- function(idata, n, seed = NULL) {
   if (!is.null(seed)) {
     # Keep deterministic sampling order across lazy backend materialization.
     unit_table <- unit_table[
-      do.call(order, unit_table[unit_cols]),
-      ,
+      do.call(order, unit_table[unit_cols]), ,
       drop = FALSE
     ]
   }

@@ -11,6 +11,25 @@ make_mutate_test_idata <- function() {
   )
 }
 
+make_grouped_mutate_test_idata <- function() {
+  annotations <- tibble::tibble(
+    imd_receptor_id = c(1L, 1L, 2L, 3L, 4L),
+    imd_barcode = paste0("bc", seq_len(5L)),
+    imd_chain_id = seq_len(5L),
+    imd_n_chains = 1L,
+    cdr3_aa = c("AAA", "AAA", "BBB", "CCC", "DDD"),
+    group = c("A", "A", "A", "B", "B"),
+    batch = c("x", "x", "y", "x", "x"),
+    value = c(1, 3, 5, 10, 14)
+  ) |>
+    duckplyr::as_duckdb_tibble(prudence = "stingy")
+
+  ImmunData$new(
+    schema = "cdr3_aa",
+    annotations = annotations
+  )
+}
+
 test_that("mutate_immundata adds derived annotation columns without changing input", {
   idata <- make_mutate_test_idata()
 
@@ -41,6 +60,191 @@ test_that("dplyr mutate method and mutate_immundata produce equivalent annotatio
     direct$annotations |> collect() |> arrange(imd_receptor_id),
     s3$annotations |> collect() |> arrange(imd_receptor_id)
   )
+})
+
+test_that("grouped mutate forwards .by without creating a .by column", {
+  idata <- make_grouped_mutate_test_idata()
+
+  out <- idata |>
+    mutate(
+      centered = value - mean(value, na.rm = TRUE),
+      above_mean = value > mean(value, na.rm = TRUE),
+      .by = group
+    )
+
+  expect_false(".by" %in% names(out$annotations))
+  expect_s3_class(out$annotations, "prudent_duckplyr_df")
+
+  ann <- out |>
+    collect() |>
+    arrange(imd_chain_id)
+
+  expect_equal(ann$centered, c(-2, 0, 2, -2, 2))
+  expect_equal(ann$above_mean, c(FALSE, FALSE, TRUE, FALSE, TRUE))
+})
+
+test_that("grouped mutate falls back once for independent group summaries", {
+  idata <- make_grouped_mutate_test_idata()
+
+  expect_error(
+    idata$annotations |>
+      mutate(group_n_receptors = n_distinct(imd_receptor_id), .by = group),
+    "not supported in window functions",
+    fixed = TRUE
+  )
+
+  out <- idata |>
+    mutate(
+      group_n_rows = n(),
+      group_n_receptors = n_distinct(imd_receptor_id),
+      group_max = max(value),
+      .by = group
+    )
+
+  expect_s3_class(out$annotations, "prudent_duckplyr_df")
+  expect_error(
+    nrow(out$annotations),
+    "Materialization is disabled",
+    fixed = TRUE
+  )
+
+  ann <- out |>
+    collect() |>
+    arrange(imd_chain_id)
+
+  expect_equal(ann$group_n_rows, c(3, 3, 3, 2, 2))
+  expect_equal(ann$group_n_receptors, c(2, 2, 2, 2, 2))
+  expect_equal(ann$group_max, c(5, 5, 5, 14, 14))
+})
+
+test_that("group summary fallback supports multiple and missing group values", {
+  idata <- make_grouped_mutate_test_idata()
+
+  multiple <- idata |>
+    mutate(
+      group_n_receptors = n_distinct(imd_receptor_id),
+      .by = c(group, batch)
+    ) |>
+    collect() |>
+    arrange(imd_chain_id)
+
+  expect_equal(multiple$group_n_receptors, c(1, 1, 1, 2, 2))
+
+  missing_groups <- ImmunData$new(
+    schema = "cdr3_aa",
+    annotations = tibble::tibble(
+      imd_receptor_id = c(1L, 2L, 3L, 3L),
+      imd_barcode = paste0("bc", seq_len(4L)),
+      imd_chain_id = seq_len(4L),
+      imd_n_chains = 1L,
+      cdr3_aa = c("AAA", "BBB", "CCC", "CCC"),
+      group = c("A", "A", NA, NA)
+    ) |>
+      duckplyr::as_duckdb_tibble(prudence = "stingy")
+  ) |>
+    mutate(
+      group_n_receptors = n_distinct(imd_receptor_id),
+      .by = group
+    ) |>
+    collect() |>
+    arrange(imd_chain_id)
+
+  expect_equal(missing_groups$group_n_receptors, c(2, 2, 1, 1))
+})
+
+test_that("group summary fallback can replace a non-protected column", {
+  idata <- make_grouped_mutate_test_idata()
+
+  out <- idata |>
+    mutate(value = n_distinct(imd_receptor_id), .by = group)
+
+  expect_equal(names(out$annotations), names(idata$annotations))
+
+  ann <- out |>
+    collect() |>
+    arrange(imd_chain_id)
+
+  expect_equal(ann$value, rep(2, 5))
+})
+
+test_that("group summary fallback does not hide unrelated errors", {
+  idata <- make_grouped_mutate_test_idata()
+
+  expect_error(
+    idata |>
+      mutate(result = no_such_function(value), .by = group),
+    "Can't translate function `no_such_function()`.",
+    fixed = TRUE
+  )
+  expect_error(
+    idata |>
+      mutate(result = absent + 1, .by = group),
+    "object 'absent' not found",
+    fixed = TRUE
+  )
+  expect_error(
+    idata |>
+      mutate(result = n(), .by = absent),
+    "Column `absent` doesn't exist",
+    fixed = TRUE
+  )
+})
+
+test_that("mixed row and fallback calculations can be split across mutate calls", {
+  idata <- make_grouped_mutate_test_idata()
+
+  expect_error(
+    idata |>
+      mutate(
+        centered = value - mean(value, na.rm = TRUE),
+        group_n_receptors = n_distinct(imd_receptor_id),
+        .by = group
+      ),
+    "not supported in window functions",
+    fixed = TRUE
+  )
+
+  out <- idata |>
+    mutate(
+      centered = value - mean(value, na.rm = TRUE),
+      .by = group
+    ) |>
+    mutate(
+      group_n_receptors = n_distinct(imd_receptor_id),
+      .by = group
+    ) |>
+    collect() |>
+    arrange(imd_chain_id)
+
+  expect_equal(out$centered, c(-2, 0, 2, -2, 2))
+  expect_equal(out$group_n_receptors, rep(2, 5))
+})
+
+test_that("fallback summary dependencies can be split across mutate calls", {
+  idata <- make_grouped_mutate_test_idata()
+
+  expect_error(
+    idata |>
+      mutate(
+        group_n_receptors = n_distinct(imd_receptor_id),
+        twice_group_n_receptors = group_n_receptors * 2,
+        .by = group
+      ),
+    "not supported in window functions",
+    fixed = TRUE
+  )
+
+  out <- idata |>
+    mutate(
+      group_n_receptors = n_distinct(imd_receptor_id),
+      .by = group
+    ) |>
+    mutate(twice_group_n_receptors = group_n_receptors * 2) |>
+    collect() |>
+    arrange(imd_chain_id)
+
+  expect_equal(out$group_n_receptors, rep(2, 5))
+  expect_equal(out$twice_group_n_receptors, rep(4, 5))
 })
 
 test_that("mutate_immundata blocks system column writes", {

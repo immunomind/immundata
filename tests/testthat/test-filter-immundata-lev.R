@@ -24,6 +24,56 @@ testthat::test_that("Levenshtein fuzzy matching returns correct results", {
   )
 })
 
+test_that("Levenshtein filtering keeps edits at sequence ends", {
+  sequences <- tibble::tibble(
+    cdr3_aa = c("AAAAA", "BAAAA", "AAAAB", "AAAA", "AAAAAA", "BBAAA")
+  ) |>
+    duckplyr::as_duckdb_tibble()
+
+  actual <- annotate_tbl_distance(
+    sequences,
+    query_col = "cdr3_aa",
+    patterns = "AAAAA",
+    method = "lev",
+    max_dist = 1,
+    name_type = "index"
+  ) |>
+    collect() |>
+    arrange(cdr3_aa)
+
+  expect_equal(
+    actual$cdr3_aa,
+    sort(c("AAAAA", "BAAAA", "AAAAB", "AAAA", "AAAAAA"))
+  )
+  expect_equal(actual$imd_sim_lev_1, rep(1, 5) - (actual$cdr3_aa == "AAAAA"))
+})
+
+test_that("distance materialization is independent of the R random seed", {
+  sequences <- tibble::tibble(cdr3_aa = c("AAAAA", "AAAAB")) |>
+    duckplyr::as_duckdb_tibble()
+
+  set.seed(1)
+  first <- annotate_tbl_distance(
+    sequences,
+    query_col = "cdr3_aa",
+    patterns = "AAAAA",
+    method = "lev"
+  )
+
+  set.seed(1)
+  second <- annotate_tbl_distance(
+    sequences,
+    query_col = "cdr3_aa",
+    patterns = "AAAAA",
+    method = "lev"
+  )
+
+  expect_equal(
+    collect(first) |> arrange(cdr3_aa),
+    collect(second) |> arrange(cdr3_aa)
+  )
+})
+
 # 6. Combined pre-filter and fuzzy matching
 test_that("combined pre-filter and fuzzy matching works correctly", {
   idata <- get_test_idata_tsv_no_manifest()
