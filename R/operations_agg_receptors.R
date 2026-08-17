@@ -1,87 +1,101 @@
-#' @title Aggregates AIRR data into receptors
+#' @title Group AIRR sequence rows into receptors
 #'
 #' @description
-#' Processes a table of immune receptor sequences (chains or clonotypes) to
-#' identify unique receptors based on a specified schema. It assigns a unique
-#' identifier (`imd_receptor_id`) to each distinct receptor signature and
-#' returns an annotated table linking the original sequence data to these
-#' receptor IDs.
+#' `agg_receptors()` is a low-level function used during AIRR data ingestion. It
+#' decides which sequence rows represent the same biological receptor and adds
+#' package-standard identifiers and counts to the input table.
 #'
-#' This function is a core component used within [read_repertoires()] and handles
-#' different input data structures:
-#' * Simple tables (no counts, no cell IDs).
-#' * Bulk sequencing data (using a count column).
-#' * Single-cell data (using a barcode/cell ID column). For single-cell data,
-#'     it can perform chain pairing if the schema specifies multiple chains
-#'     (e.g., TRA and TRB).
+#' A receptor can be one chain or a pair of chains from the same cell. The
+#' `schema` argument defines which sequence features and loci make two receptors
+#' identical.
 #'
-#' @param dataset A `duckplyr_df` containing AIRR data.
-#'   Must include columns specified in `schema` and potentially `barcode_col`,
-#'   `count_col`, `locus_col`, `umi_col`. Expected `idata$annotations`,
-#'   support for `ImmunData` will probably be added later.
-#' @param schema Defines how a unique receptor is identified. Can be:
-#'   * A character vector of column names representing receptor features
-#'       (e.g., `c("v_call", "j_call", "junction_aa")`).
-#'   * A list created by `make_receptor_schema()`, specifying both `features`
-#'       (character vector) and optionally `chains` (character vector of locus
-#'       names like `"TRA"`, `"TRB"`, `"IGH"`, `"IGK"`, `"IGL"`, max length 2).
-#'       Specifying `chains` triggers filtering by locus and enables pairing logic
-#'       if two chains are given.
-#' @param barcode_col Character(1). The name of the column containing cell
-#'   identifiers (barcodes). Required for single-cell processing and chain pairing.
-#'   When the internal source-file column `imd_filename` is present, single-cell
-#'   identity is scoped by both source file and barcode during aggregation.
-#'   Default: `NULL`.
-#' @param count_col Character(1). The name of the column containing counts
-#'   (e.g., UMI counts for bulk, clonotype frequency). Used for bulk data
-#'   processing. Default: `NULL`. Cannot be specified if `barcode_col` is set.
-#' @param locus_col Character(1). The name of the column specifying the chain locus
-#'   (e.g., "TRA", "TRB"). Required if `schema` includes `chains` for filtering
-#'   or pairing. Default: `NULL`.
-#' @param umi_col Character(1). The name of the column containing UMI counts.
-#'   Required for single-cell data (`barcode_col` is set). Used to select the
-#'   most abundant chain within each barcode and, for paired schemas, within
-#'   each barcode/locus group when multiple chains are present. Default: `NULL`.
+#' This function works with a prepared duckplyr table and returns a duckplyr
+#' table. It does not accept or return an [ImmunData] object. Most analysis
+#' workflows should provide the same arguments to [read_repertoires()], which
+#' calls `agg_receptors()` during import.
+#'
+#' @param dataset A duckplyr table containing AIRR sequence data, with one row
+#'   per chain or bulk clonotype. It must contain the columns named in `schema`
+#'   and in any of `barcode_col`, `count_col`, `locus_col`, and `umi_col` that
+#'   are supplied.
+#' @param schema Definition of receptor identity. Supply either:
+#'
+#'   * A character vector naming the features that must match, such as
+#'     `c("v_call", "j_call", "junction_aa")`.
+#'   * An object created by [make_receptor_schema()]. Its `features` define chain
+#'     identity, while its optional `chains` select one locus or define a pair
+#'     of loci.
+#'
+#'   A schema can contain at most two chain entries. Use syntax such as
+#'   `c("IGH", "IGL|IGK")` to accept either IGH-IGL or IGH-IGK pairs.
+#' @param barcode_col Name of the column containing cell barcodes. Supply this
+#'   for single-cell data. `umi_col` is then also required, and `count_col`
+#'   cannot be supplied. If `imd_filename` is present, identical barcode values
+#'   from different source files are treated as different cells. The default is
+#'   `NULL`.
+#' @param count_col Name of the column containing non-negative abundance values
+#'   in bulk repertoire data. These values are copied to `imd_n_chains`.
+#'   `count_col` cannot be used together with `barcode_col`. The default is
+#'   `NULL`.
+#' @param locus_col Name of the column containing loci such as `"TRA"`, `"TRB"`,
+#'   or `"IGH"`. It is required when `schema` specifies one or more chains. The
+#'   column is renamed to the standard name `locus` when necessary. The default
+#'   is `NULL`.
+#' @param umi_col Name of the column containing per-chain UMI or read counts.
+#'   It is required when `barcode_col` is supplied and is used to choose one
+#'   chain when a cell contains several chains from the same locus. The default
+#'   is `NULL`.
+#' @param verbose Whether to print information about the selected processing
+#'   mode and loci. Defaults to `getOption("immundata.verbose", TRUE)`.
 #'
 #' @details
-#' The function performs the following main steps:
-#' 1.  **Validation:** Checks inputs, schema validity, and existence of required columns.
-#' 2.  **Schema Parsing:** Determines receptor features and target chains from `schema`.
-#' 3.  **Locus Filtering:** If `schema$chains` is provided, filters the dataset
-#'     to include only rows matching the specified locus/loci.
-#' 4.  **Processing Logic (based on `barcode_col` and `count_col`):**
-#'     * **Simple Table/Bulk (No Barcodes):** Assigns unique internal barcode/chain IDs.
-#'         Identifies unique receptors based on `schema$features`. Calculates
-#'         `imd_chain_count` (1 for simple table, from `count_col` for bulk).
-#'     * **Single-Cell (Barcodes Provided):** Uses `barcode_col` for `imd_barcode_id`.
-#'         * **Single Chain:** (`length(schema$chains) <= 1`). Identifies unique
-#'             receptors based on `schema$features`. Uses `umi_col` to keep one
-#'             chain per barcode when needed. `imd_chain_count` is 1.
-#'         * **Paired Chain:** (`length(schema$chains) == 2`). Requires `locus_col`
-#'             and `umi_col`. Filters chains within each cell/locus group based
-#'             on max `umi_col`. Creates paired receptors by joining the two
-#'             specified loci for each cell based on `schema$features` from both.
-#'             Assigns a unique `imd_receptor_id` to each *pair*.
-#'             `imd_chain_count` is 1 (representing the chain record).
-#' 5.  **Output:** Returns an annotated data frame containing original columns plus
-#'     internal identifiers (`imd_receptor_id`, `imd_barcode_id`, `imd_chain_id`)
-#'     and counts (`imd_chain_count`).
+#' The receptor features are the columns that define the identity of one chain.
+#' Two chains with the same values in all feature columns receive the same
+#' receptor identity in a single-chain analysis. Common features include V gene,
+#' J gene, and CDR3 amino acid sequence.
 #'
-#' Internal column names are typically managed by `immundata:::imd_schema()`.
+#' The function supports three input modes:
 #'
-#' @return A `duckplyr_df` (or data frame) representing the annotated sequences.
-#'   This table links each original sequence record (chain) to a defined receptor
-#'   and includes standardized columns:
-#'   * `imd_receptor_id`: Integer ID unique to each distinct receptor signature.
-#'   * `imd_barcode_id`: Integer ID unique to each cell/barcode (or row if no barcode).
-#'   * `imd_chain_id`: Integer ID unique to each input row (chain).
-#'   * `imd_chain_count`: Integer count associated with the chain (1 for SC/simple,
-#'       from `count_col` for bulk).
-#'   This output is typically assigned to the `$annotations` field of an `ImmunData` object.
+#' * **Uncounted sequence table:** If neither `barcode_col` nor `count_col` is
+#'   supplied, every input row is treated as one observed chain. A synthetic
+#'   barcode is created for each row, and `imd_n_chains` is set to `1`.
+#' * **Bulk repertoire:** If `count_col` is supplied, every input row receives a
+#'   synthetic barcode and its abundance is copied to `imd_n_chains`.
+#' * **Single-cell repertoire:** If `barcode_col` is supplied, rows are grouped
+#'   by cell. `umi_col` is required and `imd_n_chains` is set to `1` for every
+#'   retained cell-chain observation.
 #'
-#' @seealso [read_repertoires()], [make_receptor_schema()], [ImmunData]
-#' @param verbose Logical(1). Whether to print informative messages. Defaults to
-#'   `getOption("immundata.verbose", TRUE)`.
+#' When one chain is specified in `schema`, only that locus is retained. If a
+#' cell contains several chains from that locus, the row with the highest value
+#' in `umi_col` is retained. If the highest values are tied, the first row is
+#' retained.
+#'
+#' When two chains are specified, only cells containing both requested loci are
+#' retained. The selected chains are paired by barcode, and both rows receive
+#' the same `imd_receptor_id`. Cells with incomplete pairs are excluded.
+#'
+#' A relaxed pair such as `c("IGH", "IGL|IGK")` requires IGH and exactly one of
+#' the two alternative light-chain loci. Cells containing both IGL and IGK are
+#' excluded.
+#'
+#' Numeric `imd_receptor_id` values identify receptors within the returned
+#' table. The particular number assigned to a receptor is not a biological
+#' identifier and may change when the data are aggregated again.
+#'
+#' @return A duckplyr table containing the retained input rows and these
+#'   package-standard columns:
+#'
+#'   * `imd_receptor_id`: links rows that belong to the same receptor.
+#'   * `imd_barcode`: contains the input cell barcode, or a synthetic row-level
+#'     barcode for uncounted and bulk data.
+#'   * `imd_chain_id`: identifies an individual retained chain row.
+#'   * `imd_n_chains`: contains `1` for uncounted and single-cell data, or the
+#'     value from `count_col` for bulk data.
+#'   * `imd_count`: initialized to `0`; receptor counts are calculated later by
+#'     [agg_repertoires()].
+#'
+#' @seealso [read_repertoires()], [make_receptor_schema()], [agg_repertoires()],
+#'   [ImmunData]
 #'
 #' @concept aggregation
 #' @export
