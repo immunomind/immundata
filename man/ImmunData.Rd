@@ -2,43 +2,179 @@
 % Please edit documentation in R/core_immundata.R
 \name{ImmunData}
 \alias{ImmunData}
-\title{ImmunData: A Unified Structure for Immune Receptor Repertoire Data}
+\title{ImmunData: A data structure for storing adaptive immune receptor repertoire data}
 \description{
-\code{ImmunData} is an abstract R6 class for managing and transforming immune receptor repertoire data.
-It supports flexible backends (e.g., Arrow, DuckDB, dbplyr) and lazy evaluation,
-and provides tools for filtering, aggregation, and receptor-to-repertoire mapping.
+\code{ImmunData} stores adaptive immune receptor repertoire (AIRR) data and the rules
+used to turn observed sequences or cells into data units for analysis. Think AnnData
+or SeuratObject, but for immune repertoires.
+
+You work with an \code{ImmunData} object after importing bulk or single-cell AIRR-seq
+data. The major idea behind \code{ImmunData} is that because sequencing provides only
+information about sequences and, for single-cell data, cell
+barcodes, the your responsibility is to determine, which sequences you want to treat as the
+same receptor, repertoire, or stratum (group of repertoires). You define these analysis units with
+schemas. A schema is a stored set of column names and chain-selection rules
+that tells \code{ImmunData} how to group observations. Those definitions are kept
+inside \code{ImmunData} to ensure that downstream functions count, filter, and compare
+the same units consistently. Repertoire and strata schemas can be changed later to re-aggregate
+repertoires differently, e.g., merge receptors from different clusters into
+per-patient clusters. Receptor schema is fixed once and for all, so if you want
+to work with a different receptor definition, e.g., use "CDR3aa + V gene" instead of
+just "CDR3aa" as a definiton for a unique receptor, you will need to create
+a separate \code{ImmunData} object.
+
+\code{ImmunData} is immutable, meaning that functions that transform an \code{ImmunData}
+object return a new object, and the original object is not changed. Due to multiple
+optimisations on the backend, it does not mean that you re-create the whole
+dataset each time you run a, let's stay, a filter. However, it does affect analysis workflow
+significantly. You can read about it more on the website and in tutorials.
+}
+\section{From observed data to analysis units}{
+
+
+\code{ImmunData} connects observed records to user-defined analysis units:
+\itemize{
+\item A \strong{chain observation} is an observed receptor-chain sequence, such as a
+TRA, TRB, or IGH sequence. Chain observations form the main table.
+\item A \strong{barcode} is an observed identifier for a cell in single-cell data. It
+links chains found in the same cell.
+\item A \strong{receptor} is a virtual analysis unit that you define. For example, you
+may define it by CDR3 sequence alone, by CDR3 and V gene, or as a paired
+TRA-TRB receptor. The receptor schema records which chain features and loci
+must match for observations to receive the same receptor identifier.
+\item A \strong{repertoire} is a virtual collection of receptors that you define from
+annotation columns. For example, one repertoire may contain all receptors
+from one sample, or from one donor at one time point.
+\item A \strong{stratum} is a virtual collection of repertoires for a comparison. For
+example, one stratum may contain all repertoires from one treatment arm.
+}
+
+These definitions do not change the observed sequences. They determine how
+observations are grouped and counted during analysis. The resulting
+hierarchy is \verb{chain observations and barcodes -> receptors -> repertoires -> strata}.
+}
+
+\section{Inspect and transform an object}{
+
+
+Print an object for a compact overview. Use \verb{$receptors} for the receptor
+table, \verb{$repertoires} for one summary row per repertoire, and \verb{$strata} for
+one row per stratum. Most analysis functions accept the complete
+\code{ImmunData} object directly.
+
+Common transformations include:
+\itemize{
+\item \code{\link[=filter_immundata]{filter_immundata()}} to keep selected chains, cells, or receptors;
+\item \code{\link[=mutate_immundata]{mutate_immundata()}} to calculate annotation columns;
+\item \code{\link[=annotate]{annotate()}} to add external biological information;
+\item \code{\link[=agg_repertoires]{agg_repertoires()}} to define repertoires; and
+\item \code{\link[=agg_strata]{agg_strata()}} to group repertoires into strata.
+}
+}
+
+\section{Create an object}{
+
+
+Create an \code{ImmunData} object with \code{\link[=read_repertoires]{read_repertoires()}}, or reopen a saved
+object with \code{\link[=read_immundata]{read_immundata()}}. Do not call the \verb{$new()} constructor in
+analysis code. Direct construction is reserved for package developers.
+}
+
+\section{Lazy data and storage}{
+
+
+The chain-level table uses duckplyr and can remain on disk. Filtering,
+mutation, and aggregation stay lazy when possible, so large datasets do not
+need to be loaded fully into R memory. Downstream analysis functions in the
+\code{immunarch} package are designed to accept lazy \code{ImmunData} objects. Pass the
+object directly; you usually do not need to call \code{\link[dplyr:collect]{dplyr::collect()}}. Collect
+data only when another function explicitly requires an in-memory data frame
+or when you want to inspect a small table in R.
+
+Objects created by \code{\link[=read_repertoires]{read_repertoires()}} are backed by files in their output
+folder. Keep that folder while you use the object. Use \code{\link[=write_immundata]{write_immundata()}} to
+save a transformed object and \code{\link[=read_immundata]{read_immundata()}} to reopen it.
+}
+
+\examples{
+library(immundata)
+library(dplyr)
+
+options(immundata.verbose = FALSE)
+
+# Load the small dataset included with immundata, then define one repertoire
+# for each treatment-response group.
+idata <- get_test_idata() |>
+  agg_repertoires(schema = "Response")
+
+idata$repertoires |>
+  select(Response, n_barcodes, n_receptors) |>
+  arrange(Response)
+# Expected result:
+#   Response n_barcodes n_receptors
+#   FR              955         871
+#   PR              947         867
+
+# Under the current receptor definition, the full-response (FR) repertoire
+# contains 955 chain observations grouped into 871 receptor units.
+
+# Keep only the full-response repertoire. filter() returns a new object.
+fr_only <- idata |>
+  filter(Response == "FR")
+
+tibble(
+  original_repertoires = nrow(idata$repertoires),
+  filtered_repertoires = nrow(fr_only$repertoires)
+)
+# Expected result:
+#   original_repertoires filtered_repertoires
+#                      2                    1
+# The original object still contains both repertoires.
+
 }
 \seealso{
-\code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=read_immundata]{read_immundata()}}
+\code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=read_immundata]{read_immundata()}}, \code{\link[=write_immundata]{write_immundata()}},
+\code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=agg_strata]{agg_strata()}}, \code{\link[=filter_immundata]{filter_immundata()}},
+\code{\link[=mutate_immundata]{mutate_immundata()}}, \code{\link[=annotate]{annotate()}}
 }
 \concept{core_immundata}
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
   \describe{
-    \item{\code{schema_receptor}}{A named list describing how to interpret receptor-level data.
-This includes the fields used for aggregation (e.g., \code{CDR3}, \code{V_gene}, \code{J_gene}),
-and optionally unique identifiers for each receptor row. Used to ensure consistency
-across processing steps.}
+    \item{\code{schema_receptor}}{A named list defining the virtual receptor unit.
+The \code{features} element names the chain columns used to group
+observations, such as CDR3 sequence and V gene. The \code{chains} element
+selects one chain or a paired set of chains.}
 
-    \item{\code{schema_repertoire}}{A character vector defining how barcodes or annotations should be
-grouped into repertoires. This may include sample-level metadata (e.g., \code{sample_id},
-\code{donor_id}) used to define unique repertoires.}
+    \item{\code{schema_repertoire}}{A character vector naming annotation columns
+whose unique combinations define one repertoire, such as \code{sample_id}
+or \code{c("donor_id", "timepoint")}. It is \code{NULL} when repertoires have
+not been defined.}
 
     \item{\code{schema_strata}}{A character vector naming repertoire-level columns
-used to group repertoires into strata.}
+whose unique combinations define one stratum, such as \code{treatment}. It
+is \code{NULL} when strata have not been defined.}
   }
   \if{html}{\out{</div>}}
 }
 \section{Active bindings}{
   \if{html}{\out{<div class="r6-active-bindings">}}
   \describe{
-    \item{\code{receptors}}{Accessor for the dynamically-created table with receptors.}
+    \item{\code{receptors}}{A derived duckplyr table of distinct receptors. For a
+paired receptor, the selected chain features are shown side by side.}
 
-    \item{\code{annotations}}{Accessor for the annotation-level table (\code{.annotations}).}
+    \item{\code{annotations}}{The lazy duckplyr table of retained chain
+observations and their biological annotations. For most tasks, pass the
+complete \code{ImmunData} object to a transformation function or use
+\code{collect(idata)} to inspect this table in memory.}
 
-    \item{\code{repertoires}}{Get a table of repertoires and their basic statistics.}
+    \item{\code{repertoires}}{A small table with one row per repertoire, the columns
+that define it, and summary statistics such as \code{n_barcodes} and
+\code{n_receptors}. It is \code{NULL} when repertoires have not been defined.}
 
-    \item{\code{strata}}{Get one row per stratum with its schema values and label.}
+    \item{\code{strata}}{A small table with one row per stratum, its label, and the
+repertoire-level columns that define it. It is \code{NULL} when strata have
+not been defined.}
 
     \item{\code{provenance}}{Read-only named list describing the snapshot origin
 and storage context carried by this object. Retrieve the complete list with
@@ -87,9 +223,9 @@ The accessor is read-only; assigning to \code{idata$provenance} is an error.}
 \if{html}{\out{<a id="method-ImmunData-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-ImmunData-initialize}{}}}
 \subsection{\code{ImmunData$new()}}{
-  Creates a new \code{ImmunData} object.
-This constructor expects receptor-level and barcode-level data,
-along with a receptor schema defining aggregation and identity fields.
+  Low-level constructor for package developers. Analysis code
+must create an \code{ImmunData} object with \code{\link[=read_repertoires]{read_repertoires()}} or reopen one
+with \code{\link[=read_immundata]{read_immundata()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{ImmunData$new(
@@ -104,12 +240,18 @@ along with a receptor schema defining aggregation and identity fields.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{schema}}{A character vector specifying the receptor schema (e.g., aggregate fields, ID columns).}
-      \item{\code{annotations}}{A cell/barcode-level dataset mapping barcodes to receptor rows.}
-      \item{\code{repertoires}}{A repertoire table, created inside the body of \link{agg_repertoires}.}
-      \item{\code{provenance}}{Internal provenance metadata for snapshot lineage.}
-      \item{\code{strata}}{An optional strata table containing the strata ID, name, and
-columns defining the strata schema.}
+      \item{\code{schema}}{A character vector or named list. A character vector names
+the features used to define a chain-agnostic receptor. A named list is
+created by \code{\link[=make_receptor_schema]{make_receptor_schema()}} and can also select receptor chains.}
+      \item{\code{annotations}}{A duckplyr table. It contains retained chain
+observations, receptor identifiers, and biological annotations.}
+      \item{\code{repertoires}}{A data frame or \code{NULL}. It contains one row per
+repertoire and its summary statistics and is usually created by
+\code{\link[=agg_repertoires]{agg_repertoires()}}.}
+      \item{\code{provenance}}{A list or \code{NULL}. It contains internal storage and
+snapshot history.}
+      \item{\code{strata}}{A data frame or \code{NULL}. It contains one row per stratum,
+its label, and the repertoire-level columns that define it.}
     }
     \if{html}{\out{</div>}}
   }
