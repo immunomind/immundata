@@ -2,22 +2,70 @@
 % Please edit documentation in R/operations_count.R
 \name{count.ImmunData}
 \alias{count.ImmunData}
-\title{Count the number of chains in ImmunData}
+\title{Count chain rows in ImmunData}
 \usage{
 \method{count}{ImmunData}(x, ..., wt = NULL, sort = FALSE, name = NULL)
 }
 \arguments{
-\item{x}{ImmunData object.}
+\item{x}{An \link{ImmunData} object.}
 
-\item{...}{Not used.}
+\item{...}{Additional arguments. Accepted for compatibility with
+\code{\link[dplyr:count]{dplyr::count()}}, but currently ignored.}
 
-\item{wt}{Not used.}
+\item{wt}{Any value or \code{NULL}. Accepted for compatibility with
+\code{\link[dplyr:count]{dplyr::count()}}, but currently ignored.}
 
-\item{sort}{Not used.}
+\item{sort}{A logical value. Accepted for compatibility with
+\code{\link[dplyr:count]{dplyr::count()}}, but currently ignored.}
 
-\item{name}{Not used.}
+\item{name}{A character string or \code{NULL}. Accepted for compatibility with
+\code{\link[dplyr:count]{dplyr::count()}}, but currently ignored. The result column is always named
+\code{n}.}
+}
+\value{
+A one-row duckplyr table with an integer column named \code{n}. This value
+is the number of rows in the chain-level annotation table.
 }
 \description{
-Count the number of chains in ImmunData
+Use \code{count()} to find how many chain rows are stored in an \link{ImmunData}
+object.
+
+Use this method for a quick check of dataset size. The unit counted is one
+retained chain row. Each retained cell with a paired receptor usually
+contributes two rows, one for each chain. The same receptor can therefore
+contribute two rows for every cell carrying it. For bulk data with an
+abundance column, this method counts table rows rather than the summed
+sequence abundance.
+
+The function returns a one-row duckplyr table. The original object is not
+changed.
+}
+\details{
+This method currently provides only the total row count. The grouping,
+weighting, sorting, and result-name arguments of \code{\link[dplyr:count]{dplyr::count()}} are
+accepted for method compatibility but are not applied.
+
+The calculation runs on the duckplyr annotation table and can remain in
+DuckDB. Use \code{\link[dplyr:pull]{dplyr::pull()}} or \code{\link[dplyr:collect]{dplyr::collect()}} to bring the small result
+into R.
+}
+\examples{
+library(immundata)
+library(dplyr)
+
+options(immundata.verbose = FALSE)
+idata <- get_test_idata()
+
+idata |> count()
+# Expected result:
+#      n
+#   1902
+
+# The result means that the object contains 1,902 retained chain rows.
+# It does not mean that it contains 1,902 unique receptors.
+
+}
+\seealso{
+\code{\link[dplyr:count]{dplyr::count()}}, \code{\link[dplyr:collect]{dplyr::collect()}}, \link{ImmunData}
 }
 \concept{operations}
