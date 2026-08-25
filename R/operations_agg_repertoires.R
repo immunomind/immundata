@@ -1,91 +1,138 @@
-#' @title Aggregate AIRR data into repertoires
+#' @title Define biological repertoires and calculate receptor abundance
 #'
 #' @description
-#' Groups the annotation table of an `ImmunData` object by user-specified
-#' columns to define distinct *repertoires* (e.g., based on sample, donor,
-#' time point). It then calculates summary statistics both per-repertoire and
-#' per-receptor within each repertoire.
+#' Use `agg_repertoires()` to define which receptor observations belong to the
+#' same biological repertoire and calculate receptor abundance within each
+#' repertoire.
 #'
-#' Calculated **per repertoire**:
-#' * `n_barcodes`: Total number of unique cells/barcodes within the repertoire
-#'     (sum of `imd_chain_count`, effectively summing unique cells if input was SC,
-#'     or total counts if input was bulk).
-#' * `n_receptors`: Number of unique receptors (`imd_receptor_id`) found within
-#'     the repertoire.
+#' Use this function after importing data without repertoire definitions, or
+#' when you want to redefine repertoires using sample information. One
+#' repertoire usually represents one biological sample. It can also represent
+#' one sample and time-point combination. The columns in `schema` define these
+#' groups.
 #'
-#' Calculated **per annotation row** (receptor within repertoire context):
-#' * `imd_count`: Total count of a specific receptor (`imd_receptor_id`) within
-#'     the specific repertoire it belongs to in that row (sum of relevant
-#'     `imd_chain_count`).
-#' * `imd_proportion`: The proportion of the repertoire's total `n_barcodes`
-#'     accounted for by that specific receptor (`imd_count / n_barcodes`).
-#' * `n_repertoires`: The total number of distinct repertoires (across the entire
-#'     dataset) in which this specific receptor (`imd_receptor_id`) appears.
-#'
-#' These statistics are added to the annotation table, and a summary table is
-#' stored in the `$repertoires` slot of the returned object.
-#'
-#' @param idata An `ImmunData` object, typically the output of [read_repertoires()]
-#'   or [read_immundata()]. Must contain the `$annotations` table with columns
-#'   specified in `schema` and internal columns like `imd_receptor_id` and
-#'   `imd_chain_count`.
-#' @param schema Character vector. Column name(s) in `idata$annotations` that
-#'   define a unique repertoire. For example, `c("SampleID")` or
-#'   `c("DonorID", "TimePoint")`. Columns must exist in `idata$annotations`.
-#'   Default: `"repertoire_id"` (assumes such a column exists).
-#' @param verbose Logical(1). Reserved for consistency with other aggregation
-#'   functions. Defaults to `getOption("immundata.verbose", TRUE)`.
+#' The unit being defined is the repertoire. The function does not remove chain
+#' rows or redefine cells or receptors. It returns a new [ImmunData] object. The
+#' original object is not changed.
 #'
 #' @details
-#' The function operates on the `idata$annotations` table:
-#' 1.  **Validation:** Checks `idata` and existence of `schema` columns. Removes
-#'     any pre-existing repertoire summary columns to prevent duplication.
-#' 2.  **Repertoire Definition:** Groups annotations by the `schema` columns.
-#'     Calculates total counts (`n_barcodes`) per group. Assigns a unique integer
-#'     `imd_repertoire_id` to each distinct repertoire group. This forms the
-#'     initial `repertoires_table`.
-#' 3.  **Receptor Counts & Proportion:** Calculates the sum of `imd_chain_count`
-#'     for each receptor within each repertoire (`imd_count`). Calculates the
-#'     proportion (`imd_proportion`) of each receptor within its repertoire.
-#' 4.  **Repertoire & Receptor Stats:** Counts unique receptors per repertoire
-#'     (`n_receptors`, added to `repertoires_table`). Counts the number of
-#'     distinct repertoires each unique receptor appears in (`n_repertoires`).
-#' 5.  **Join Results:** Joins the calculated `imd_count`, `imd_proportion`, and
-#'     `n_repertoires` back to the annotation table based on repertoire columns
-#'     and `imd_receptor_id`.
-#' 6.  **Return New Object:** Creates and returns a *new* `ImmunData` object
-#'     containing the updated `$annotations` table (with the added statistics)
-#'     and the `$repertoires` slot populated with the `repertoires_table`
-#'     (containing `schema` columns, `imd_repertoire_id`, `n_barcodes`, `n_receptors`).
+#' The function calculates summaries at repertoire and receptor levels while
+#' keeping the original chain rows.
 #'
-#' The original `idata` object remains unmodified. Internal column names are
-#' typically managed by `immundata:::imd_schema()`.
+#' @section What the function calculates:
 #'
-#' @return A **new** `ImmunData` object. Its `$annotations` table includes the
-#'   added columns (`imd_repertoire_id`, `imd_count`, `imd_proportion`, `n_repertoires`).
-#'   Its `$repertoires` slot contains the summary table linking `schema` columns
-#'   to `imd_repertoire_id`, `n_barcodes`, and `n_receptors`.
+#' The returned repertoire summary contains one row for each repertoire:
 #'
-#' @seealso [read_repertoires()] (which can call this function), [ImmunData] class.
+#' * `imd_repertoire_id`: a new integer identifier for the repertoire.
+#' * `n_barcodes`: the number of observed cells for single-cell data, or the
+#'   total abundance for bulk data.
+#' * `n_receptors`: the number of distinct receptors in the repertoire.
+#'
+#' The function also adds these values to each chain row:
+#'
+#' * `imd_repertoire_id`: the repertoire containing the row.
+#' * `imd_count`: the number of cells carrying that receptor in single-cell
+#'   data, or its summed abundance in bulk data, within the repertoire.
+#' * `imd_proportion`: the receptor's fraction of the repertoire, calculated as
+#'   `imd_count / n_barcodes`.
+#' * `n_repertoires`: the number of repertoires in which the receptor occurs.
+#'
+#' Values calculated for a receptor are repeated on all chain rows belonging to
+#' that receptor in the same repertoire.
+#'
+#' Calling `agg_repertoires()` again replaces previous repertoire definitions,
+#' receptor counts, proportions, and related strata summaries.
+#'
+#' @section Backend and storage:
+#'
+#' Large-table calculations run on the duckplyr annotation table. The annotation
+#' data remain lazy when the input is lazy. The small repertoire summary is
+#' collected and stored in the returned object.
+#'
+#' Aggregation can be expensive for a large dataset. After checking the result,
+#' consider saving it so later analyses do not repeat the calculation. Use
+#' `write_immundata(idata, tag = "by-sample")` to create a managed snapshot in
+#' the object's project home. Managed snapshots are versioned, so another write
+#' with the same tag creates a new version and keeps the earlier version.
+#'
+#' Use `write_immundata(idata, output_folder = "path/to/result")` when you need a
+#' standalone saved state in a specific folder, for example to share it or to
+#' choose a new storage location. Unlike a managed snapshot, writing to an
+#' existing explicit folder replaces the ImmunData files in that folder. Both
+#' forms materialize pending duckplyr calculations and return a disk-backed
+#' object that can be reopened with [read_immundata()].
+#'
+#' @param idata An [ImmunData] object containing receptor observations and the
+#'   columns named in `schema`. This is usually created by [read_repertoires()]
+#'   or [read_immundata()].
+#' @param schema A non-empty character vector. One or more column names that
+#'   together define a repertoire. For example, `"Sample"` creates one
+#'   repertoire per sample, and
+#'   `c("Sample", "TimePoint")` creates one repertoire per sample and time-point
+#'   combination. The default is `"repertoire_id"`; this column must exist if
+#'   the default is used.
+#' @param verbose A logical value. Accepted for consistency with other
+#'   aggregation functions. It currently does not change the output. Defaults to
+#'   `getOption("immundata.verbose", TRUE)`.
+#'
+#' @return A new [ImmunData] object with repertoire definitions and abundance
+#'   statistics. Its repertoire summary contains the `schema` columns,
+#'   `imd_repertoire_id`, `n_barcodes`, and `n_receptors`. Its chain rows also
+#'   contain `imd_repertoire_id`, `imd_count`, `imd_proportion`, and
+#'   `n_repertoires`.
+#'
+#' @seealso [read_repertoires()], [agg_strata()], [write_immundata()], [ImmunData]
 #'
 #' @concept aggregation
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Assume 'idata_raw' is an ImmunData object loaded via read_repertoires
-#' # but *without* providing 'repertoire_schema' initially.
-#' # It has $annotations but $repertoires is likely NULL or empty.
-#' # Assume idata_raw$annotations has columns "SampleID" and "TimePoint".
+#' library(immundata)
+#' library(dplyr)
 #'
-#' # Define repertoires based on SampleID and TimePoint
-#' idata_aggregated <- agg_repertoires(idata_raw, schema = c("SampleID", "TimePoint"))
+#' options(immundata.verbose = FALSE)
 #'
-#' # Explore the results
-#' print(idata_aggregated)
-#' print(idata_aggregated$repertoires)
-#' print(head(idata_aggregated$annotations)) # Note the new columns
-#' }
+#' # Create a small bulk T-cell receptor dataset from two biological samples
+#' bulk_data <- tibble(
+#'   Sample = c("Tumor", "Tumor", "Blood", "Blood"),
+#'   cdr3_aa = c("CASSA", "CASSB", "CASSA", "CASSC"),
+#'   v_call = c("TRBV1", "TRBV2", "TRBV1", "TRBV3"),
+#'   abundance = c(20L, 5L, 4L, 6L)
+#' )
+#'
+#' bulk_file <- tempfile(fileext = ".tsv")
+#' readr::write_tsv(bulk_data, bulk_file)
+#'
+#' # Import receptors without defining repertoires
+#' idata <- read_repertoires(
+#'   path = bulk_file,
+#'   schema = c("cdr3_aa", "v_call"),
+#'   count_col = "abundance",
+#'   repertoire_schema = NULL,
+#'   output_folder = tempfile("immundata-example-")
+#' )
+#'
+#' # Define one repertoire for each biological sample
+#' sample_repertoires <- idata |>
+#'   agg_repertoires(schema = "Sample")
+#'
+#' sample_repertoires$repertoires |>
+#'   select(Sample, n_barcodes, n_receptors) |>
+#'   arrange(Sample)
+#' # Expected result:
+#' #   Sample n_barcodes n_receptors
+#' #   Blood          10           2
+#' #   Tumor          25           2
+#'
+#' # For example, CASSA forms 80% of the Tumor repertoire and 40% of the
+#' # Blood repertoire. It occurs in two repertoires.
+#'
+#' # For a large dataset, save the result as a managed snapshot so this
+#' # aggregation does not need to run again.
+#' saved_repertoires <- write_immundata(
+#'   sample_repertoires,
+#'   tag = "by-sample"
+#' )
 agg_repertoires <- function(idata, schema = "repertoire_id",
                             verbose = getOption("immundata.verbose", TRUE)) {
   checkmate::assert_r6(idata, "ImmunData")
