@@ -35,6 +35,7 @@ summary section. Duckplyr prints a preview of large tables rather than every
 row.
 }
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 
 options(immundata.verbose = FALSE)
@@ -52,7 +53,7 @@ print(idata)
 # `Receptors` previews distinct biological receptor definitions.
 # `Annotations` previews the retained chain rows and sample information.
 # The schema sections explain how receptors and repertoires were defined.
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \link{ImmunData}, \code{\link[dplyr:collect]{dplyr::collect()}}, \code{\link[dplyr:count]{dplyr::count()}}

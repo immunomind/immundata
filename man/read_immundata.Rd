@@ -83,6 +83,7 @@ is an ImmunData-specific serialization, not an RDS file.
 }
 
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -125,6 +126,7 @@ list.files(file.path(project_dir, "snapshots", "fr-response"))
 # Expected result: "v001"
 
 unlink(project_dir, recursive = TRUE)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=write_immundata]{write_immundata()}} for saving an analysis, \code{\link[=read_repertoires]{read_repertoires()}} for

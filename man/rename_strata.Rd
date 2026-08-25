@@ -67,6 +67,7 @@ does not rewrite or regroup chain-level data.
 }
 
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -93,6 +94,7 @@ labeled_groups$strata |>
 
 # Only the labels changed. Each sample repertoire remains in the same
 # treatment stratum.
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=agg_strata]{agg_strata()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}

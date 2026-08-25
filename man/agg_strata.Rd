@@ -58,6 +58,7 @@ existing strata. Call \code{agg_strata()} again after redefining repertoires.
 }
 
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -81,6 +82,7 @@ treatment_groups$repertoires |>
 
 # Each repertoire is now assigned to its treatment stratum. Any additional
 # repertoire with the same Therapy value would receive the same stratum ID.
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=rename_strata]{rename_strata()}}, \link{ImmunData}

@@ -188,6 +188,7 @@ set \code{remove_limit = TRUE} to allow the operation.
 }
 
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -291,7 +292,7 @@ cell_repertoires$repertoires |>
 #   imd_repertoire_id cell_type  n_barcodes n_receptors
 #                   1 CD4 T cell          1           1
 #                   2 CD8 T cell          1           1
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[dplyr:left_join]{dplyr::left_join()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=filter_immundata]{filter_immundata()}},

@@ -97,6 +97,7 @@ Existing repertoire and strata summaries are carried to the new object
 without modification.
 }
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -226,14 +227,12 @@ response_centered <- idata |>
 
 # Do not combine that row-level calculation with a statistic that needs the
 # automatic summary fallback in the same call:
-\dontrun{
-idata |>
-  mutate(
-    centered_counts = counts - mean(counts, na.rm = TRUE),
-    response_n_receptors = n_distinct(imd_receptor_id),
-    .by = Response
-  )
-}
+# idata |>
+#   mutate(
+#     centered_counts = counts - mean(counts, na.rm = TRUE),
+#     response_n_receptors = n_distinct(imd_receptor_id),
+#     .by = Response
+#   )
 
 # Use two mutate calls instead. The work remains lazy in DuckDB.
 response_details <- idata |>
@@ -256,7 +255,7 @@ response_details <- idata |>
   mutate(
     twice_response_n_receptors = response_n_receptors * 2
   )
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[dplyr:mutate]{dplyr::mutate()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=filter_immundata]{filter_immundata()}},

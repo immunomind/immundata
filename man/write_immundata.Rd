@@ -94,6 +94,7 @@ pair is an ImmunData-specific serialization, not an RDS file.
 }
 
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -123,6 +124,7 @@ continued_idata |>
 #       1902        1668
 
 unlink(save_dir, recursive = TRUE)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=read_immundata]{read_immundata()}} for continuing a saved analysis,

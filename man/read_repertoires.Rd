@@ -216,6 +216,7 @@ long as you need the object, or reopen it later with \code{\link[=read_immundata
 }
 
 \examples{
+\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -301,7 +302,7 @@ tibble(
 # Expected result:
 #   n_chains n_cells n_receptors
 #          4       2           1
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=read_manifest]{read_manifest()}}, \code{\link[=make_receptor_schema]{make_receptor_schema()}}, \code{\link[=agg_receptors]{agg_receptors()}},
