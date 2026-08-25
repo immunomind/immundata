@@ -97,7 +97,6 @@ Existing repertoire and strata summaries are carried to the new object
 without modification.
 }
 \examples{
-\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -255,7 +254,7 @@ response_details <- idata |>
   mutate(
     twice_response_n_receptors = response_n_receptors * 2
   )
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[dplyr:mutate]{dplyr::mutate()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=filter_immundata]{filter_immundata()}},

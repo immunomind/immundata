@@ -73,7 +73,7 @@
 #' @concept ingestion
 #' @export
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' library(immundata)
 #' library(dplyr)
 #'

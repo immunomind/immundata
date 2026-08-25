@@ -69,6 +69,127 @@ test_that("read_repertoires() works with vector of file names", {
   }
 })
 
+test_that("text input is prematerialized by default and the temporary file is removed", {
+  output_dir <- create_test_output_dir()
+  prematerialize_dir <- tempfile("test-prematerialize-")
+  dir.create(prematerialize_dir)
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+  on.exit(cleanup_output_dir(prematerialize_dir), add = TRUE)
+
+  input_files <- c(
+    system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
+    system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+  )
+
+  idata <- read_repertoires(
+    path = input_files,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    prematerialize_folder = prematerialize_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    verbose = FALSE
+  )
+
+  observed_files <- idata$annotations |>
+    collect() |>
+    distinct(imd_filename) |>
+    pull(imd_filename)
+
+  expect_setequal(observed_files, normalizePath(input_files))
+  expect_length(list.files(prematerialize_dir, all.files = TRUE, no.. = TRUE), 0L)
+
+  metadata <- jsonlite::read_json(
+    file.path(output_dir, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  ingestion_event <- metadata$lineage[[1]]
+  expect_equal(
+    unlist(ingestion_event$inputs$files, use.names = FALSE),
+    normalizePath(input_files)
+  )
+  expect_true(isTRUE(ingestion_event$pipeline$prematerialize$requested))
+  expect_true(isTRUE(ingestion_event$pipeline$prematerialize$applied))
+})
+
+test_that("Parquet input skips prematerialization", {
+  input_file <- tempfile(fileext = ".parquet")
+  output_dir <- create_test_output_dir()
+  unused_prematerialize_dir <- tempfile("test-unused-prematerialize-")
+  on.exit(unlink(input_file), add = TRUE)
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  input_data <- duckplyr::duckdb_tibble(tibble::tibble(
+    cdr3_aa = c("CASSA", "CASSB"),
+    v_call = c("TRBV1", "TRBV2")
+  ))
+  suppressMessages(duckplyr::compute_parquet(input_data, input_file))
+
+  read_repertoires(
+    path = input_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    prematerialize_folder = unused_prematerialize_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    verbose = FALSE
+  )
+
+  expect_false(dir.exists(unused_prematerialize_dir))
+
+  metadata <- jsonlite::read_json(
+    file.path(output_dir, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  prematerialize_event <- metadata$lineage[[1]]$pipeline$prematerialize
+  expect_true(isTRUE(prematerialize_event$requested))
+  expect_false(isTRUE(prematerialize_event$applied))
+})
+
+test_that("an unusable explicit prematerialization folder errors without fallback", {
+  output_dir <- create_test_output_dir()
+  input_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  expect_error(
+    read_repertoires(
+      path = input_file,
+      schema = c("cdr3_aa", "v_call"),
+      output_folder = output_dir,
+      prematerialize_folder = input_file,
+      preprocess = NULL,
+      postprocess = NULL,
+      verbose = FALSE
+    ),
+    "Cannot create.*prematerialize_folder"
+  )
+})
+
+test_that("the prematerialized file is removed after a downstream error", {
+  output_dir <- create_test_output_dir()
+  prematerialize_dir <- tempfile("test-prematerialize-error-")
+  dir.create(prematerialize_dir)
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+  on.exit(cleanup_output_dir(prematerialize_dir), add = TRUE)
+
+  input_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+
+  expect_error(
+    read_repertoires(
+      path = input_file,
+      schema = "missing_receptor_column",
+      output_folder = output_dir,
+      prematerialize_folder = prematerialize_dir,
+      preprocess = NULL,
+      postprocess = NULL,
+      verbose = FALSE
+    ),
+    "Missing receptor feature column"
+  )
+
+  expect_length(list.files(prematerialize_dir, all.files = TRUE, no.. = TRUE), 0L)
+})
+
 test_that("single-cell pairing does not combine equal barcodes from different files", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir), add = TRUE)

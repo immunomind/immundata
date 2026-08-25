@@ -97,7 +97,6 @@ save a transformed object and \code{\link[=read_immundata]{read_immundata()}} to
 }
 
 \examples{
-\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -131,7 +130,7 @@ tibble(
 #   original_repertoires filtered_repertoires
 #                      2                    1
 # The original object still contains both repertoires.
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[=read_repertoires]{read_repertoires()}}, \code{\link[=read_immundata]{read_immundata()}}, \code{\link[=write_immundata]{write_immundata()}},

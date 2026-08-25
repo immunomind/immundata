@@ -50,7 +50,6 @@ DuckDB. Use \code{\link[dplyr:pull]{dplyr::pull()}} or \code{\link[dplyr:collect
 into R.
 }
 \examples{
-\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -64,7 +63,7 @@ idata |> count()
 
 # The result means that the object contains 1,902 retained chain rows.
 # It does not mean that it contains 1,902 unique receptors.
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[dplyr:count]{dplyr::count()}}, \code{\link[dplyr:collect]{dplyr::collect()}}, \link{ImmunData}

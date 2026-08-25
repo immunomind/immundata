@@ -150,7 +150,7 @@ IMD_GLOBALS <- list(
 #'
 #' @seealso [make_receptor_schema()], [imd_rename_cols()], [ImmunData]
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' imd_schema("barcode")
 #' # Expected result: "imd_barcode"
 #'

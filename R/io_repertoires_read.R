@@ -86,6 +86,14 @@
 #'   * `NULL` to leave repertoires undefined.
 #' @param verbose Whether to print progress and summary messages. Defaults to
 #'   `getOption("immundata.verbose", TRUE)`.
+#' @param prematerialize Whether CSV, TSV, and compressed text inputs should be
+#'   combined into a temporary Parquet file before receptor processing. This
+#'   avoids repeatedly scanning text input during downstream lazy queries.
+#'   Existing Parquet input is used directly. The default is `TRUE`.
+#' @param prematerialize_folder Directory in which to create the temporary
+#'   combined Parquet file. If `NULL`, the default, [tempdir()] is used. The
+#'   directory is created when necessary. The temporary file is deleted when
+#'   `read_repertoires()` exits, including after an error.
 #'
 #' @details
 #' The required arguments depend on how receptor observations are represented in
@@ -113,6 +121,7 @@
 #'
 #' Unless you override the relevant arguments, `read_repertoires()`:
 #'
+#' * temporarily combines text input into Parquet before processing;
 #' * standardizes common 10x column names;
 #' * removes selected technical columns;
 #' * keeps productive sequences when productivity information is present;
@@ -128,13 +137,15 @@
 #' The function:
 #'
 #' 1. finds and reads the input files as one duckplyr table;
-#' 2. renames columns;
-#' 3. applies preprocessing;
-#' 4. defines receptors using `schema`;
-#' 5. adds manifest information;
-#' 6. applies postprocessing;
-#' 7. defines repertoires when requested; and
-#' 8. writes and reopens the completed [ImmunData] dataset.
+#' 2. temporarily combines non-Parquet input into one Parquet file when
+#'    `prematerialize = TRUE`;
+#' 3. renames columns;
+#' 4. applies preprocessing;
+#' 5. defines receptors using `schema`;
+#' 6. adds manifest information;
+#' 7. applies postprocessing;
+#' 8. defines repertoires when requested; and
+#' 9. writes and reopens the completed [ImmunData] dataset.
 #'
 #' @section Manifests and repertoires:
 #'
@@ -170,7 +181,7 @@
 #' @concept ingestion
 #' @export
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' library(immundata)
 #' library(dplyr)
 #'
@@ -271,8 +282,17 @@ read_repertoires <- function(path,
                              manifest_file_col = "file",
                              output_folder = NULL,
                              repertoire_schema = "<auto>",
-                             verbose = getOption("immundata.verbose", TRUE)) {
+                             verbose = getOption("immundata.verbose", TRUE),
+                             prematerialize = TRUE,
+                             prematerialize_folder = NULL) {
   start_time <- Sys.time()
+  prematerialized_path <- NULL
+  prematerialization_applied <- FALSE
+  on.exit({
+    if (!is.null(prematerialized_path) && file.exists(prematerialized_path)) {
+      unlink(prematerialized_path)
+    }
+  }, add = TRUE)
 
   checkmate::assert_character(path)
 
@@ -317,6 +337,11 @@ read_repertoires <- function(path,
   checkmate::assert_character(rename_columns, null.ok = TRUE)
   checkmate::assert_logical(enforce_schema)
   checkmate::assert_flag(verbose)
+  checkmate::assert_flag(prematerialize)
+  checkmate::assert_string(
+    prematerialize_folder,
+    null.ok = TRUE
+  )
   checkmate::assert_list(preprocess, null.ok = TRUE)
   if (!is.null(preprocess)) {
     sapply(preprocess, checkmate::assert_function)
@@ -412,6 +437,49 @@ read_repertoires <- function(path,
 
   raw_dataset <- raw_dataset |>
     rename(!!immundata_filename_col := any_of("filename"))
+
+  if (isTRUE(prematerialize) && input_file_type != "parquet") {
+    if (is.null(prematerialize_folder)) {
+      prematerialize_folder <- tempdir()
+    }
+
+    dir.create(
+      prematerialize_folder,
+      showWarnings = FALSE,
+      recursive = TRUE
+    )
+    if (!dir.exists(prematerialize_folder)) {
+      cli::cli_abort(
+        "Cannot create {.arg prematerialize_folder} at [{prematerialize_folder}]."
+      )
+    }
+
+    prematerialized_path <- tempfile(
+      pattern = "immundata-prematerialized-",
+      tmpdir = prematerialize_folder,
+      fileext = ".parquet"
+    )
+
+    if (verbose) {
+      cli::cli_h3("Prematerializing repertoire data")
+      cli::cli_alert_info(
+        "Combining text input into temporary Parquet at [{prematerialized_path}]"
+      )
+      compute_parquet(raw_dataset, prematerialized_path)
+    } else {
+      suppressMessages(compute_parquet(raw_dataset, prematerialized_path))
+    }
+
+    raw_dataset <- suppressMessages(read_parquet_duckdb(
+      prematerialized_path,
+      prudence = "stingy"
+    ))
+    prematerialization_applied <- TRUE
+
+    if (verbose) {
+      cli::cli_alert_success("Prematerialization is finished")
+    }
+  }
 
   # Rename columns
   if (!is.null(rename_columns)) {
@@ -634,6 +702,10 @@ read_repertoires <- function(path,
         )
       ),
       pipeline = list(
+        prematerialize = list(
+          requested = prematerialize,
+          applied = prematerialization_applied
+        ),
         preprocess = names(preprocess),
         postprocess = names(postprocess)
       )

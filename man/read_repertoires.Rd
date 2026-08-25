@@ -19,7 +19,9 @@ read_repertoires(
   manifest_file_col = "file",
   output_folder = NULL,
   repertoire_schema = "<auto>",
-  verbose = getOption("immundata.verbose", TRUE)
+  verbose = getOption("immundata.verbose", TRUE),
+  prematerialize = TRUE,
+  prematerialize_folder = NULL
 )
 }
 \arguments{
@@ -115,6 +117,16 @@ available, or the input filename otherwise.
 
 \item{verbose}{Whether to print progress and summary messages. Defaults to
 \code{getOption("immundata.verbose", TRUE)}.}
+
+\item{prematerialize}{Whether CSV, TSV, and compressed text inputs should be
+combined into a temporary Parquet file before receptor processing. This
+avoids repeatedly scanning text input during downstream lazy queries.
+Existing Parquet input is used directly. The default is \code{TRUE}.}
+
+\item{prematerialize_folder}{Directory in which to create the temporary
+combined Parquet file. If \code{NULL}, the default, \code{\link[=tempdir]{tempdir()}} is used. The
+directory is created when necessary. The temporary file is deleted when
+\code{read_repertoires()} exits, including after an error.}
 }
 \value{
 A disk-backed \link{ImmunData} object containing the retained chain rows,
@@ -162,6 +174,7 @@ when a cell contains several chains from the same locus.
 
 Unless you override the relevant arguments, \code{read_repertoires()}:
 \itemize{
+\item temporarily combines text input into Parquet before processing;
 \item standardizes common 10x column names;
 \item removes selected technical columns;
 \item keeps productive sequences when productivity information is present;
@@ -180,6 +193,8 @@ Set \code{rename_columns}, \code{preprocess}, \code{postprocess}, or \code{reper
 The function:
 \enumerate{
 \item finds and reads the input files as one duckplyr table;
+\item temporarily combines non-Parquet input into one Parquet file when
+\code{prematerialize = TRUE};
 \item renames columns;
 \item applies preprocessing;
 \item defines receptors using \code{schema};
@@ -216,7 +231,6 @@ long as you need the object, or reopen it later with \code{\link[=read_immundata
 }
 
 \examples{
-\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -302,7 +316,7 @@ tibble(
 # Expected result:
 #   n_chains n_cells n_receptors
 #          4       2           1
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[=read_manifest]{read_manifest()}}, \code{\link[=make_receptor_schema]{make_receptor_schema()}}, \code{\link[=agg_receptors]{agg_receptors()}},

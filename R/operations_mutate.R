@@ -83,7 +83,7 @@
 #' @seealso [dplyr::mutate()], [make_seq_options()], [filter_immundata()],
 #'   [annotate_receptors()], [agg_repertoires()], [ImmunData]
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' library(immundata)
 #' library(dplyr)
 #'

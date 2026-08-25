@@ -1,0 +1,3 @@
+file,Therapy,Response,Prefix
+sample_0_1k.parquet,ICI,FR,S1_
+sample_1k_2k.parquet,CAR-T,PR,S2_

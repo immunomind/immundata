@@ -2,7 +2,7 @@ test_that("agg_strata adds id and name to repertoires, id only to annotations", 
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy"))
 
   stratified <- agg_strata(idata, schema = "Response")
@@ -29,7 +29,7 @@ test_that("agg_strata adds id and name to repertoires, id only to annotations", 
 })
 
 test_that("agg_strata validates grouping columns", {
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires("Response")
 
   expect_error(
@@ -42,7 +42,7 @@ test_that("agg_strata keeps repertoire-strata mapping consistent", {
   repertoire_col <- imd_schema("repertoire")
   strata_col <- imd_schema("strata")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy"))
 
   stratified <- agg_strata(idata, schema = c("Response", "Therapy"))
@@ -70,7 +70,7 @@ test_that("agg_strata handles NA group values", {
   repertoire_col <- imd_schema("repertoire")
   strata_col <- imd_schema("strata")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy"))
 
   rep_tbl <- idata$repertoires
@@ -105,7 +105,10 @@ test_that("agg_strata handles NA group values", {
 })
 
 test_that("agg_strata requires repertoire aggregation", {
-  idata <- get_test_immundata(repertoire_schema = NULL)
+  idata <- ImmunData$new(
+    schema = "cdr3_aa",
+    annotations = make_basic_test_annotations()
+  )
 
   expect_error(
     agg_strata(idata, schema = "Response"),
@@ -117,7 +120,7 @@ test_that("agg_strata keeps repertoire schema and strata metadata are dropped on
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy"))
 
   stratified <- agg_strata(idata, schema = "Response")
@@ -143,7 +146,7 @@ test_that("re-aggregation rebuilds repertoire ids and removes strata metadata", 
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata(schema = "Response")
 
@@ -186,7 +189,7 @@ test_that("agg_strata can be re-run and overwrites previous strata assignment", 
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy"))
 
   rep_tbl <- idata$repertoires
@@ -208,7 +211,7 @@ test_that("agg_strata can be re-run and overwrites previous strata assignment", 
 })
 
 test_that("agg_strata validates schema argument contract", {
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy"))
 
   expect_error(agg_strata(idata, schema = character()), "Assertion on 'schema' failed")
@@ -220,7 +223,7 @@ test_that("agg_strata validates schema argument contract", {
 test_that("agg_strata errors clearly when repertoire id column is missing", {
   repertoire_col <- imd_schema("repertoire")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy"))
 
   bad_annotations <- idata$annotations |>
@@ -256,7 +259,7 @@ test_that("rename_strata renames using a full named vector mapping", {
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata(schema = "Response")
 
@@ -276,7 +279,7 @@ test_that("rename_strata renames using a full named vector mapping", {
 })
 
 test_that("print.ImmunData shows strata schema and strata table", {
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata(schema = "Response")
 
@@ -290,7 +293,7 @@ test_that("rename_strata supports partial renaming with unnamed policy", {
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata(schema = "Response")
 
@@ -318,7 +321,7 @@ test_that("rename_strata validates mapping integrity", {
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata(schema = "Response")
 

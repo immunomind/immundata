@@ -494,7 +494,7 @@ test_that("downsample_immundata rebuilds strata and retains strata labels", {
   strata_col <- imd_schema("strata")
   strata_name_col <- imd_schema("strata_name")
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata("Response")
   idata <- rename_strata(

@@ -105,7 +105,6 @@ data. Existing strata are also rebuilt, and their labels are retained. Set
 summaries.
 }
 \examples{
-\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 library(immundata)
 library(dplyr)
 
@@ -192,7 +191,7 @@ selected_receptors <- idata |>
 
 selected_receptors_data <- idata |>
   filter_receptors(selected_receptors)
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[dplyr:filter]{dplyr::filter()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=mutate_immundata]{mutate_immundata()}},

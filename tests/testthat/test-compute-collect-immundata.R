@@ -6,7 +6,8 @@ make_compute_state_test_idata <- function() {
 }
 
 test_that("compute() preserves repertoire, strata, and provenance state", {
-  idata <- get_test_immundata(repertoire_schema = c("Response", "Therapy")) |>
+  idata <- get_test_idata() |>
+    agg_repertoires(c("Response", "Therapy")) |>
     agg_strata("Response")
 
   reps_before <- idata$repertoires

@@ -27,7 +27,6 @@ writing an internal name such as \code{"imd_barcode"} directly. It only returns
 names; it does not inspect or change an \link{ImmunData} object.
 }
 \examples{
-\dontshow{if (identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")) withAutoprint(\{ # examplesIf}
 imd_schema("barcode")
 # Expected result: "imd_barcode"
 
@@ -40,7 +39,7 @@ get_test_idata() |>
   dplyr::collect() |>
   dplyr::select(dplyr::all_of(barcode_column)) |>
   head(2)
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[=make_receptor_schema]{make_receptor_schema()}}, \code{\link[=imd_rename_cols]{imd_rename_cols()}}, \link{ImmunData}

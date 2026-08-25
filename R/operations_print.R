@@ -27,7 +27,7 @@
 #'
 #' @seealso [ImmunData], [dplyr::collect()], [dplyr::count()]
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' library(immundata)
 #'
 #' options(immundata.verbose = FALSE)

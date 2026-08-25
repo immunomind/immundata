@@ -1,5 +1,5 @@
 test_that("filter() filters ImmunData by receptor-level conditions", {
-  idata <- get_test_idata_tsv_with_manifest()
+  idata <- get_test_idata()
 
   # Sanity check
   checkmate::expect_r6(idata, "ImmunData")

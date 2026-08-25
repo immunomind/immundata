@@ -661,7 +661,7 @@ test_that("write/read roundtrip preserves repertoire and strata state from metad
   output_dir <- create_test_output_dir("strata_roundtrip_")
   on.exit(cleanup_output_dir(output_dir), add = TRUE)
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata(schema = "Response")
 
@@ -946,7 +946,7 @@ test_that("read_immundata validates declared strata columns", {
   output_dir <- create_test_output_dir("snapshot_strata_columns_")
   on.exit(cleanup_output_dir(output_dir), add = TRUE)
 
-  idata <- get_test_immundata() |>
+  idata <- get_test_idata() |>
     agg_repertoires(c("Response", "Therapy")) |>
     agg_strata(schema = "Response")
   write_immundata(idata, output_folder = output_dir)

@@ -50,7 +50,7 @@
 #' @concept aggregation
 #' @export
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' library(immundata)
 #' library(dplyr)
 #'
@@ -206,7 +206,7 @@ agg_strata <- function(idata, schema, prefix = "Strata") {
 #' @concept aggregation
 #' @export
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' library(immundata)
 #' library(dplyr)
 #'

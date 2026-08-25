@@ -75,7 +75,7 @@
 #' @seealso [dplyr::filter()], [make_seq_options()], [mutate_immundata()],
 #'   [agg_repertoires()], [ImmunData]
 #'
-#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
+#' @examples
 #' library(immundata)
 #' library(dplyr)
 #'
