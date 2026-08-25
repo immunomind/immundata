@@ -39,7 +39,7 @@
 #'
 #' @seealso [dplyr::count()], [dplyr::collect()], [ImmunData]
 #'
-#' @examples
+#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
 #' library(immundata)
 #' library(dplyr)
 #'

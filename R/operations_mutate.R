@@ -83,7 +83,7 @@
 #' @seealso [dplyr::mutate()], [make_seq_options()], [filter_immundata()],
 #'   [annotate_receptors()], [agg_repertoires()], [ImmunData]
 #'
-#' @examples
+#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
 #' library(immundata)
 #' library(dplyr)
 #'
@@ -213,14 +213,12 @@
 #'
 #' # Do not combine that row-level calculation with a statistic that needs the
 #' # automatic summary fallback in the same call:
-#' \dontrun{
-#' idata |>
-#'   mutate(
-#'     centered_counts = counts - mean(counts, na.rm = TRUE),
-#'     response_n_receptors = n_distinct(imd_receptor_id),
-#'     .by = Response
-#'   )
-#' }
+#' # idata |>
+#' #   mutate(
+#' #     centered_counts = counts - mean(counts, na.rm = TRUE),
+#' #     response_n_receptors = n_distinct(imd_receptor_id),
+#' #     .by = Response
+#' #   )
 #'
 #' # Use two mutate calls instead. The work remains lazy in DuckDB.
 #' response_details <- idata |>

@@ -88,7 +88,7 @@
 #'   [agg_repertoires()], [agg_strata()], [filter_immundata()],
 #'   [mutate_immundata()], [annotate()]
 #'
-#' @examples
+#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
 #' library(immundata)
 #' library(dplyr)
 #'

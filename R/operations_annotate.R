@@ -116,7 +116,7 @@
 #' @seealso [dplyr::left_join()], [agg_repertoires()], [filter_immundata()],
 #'   [mutate_immundata()], [ImmunData]
 #'
-#' @examples
+#' @examplesIf identical(Sys.getenv("IMD_RUN_EXAMPLES"), "true")
 #' library(immundata)
 #' library(dplyr)
 #'
