@@ -2,6 +2,8 @@
 
 # Load and Validate a Manifest for Immune Repertoire Files
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_manifest_read.R#L39)
+
 ## Description
 
 This function loads a manifest from either a file path or a data frame,

@@ -2,6 +2,8 @@
 
 # Add external information to ImmunData
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_annotate.R#L227)
+
 ## Description
 
 Use the <code style="white-space: pre;">annotate\_\*()</code> functions

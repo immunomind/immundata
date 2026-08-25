@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#load-a-saved-immundata-from-disk" class="md-skip">
+        <a href="#load-an-immundata-object-from-disk" class="md-skip">
           Skip to content
         </a>
       
@@ -730,6 +730,28 @@
     <span class="md-ellipsis">
       
         Value
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-the-saved-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the saved state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-and-serialized-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend and serialized data
       
     </span>
   </a>
@@ -1731,6 +1753,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#choose-the-saved-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the saved state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-and-serialized-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend and serialized data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1772,14 +1816,19 @@
   
 
 
-<h1 id="load-a-saved-immundata-from-disk">Load a saved ImmunData from disk<a class="headerlink" href="#load-a-saved-immundata-from-disk" title="Permanent link">&para;</a></h1>
+<h1 id="load-an-immundata-object-from-disk">Load an ImmunData object from disk<a class="headerlink" href="#load-an-immundata-object-from-disk" title="Permanent link">&para;</a></h1>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/io_immundata_read.R#L112"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Reconstructs an <code>ImmunData</code> object from files previously
-saved to a directory by <code>write_immundata()</code> or the internal
-saving step of <code>read_repertoires()</code>. It reads the
-<code>annotations.parquet</code> file for the main data and
-<code>metadata.json</code> to retrieve the necessary receptor and
-repertoire schemas.</p>
+<p>Continue an analysis later by reopening an ImmunData dataset saved on
+disk. Use <code>read_immundata()</code> after restarting R, in another
+script, or when another person gives you a dataset created by
+<code>write_immundata()</code> or <code>read_repertoires()</code>. It is
+that simple, just don’t forget to save the <code>ImmunData</code> object
+first!</p>
+<p>The unit restored retains all information: chain rows, cell and receptor
+identifiers, repertoire and stratum definitions, and provenance. The
+function does not change these biological units or the saved files. It
+returns a new ImmunData object.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>read_immundata(
   path,
@@ -1797,9 +1846,11 @@ repertoire schemas.</p>
 <code id="path">path</code>
 </td>
 <td>
-Character(1). Path to the <strong>directory</strong> containing the
-saved <code>ImmunData</code> files (<code>annotations.parquet</code> and
-<code>metadata.json</code>).
+A character string. Path to a saved dataset directory. The directory
+must contain <code>annotations.parquet</code> and
+<code>metadata.json</code>. When <code>tag</code> is supplied, use the
+project home directory that contains the <code>snapshots</code>
+directory. Read more about snapshots on the website.
 </td>
 </tr>
 <tr>
@@ -1807,9 +1858,9 @@ saved <code>ImmunData</code> files (<code>annotations.parquet</code> and
 <code id="tag">tag</code>
 </td>
 <td>
-Character(1) or <code>NULL</code>. Optional snapshot tag to load from
-<code style="white-space: pre;">path/snapshots/\<tag\>/vNNN</code>. When
-provided, <code>path</code> must point to the project/home folder.
+A character string or <code>NULL</code>. Snapshot tag to read from
+<code style="white-space: pre;">path/snapshots/\<tag\>/vNNN</code>. If
+<code>NULL</code>, the default, <code>path</code> itself is read.
 </td>
 </tr>
 <tr>
@@ -1817,9 +1868,11 @@ provided, <code>path</code> must point to the project/home folder.
 <code id="version">version</code>
 </td>
 <td>
-Integer(1) or <code>NULL</code>. Optional snapshot version number to
-load within a tag (e.g. <code>1</code> means <code>v001</code>). If
-<code>NULL</code>, the latest version for the tag is loaded.
+A non-negative integer or <code>NULL</code>. Snapshot version within
+<code>tag</code>. For example, <code>1</code> reads <code>v001</code>.
+If <code>NULL</code>, the default, the latest available version for the
+tag is read. <code>version</code> can only be used with
+<code>tag</code>.
 </td>
 </tr>
 <tr>
@@ -1827,10 +1880,14 @@ load within a tag (e.g. <code>1</code> means <code>v001</code>). If
 <code id="prudence">prudence</code>
 </td>
 <td>
-Character(1). Controls strictness of type inference when reading the
-Parquet file, passed to <code>duckplyr::read_parquet_duckdb()</code>.
-Default <code>“stingy”</code> likely implies stricter type checking or
-safer inference.
+A character string. Memory protection used while reading the Parquet
+data. This controls whether duckplyr may convert an intermediate result
+from DuckDB-managed memory to an R data frame: <code>“stingy”</code>,
+the default here, never permits conversion; <code>“thrifty”</code>
+permits up to 1 million table cells (rows multiplied by columns); and
+<code>“lavish”</code> permits conversion regardless of size. Here,
+"table cells" does not mean biological cells. Passed to
+<code>duckplyr::read_parquet_duckdb()</code>.
 </td>
 </tr>
 <tr>
@@ -1838,96 +1895,93 @@ safer inference.
 <code id="verbose">verbose</code>
 </td>
 <td>
-Logical(1). Whether to print informative messages. Defaults to
-<code>getOption(“immundata.verbose”, TRUE)</code>.
+A logical value. Whether to print progress and summary messages.
+Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
 </td>
 </tr>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>This function expects a directory structure created by
-<code>write_immundata()</code>, containing at least:</p>
-<ul>
-<li>
-
-<code>annotations.parquet</code>: The main annotation data table.
-
-</li>
-<li>
-
-<code>metadata.json</code>: Contains package version,
-receptor/repertoire/strata schemas, the repertoire table, current
-<code>snapshot_id</code>, lineage events, and provenance paths.
-
-</li>
-</ul>
-
-<p>The loading process involves:</p>
-<ol>
-<li>
-
-Checking that the specified <code>path</code> is a directory and
-contains the required <code>annotations.parquet</code> and
-<code>metadata.json</code> files.
-
-</li>
-<li>
-
-Reading <code>metadata.json</code> using
-<code>jsonlite::read_json()</code>.
-
-</li>
-<li>
-
-Reading <code>annotations.parquet</code> using
-<code>duckplyr::read_parquet_duckdb()</code> with the specified
-<code>prudence</code> level.
-
-</li>
-<li>
-
-Restoring the receptor, repertoire, and strata schemas and the
-serialized repertoire table from metadata.
-
-</li>
-<li>
-
-Instantiating a new <code>ImmunData</code> object directly, without
-re-aggregating repertoires or strata.
-
-</li>
-</ol>
-
+<p>Read either a dataset directory directly or a versioned snapshot within
+its project home.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>A new <code>ImmunData</code> object reconstructed from the saved files.</p>
+<p>A new, disk-backed ImmunData object representing the selected saved
+state. Its provenance records the directory that was read.</p>
+<h2 id="choose-the-saved-state">Choose the saved state<a class="headerlink" href="#choose-the-saved-state" title="Permanent link">&para;</a></h2>
+<p>To reopen a dataset saved directly in a folder, supply that folder as
+<code>path</code> and leave <code>tag</code> and <code>version</code> as
+<code>NULL</code>.</p>
+<p>To reopen a managed snapshot, supply the project home as
+<code>path</code> and its tag. By default, the latest version for that
+tag is read. Supply <code>version</code> when you need an exact earlier
+state.</p>
+<h2 id="backend-and-serialized-data">Backend and serialized data<a class="headerlink" href="#backend-and-serialized-data" title="Permanent link">&para;</a></h2>
+<p><code>annotations.parquet</code> stores the retained chain-level
+annotation table. It is reopened as a lazy duckplyr table, so the
+complete table does not need to be loaded into R memory.
+<code>metadata.json</code> stores the format and package versions,
+receptor, repertoire, and stratum schemas, the repertoire table, the
+snapshot identifier, lineage events, and provenance paths.</p>
+<p>Receptor and stratum views are reconstructed from this serialized state;
+they are not stored as separate files. Please also mind, that the saved
+files is an ImmunData-specific serialization, not an RDS file.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p><code>write_immundata()</code> for saving <code>ImmunData</code>
-objects, <code>read_repertoires()</code> for the primary data loading
-pipeline, ImmunData class, <code>agg_repertoires()</code> for repertoire
-definition.</p>
+<p><code>write_immundata()</code> for saving an analysis,
+<code>read_repertoires()</code> for importing AIRR-seq files, ImmunData</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Assume 'my_idata' is an ImmunData object created previously</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># my_idata &lt;- read_repertoires(...)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Define a temporary directory for saving</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">save_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tempfile</span><span class="p">(</span><span class="s">"saved_immundata_"</span><span class="p">)</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Save the ImmunData object</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nf">write_immundata</span><span class="p">(</span><span class="n">my_idata</span><span class="p">,</span><span class="w"> </span><span class="n">save_dir</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Create a project home and save a filtered biological state as a snapshot</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">get_test_idata</span><span class="p">()</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">project_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tempfile</span><span class="p">(</span><span class="s">"immundata-project-"</span><span class="p">)</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># --- Later, in a new session or script ---</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># Load the ImmunData object back from the directory</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">loaded_idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_immundata</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># Verify the loaded object</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="nf">print</span><span class="p">(</span><span class="n">loaded_idata</span><span class="p">)</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># compare_methods(my_idata$annotations, loaded_idata$annotations) # If available</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">project_idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">write_immundata</span><span class="p">(</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="n">idata</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="n">output_folder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">project_dir</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="n">rehome</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">fr_response</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">project_idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nf">filter</span><span class="p">(</span><span class="n">Response</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">"FR"</span><span class="p">)</span>
 <a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="c1"># Clean up</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="nf">unlink</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="nf">write_immundata</span><span class="p">(</span><span class="n">fr_response</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"fr-response"</span><span class="p">)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="c1"># Read the exact first version of this snapshot</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">continued_fr</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_immundata</span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">  </span><span class="n">project_dir</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="n">tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"fr-response"</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">  </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="p">)</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="n">continued_fr</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">  </span><span class="nf">summarise</span><span class="p">(</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">    </span><span class="n">n_chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n</span><span class="p">(),</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="n">n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 1 × 2
+#&gt;   n_chains n_receptors
+#&gt; *    &lt;int&gt;       &lt;dbl&gt;
+#&gt; 1      955         871
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result: the snapshot contains the 955 chain rows and 871</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># receptors from the FR response group.</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#   n_chains n_receptors</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">#        955         871</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nf">list.files</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"snapshots"</span><span class="p">,</span><span class="w"> </span><span class="s">"fr-response"</span><span class="p">))</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; [1] "v001"
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Expected result: "v001"</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nf">unlink</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
 </code></pre></div>
 
 

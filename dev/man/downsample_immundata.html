@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#downsample-immundata-annotations-at-the-repertoire-level" class="md-skip">
+        <a href="#reduce-repertoires-to-a-common-sampling-depth" class="md-skip">
           Skip to content
         </a>
       
@@ -1103,6 +1103,72 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#meaning-of-n-for-single-cell-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meaning of n for single-cell data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meaning-of-n-for-bulk-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meaning of n for bulk data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repertoire-and-strata-summaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repertoire and strata summaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend and storage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1686,6 +1752,72 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#meaning-of-n-for-single-cell-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meaning of n for single-cell data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meaning-of-n-for-bulk-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meaning of n for bulk data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repertoire-and-strata-summaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repertoire and strata summaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend and storage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1706,40 +1838,19 @@
   
 
 
-<h1 id="downsample-immundata-annotations-at-the-repertoire-level">Downsample ImmunData annotations at the repertoire level<a class="headerlink" href="#downsample-immundata-annotations-at-the-repertoire-level" title="Permanent link">&para;</a></h1>
+<h1 id="reduce-repertoires-to-a-common-sampling-depth">Reduce repertoires to a common sampling depth<a class="headerlink" href="#reduce-repertoires-to-a-common-sampling-depth" title="Permanent link">&para;</a></h1>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_downsample.R#L122"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Downsamples an <code>ImmunData</code> object by selecting barcodes
-within each repertoire. If repertoire schema is not defined, the entire
-dataset is treated as one repertoire.</p>
-<p>The function uses a single parameter <code>n</code>:</p>
-<ul>
-<li>
-
-If <code style="white-space: pre;">0 \< n \< 1</code>, <code>n</code> is
-treated as a proportion of repertoire size.
-
-</li>
-<li>
-
-If <code>n \>= 1</code>, <code>n</code> is treated as an absolute target
-count. In particular, <code>n = 1</code> retains one barcode/receptor
-unit per repertoire for cell-level data, or one count per repertoire for
-bulk data.
-
-</li>
-</ul>
-
-<p>Downsampling is barcode-based. For count-based inputs (e.g. bulk),
-per-barcode counts (<code>imd_n_chains</code>) are trimmed when needed
-to reach the target. Existing repertoire-derived metrics
-(<code>imd_count</code>, <code>imd_proportion</code>,
-<code>n_repertoires</code>, <code>n_receptors</code>,
-<code>n_barcodes</code>) are dropped and recalculated for the
-downsampled object when a repertoire schema is present. Original metrics
-are not retained because they describe the pre-downsampled universe. If
-the input has a strata schema, the strata layer is rebuilt from that
-schema after repertoire aggregation. Existing strata labels are
-retained.</p>
+<p>Use <code>downsample_immundata()</code> to reduce every repertoire to
+the same number or fraction of observed cells or bulk sequence counts
+before comparing repertoires. So, it is just a downsampling.</p>
+<p>Use this function when different sequencing depths could affect a
+comparison of repertoire diversity or composition. In single-cell data,
+the sampling unit is a cell barcode and all selected chains from that
+cell stay together. In bulk data with abundance values, the sampling
+unit is one sequence count.</p>
+<p>The function returns a new ImmunData object. The original object is not
+changed.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>downsample_immundata(idata, n, seed = NULL)
 </code></pre>
@@ -1751,7 +1862,9 @@ retained.</p>
 <code id="idata">idata</code>
 </td>
 <td>
-An <code>ImmunData</code> object.
+An ImmunData object. For comparisons between repertoires, its
+repertoires should already be defined with
+<code>read_repertoires()</code> or <code>agg_repertoires()</code>.
 </td>
 </tr>
 <tr>
@@ -1759,8 +1872,9 @@ An <code>ImmunData</code> object.
 <code id="n">n</code>
 </td>
 <td>
-Numeric scalar controlling downsampling amount. See details for
-interpretation.
+A number. Sampling depth. Use a value strictly between 0 and 1 for a
+fraction, or a whole number greater than or equal to 1 for an absolute
+number of cells or bulk sequence counts.
 </td>
 </tr>
 <tr>
@@ -1768,13 +1882,132 @@ interpretation.
 <code id="seed">seed</code>
 </td>
 <td>
-Optional integer scalar for reproducible sampling.
+A non-negative integer or <code>NULL</code>. Used to reproduce the same
+random sample. The default is <code>NULL</code>.
 </td>
 </tr>
 </table>
 
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>A new <code>ImmunData</code> object with downsampled annotations.</p>
+<p>A new ImmunData object containing the sampled chain observations. If the
+input has repertoires or strata, their summaries are recalculated for
+the sampled data.</p>
+<h2 id="meaning-of-n-for-single-cell-data">Meaning of <code>n</code> for single-cell data<a class="headerlink" href="#meaning-of-n-for-single-cell-data" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+
+<code style="white-space: pre;">0 \< n \< 1</code> keeps
+<code style="white-space: pre;">floor(n \* number of cells)</code> cells
+from each repertoire.
+
+</li>
+<li>
+
+<code>n \>= 1</code> keeps <code>n</code> cells from each repertoire.
+
+</li>
+</ul>
+
+<p>Cell barcodes are sampled without replacement. For paired receptors, all
+retained chains belonging to a selected cell stay together.</p>
+<h2 id="meaning-of-n-for-bulk-data">Meaning of <code>n</code> for bulk data<a class="headerlink" href="#meaning-of-n-for-bulk-data" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+
+<code style="white-space: pre;">0 \< n \< 1</code> keeps
+<code style="white-space: pre;">floor(n \* total abundance)</code>
+sequence counts from each repertoire.
+
+</li>
+<li>
+
+<code>n \>= 1</code> keeps a total abundance of <code>n</code> from each
+repertoire.
+
+</li>
+</ul>
+
+<p>Counts are sampled without replacement according to their observed
+abundance. A retained receptor can therefore have a smaller abundance
+than it had before downsampling. For example, <code>n = 1000</code>
+makes the total retained abundance equal to 1000 in every repertoire
+that originally contained at least 1000 counts.</p>
+<p>If a requested whole-number <code>n</code> is larger than a repertoire,
+that repertoire is returned unchanged and the function gives a warning.
+If a fraction is so small that it selects zero units in any repertoire,
+the function stops and asks for a larger value.</p>
+<h2 id="repertoire-and-strata-summaries">Repertoire and strata summaries<a class="headerlink" href="#repertoire-and-strata-summaries" title="Permanent link">&para;</a></h2>
+<p>When repertoires are defined, the function recalculates receptor counts,
+proportions, repertoire sizes, and the number of repertoires containing
+each receptor. Existing strata are also rebuilt, and their labels are
+retained. When repertoires are not defined, the complete dataset is
+treated as one sampling group and no repertoire summary is added.</p>
+<h2 id="backend-and-storage">Backend and storage<a class="headerlink" href="#backend-and-storage" title="Permanent link">&para;</a></h2>
+<p>Chain-level selection and reconstruction use the duckplyr annotation
+table. The small table of sampling units is collected into R for random
+sampling. The function does not overwrite the stored input object. Use
+<code>write_immundata()</code> to save the returned object.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<p><code>agg_repertoires()</code>, <code>filter_immundata()</code>,
+<code>write_immundata()</code></p>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Create two small bulk T-cell repertoires with different total abundances.</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">bulk_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tibble</span><span class="p">(</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">Sample</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Tumor"</span><span class="p">,</span><span class="w"> </span><span class="s">"Tumor"</span><span class="p">,</span><span class="w"> </span><span class="s">"Blood"</span><span class="p">,</span><span class="w"> </span><span class="s">"Blood"</span><span class="p">),</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="n">cdr3_aa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"CASSA"</span><span class="p">,</span><span class="w"> </span><span class="s">"CASSB"</span><span class="p">,</span><span class="w"> </span><span class="s">"CASSA"</span><span class="p">,</span><span class="w"> </span><span class="s">"CASSC"</span><span class="p">),</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="n">v_call</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"TRBV1"</span><span class="p">,</span><span class="w"> </span><span class="s">"TRBV2"</span><span class="p">,</span><span class="w"> </span><span class="s">"TRBV1"</span><span class="p">,</span><span class="w"> </span><span class="s">"TRBV3"</span><span class="p">),</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="n">abundance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">20L</span><span class="p">,</span><span class="w"> </span><span class="m">5L</span><span class="p">,</span><span class="w"> </span><span class="m">4L</span><span class="p">,</span><span class="w"> </span><span class="m">6L</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">bulk_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tempfile</span><span class="p">(</span><span class="n">fileext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">".tsv"</span><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">readr</span><span class="o">::</span><span class="nf">write_tsv</span><span class="p">(</span><span class="n">bulk_data</span><span class="p">,</span><span class="w"> </span><span class="n">bulk_file</span><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_repertoires</span><span class="p">(</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bulk_file</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"cdr3_aa"</span><span class="p">,</span><span class="w"> </span><span class="s">"v_call"</span><span class="p">),</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="n">count_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"abundance"</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="n">repertoire_schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Sample"</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">  </span><span class="n">preprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="n">postprocess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">  </span><span class="n">rename_columns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="n">output_folder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">tempfile</span><span class="p">(</span><span class="s">"immundata-downsample-"</span><span class="p">)</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">)</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="n">before</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="o">$</span><span class="n">repertoires</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">Sample</span><span class="p">,</span><span class="w"> </span><span class="n">n_barcodes</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">  </span><span class="nf">rename</span><span class="p">(</span><span class="n">before</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_barcodes</span><span class="p">)</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="n">sampled</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">downsample_immundata</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">42</span><span class="p">)</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="n">before</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="nf">left_join</span><span class="p">(</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="n">sampled</span><span class="o">$</span><span class="n">repertoires</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">      </span><span class="nf">select</span><span class="p">(</span><span class="n">Sample</span><span class="p">,</span><span class="w"> </span><span class="n">n_barcodes</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">      </span><span class="nf">rename</span><span class="p">(</span><span class="n">after</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_barcodes</span><span class="p">),</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">    </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Sample"</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">Sample</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 2 × 3
+#&gt;   Sample before after
+#&gt; * &lt;chr&gt;   &lt;int&gt; &lt;dbl&gt;
+#&gt; 1 Blood      10     5
+#&gt; 2 Tumor      25     5
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">#   Sample before after</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#   Blood      10     5</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">#   Tumor      25     5</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Each returned repertoire has five sequence counts. `idata` still has its</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># original repertoire sizes of 10 and 25.</span>
+</code></pre></div>
 
 
 

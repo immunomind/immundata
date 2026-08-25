@@ -2,6 +2,8 @@
 
 # Create options for comparing receptor sequences
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/utils_seq.R#L30)
+
 ## Description
 
 Create sequence comparison options for the <code>seq_options</code>

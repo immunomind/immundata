@@ -2,6 +2,8 @@
 
 # Annotate an AnnData object from ImmunData (by barcode)
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_external_annotate_anndatar.R#L15)
+
 ## Description
 
 Copy selected columns from <code>idata$annotations</code> to

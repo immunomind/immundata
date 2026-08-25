@@ -2,6 +2,8 @@
 
 # Read immune repertoire files into ImmunData
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_repertoires_read.R#L260)
+
 ## Description
 
 <code>read_repertoires()</code> is the main function for importing

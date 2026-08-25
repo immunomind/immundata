@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#save-immundata-to-disk" class="md-skip">
+        <a href="#save-an-immundata-object-to-disk" class="md-skip">
           Skip to content
         </a>
       
@@ -758,6 +758,28 @@
     <span class="md-ellipsis">
       
         Value
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-how-to-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose how to save
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-and-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend and serialization
       
     </span>
   </a>
@@ -1731,6 +1753,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#choose-how-to-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose how to save
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-and-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend and serialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1772,13 +1816,18 @@
   
 
 
-<h1 id="save-immundata-to-disk">Save ImmunData to disk<a class="headerlink" href="#save-immundata-to-disk" title="Permanent link">&para;</a></h1>
+<h1 id="save-an-immundata-object-to-disk">Save an ImmunData object to disk<a class="headerlink" href="#save-an-immundata-object-to-disk" title="Permanent link">&para;</a></h1>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/io_immundata_write.R#L106"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Serializes the essential components of an <code>ImmunData</code> object
-to disk for efficient storage and later retrieval. It saves the core
-annotation data (<code>idata$annotations</code>) as a compressed Parquet
-file and accompanying metadata (including schemas, repertoire data, and
-package version) as a JSON file within a specified directory.</p>
+<p>Save <code>ImmunData</code> to disk so you can close R and continue the
+work later (I cannot believe it, but it works, I tried it). Use
+<code>write_immundata()</code> after importing or transforming
+repertoire data, or when you want a named snapshot before the next
+analysis step.</p>
+<p>The unit saved is the complete ImmunData object. This includes retained
+chain rows, cell and receptor identifiers, repertoire and stratum
+definitions, and provenance. Saving does not add, remove, or change any
+biological unit.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>write_immundata(
   idata,
@@ -1798,12 +1847,7 @@ package version) as a JSON file within a specified directory.</p>
 <code id="idata">idata</code>
 </td>
 <td>
-The <code>ImmunData</code> object to save. Must be an R6 object of class
-<code>ImmunData</code> containing at least the
-<code style="white-space: pre;">$annotations</code> table and schema
-information (<code style="white-space: pre;">$schema_receptor</code>,
-optionally <code style="white-space: pre;">$schema_repertoire</code> and
-<code style="white-space: pre;">$schema_strata</code>).
+An ImmunData object you want to save.
 </td>
 </tr>
 <tr>
@@ -1811,12 +1855,11 @@ optionally <code style="white-space: pre;">$schema_repertoire</code> and
 <code id="output_folder">output_folder</code>
 </td>
 <td>
-Character(1) or <code>NULL</code>. Path to the directory where the
-output files will be written. If <code>NULL</code>, a snapshot directory
-is created as
-<code style="white-space: pre;">home_path/snapshots/\<tag\>/vNNN</code>,
-where <code>home_path</code> is read from internal
-<code>ImmunData</code> provenance.
+A character string or <code>NULL</code>. Directory in which to write
+<code>annotations.parquet</code> and <code>metadata.json</code>. If
+<code>NULL</code>, the default, a managed snapshot is created at
+<code style="white-space: pre;">home_path/snapshots/\<tag\>/vNNN</code>.
+The home path comes from the object’s provenance.
 </td>
 </tr>
 <tr>
@@ -1824,10 +1867,11 @@ where <code>home_path</code> is read from internal
 <code id="tag">tag</code>
 </td>
 <td>
-Character(1) or <code>NULL</code>. Snapshot tag used only when
-<code>output_folder = NULL</code> (for example,
-<code>“baseline”</code>). If <code>NULL</code>, defaults to
-<code>“default”</code> for auto-snapshots.
+A character string or <code>NULL</code>. Snapshot tag. With
+<code>output_folder = NULL</code>, it names the managed snapshot series;
+if <code>tag</code> is also <code>NULL</code>, <code>“default”</code> is
+used. With an explicit <code>output_folder</code>, a supplied tag is
+recorded in the lineage but does not change the output path.
 </td>
 </tr>
 <tr>
@@ -1835,9 +1879,12 @@ Character(1) or <code>NULL</code>. Snapshot tag used only when
 <code id="rehome">rehome</code>
 </td>
 <td>
-Logical(1). If <code>TRUE</code>, and <code>output_folder</code> is
-explicitly provided, this folder becomes the new snapshot home for
-future auto-snapshots. Default: <code>FALSE</code>.
+A logical value. Whether an explicit <code>output_folder</code> becomes
+the home for future managed snapshots. The default is
+<code>FALSE</code>, which preserves an existing home. If the object has
+no home yet, its first explicit output folder becomes the home with
+either value. <code>TRUE</code> requires an explicit
+<code>output_folder</code>.
 </td>
 </tr>
 <tr>
@@ -1845,10 +1892,9 @@ future auto-snapshots. Default: <code>FALSE</code>.
 <code id="compression">compression</code>
 </td>
 <td>
-Character(1) or <code>NULL</code>. Parquet compression codec passed
-through to DuckDB (via <code>duckplyr::compute_parquet(options =
-…)</code>). Defaults to <code>“zstd”</code>. Set <code>NULL</code> to
-let DuckDB choose.
+A character string or <code>NULL</code>. Parquet compression codec
+passed to DuckDB. The default is <code>“zstd”</code>. Use
+<code>NULL</code> to let DuckDB choose.
 </td>
 </tr>
 <tr>
@@ -1856,9 +1902,9 @@ let DuckDB choose.
 <code id="compression_level">compression_level</code>
 </td>
 <td>
-Numeric(1) or <code>NULL</code>. Compression level passed through to
-DuckDB for codecs that support levels (for example, Zstandard). Defaults
-to <code>9</code>. Set <code>NULL</code> to let DuckDB choose.
+A number or <code>NULL</code>. Compression level for codecs that support
+it. The default is <code>9</code>. Use <code>NULL</code> to let DuckDB
+choose.
 </td>
 </tr>
 <tr>
@@ -1866,142 +1912,89 @@ to <code>9</code>. Set <code>NULL</code> to let DuckDB choose.
 <code id="verbose">verbose</code>
 </td>
 <td>
-Logical(1). Whether to print informative messages. Defaults to
-<code>getOption(“immundata.verbose”, TRUE)</code>.
+A logical value. Whether to print progress and summary messages.
+Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
 </td>
 </tr>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>The function performs the following actions:</p>
-<ol>
-<li>
-
-Validates the input <code>idata</code> object and write options.
-
-</li>
-<li>
-
-Resolves the destination folder:
-
-<ul>
-<li>
-
-uses <code>output_folder</code> when explicitly provided, or
-
-</li>
-<li>
-
-creates an auto-snapshot folder under
-<code style="white-space: pre;">home_path/snapshots/\<tag\>/vNNN</code>
-when <code>output_folder = NULL</code>.
-
-</li>
-</ul>
-</li>
-<li>
-
-Constructs metadata including schemas, the repertoire table,
-<code>snapshot_id</code>, lineage, and provenance paths.
-
-</li>
-<li>
-
-Writes metadata to <code>metadata.json</code> within the resolved output
-folder.
-
-</li>
-<li>
-
-Writes the <code>idata$annotations</code> table (a
-<code>duckplyr_df</code> or similar) to <code>annotations.parquet</code>
-within <code>output_folder</code>.
-
-<ul>
-<li>
-
-By default, uses <code>compression = “zstd”</code> and
-<code>compression_level = 9</code>.
-
-</li>
-<li>
-
-A common choice is <code>compression = “snappy”</code> for faster
-reads/writes with larger files.
-
-</li>
-<li>
-
-Another common choice is <code>compression = “zstd”</code> for smaller
-files, often with higher CPU cost.
-
-</li>
-<li>
-
-<code>compression_level</code> usually trades speed for size (higher
-levels: smaller output but slower processing).
-
-</li>
-<li>
-
-Compatibility note: for <code>duckplyr</code> version
-<code style="white-space: pre;">1.2.0</code>,
-<code>compute_parquet()</code> does not accept extra options due to a
-known issue. In that version, compression-related arguments are ignored
-and DuckDB defaults are used.
-
-</li>
-</ul>
-</li>
-<li>
-
-Uses internal helper <code>imd_files()</code> to determine the standard
-filenames (<code>metadata.json</code>,
-<code>annotations.parquet</code>).
-
-</li>
-</ol>
-
-<p>The receptor data itself is not stored separately; receptors remain a
-view derived from annotations and the receptor schema.</p>
+<p>Save to an explicit folder for a direct saved state, or use the object’s
+home to create a versioned managed snapshot.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>Invisibly returns the input <code>idata</code> object, saved to disk. In
-other words, this allows you to create snapshots of the data in the
-<code>output_folder</code>. Mind that by saving the object, you execute
-all the stored computations, so this operations can take longer than
-expected. Read more about snapshots on our website in the
-<a href="https://immunomind.github.io/docs/concepts/basics/immutability/">"Concept"
-section</a>.</p>
+<p>Invisibly returns a newly reopened, disk-backed ImmunData object with
+provenance for the new save. The input <code>idata</code> remains
+unchanged.</p>
+<h2 id="choose-how-to-save">Choose how to save<a class="headerlink" href="#choose-how-to-save" title="Permanent link">&para;</a></h2>
+<p>Supply <code>output_folder</code> to save a standalone state in a
+specific directory. This is useful when sharing a dataset or choosing
+its first project home. If the directory already contains an ImmunData
+dataset, its <code>annotations.parquet</code> and
+<code>metadata.json</code> are replaced.</p>
+<p>Leave <code>output_folder = NULL</code> to create a managed snapshot.
+The function uses the object’s home path and writes the next version
+under <code style="white-space: pre;">snapshots/\&lt;tag&gt;/vNNN</code>, for
+example <code>snapshots/baseline/v001</code>. Later writes with the same
+tag create <code>v002</code>, <code>v003</code>, and so on; earlier
+versions remain available. Use <code>read_immundata()</code> with
+<code>tag</code> and <code>version</code> to reopen one.</p>
+<p>Every save receives a new snapshot identifier and appends a provenance
+event. The returned object records the new saved directory as its
+current path.</p>
+<h2 id="backend-and-serialization">Backend and serialization<a class="headerlink" href="#backend-and-serialization" title="Permanent link">&para;</a></h2>
+<p>The retained chain-level annotation table is materialized as compressed
+<code>annotations.parquet</code>. Materialization executes any pending
+lazy duckplyr calculations. <code>metadata.json</code> serializes format
+and package versions, receptor, repertoire, and stratum schemas, the
+small repertoire table, the snapshot identifier, lineage events, and
+provenance paths.</p>
+<p>Receptor and stratum views are not written as separate files; they can
+be reconstructed from the annotation table and metadata. This Parquet
+and JSON pair is an ImmunData-specific serialization, not an RDS file.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p><code>read_immundata()</code> for loading the saved data,
-<code>read_repertoires()</code> which uses this function internally,
-ImmunData class definition.</p>
+<p><code>read_immundata()</code> for continuing a saved analysis,
+<code>read_repertoires()</code> for importing AIRR-seq files, ImmunData</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Assume 'my_idata' is an ImmunData object created previously</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># my_idata &lt;- read_repertoires(...)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Define an output directory</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">save_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tempfile</span><span class="p">(</span><span class="s">"saved_immundata_"</span><span class="p">)</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Save the ImmunData object</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nf">write_immundata</span><span class="p">(</span><span class="n">my_idata</span><span class="p">,</span><span class="w"> </span><span class="n">save_dir</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Save a small immune-repertoire analysis</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">get_test_idata</span><span class="p">()</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">save_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tempfile</span><span class="p">(</span><span class="s">"saved-immundata-"</span><span class="p">)</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># Auto-snapshot under &lt;home&gt;/snapshots/baseline/vNNN</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="nf">write_immundata</span><span class="p">(</span><span class="n">my_idata</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"baseline"</span><span class="p">)</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># Optional: request a specific parquet compression setup</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nf">write_immundata</span><span class="p">(</span><span class="n">my_idata</span><span class="p">,</span><span class="w"> </span><span class="n">save_dir</span><span class="p">,</span><span class="w"> </span><span class="n">compression</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"zstd"</span><span class="p">,</span><span class="w"> </span><span class="n">compression_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">9</span><span class="p">)</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="c1"># Optional: let DuckDB choose both settings</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="nf">write_immundata</span><span class="p">(</span><span class="n">my_idata</span><span class="p">,</span><span class="w"> </span><span class="n">save_dir</span><span class="p">,</span><span class="w"> </span><span class="n">compression</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">compression_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">)</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="c1"># Check the created files</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="nf">list.files</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span><span class="w"> </span><span class="c1"># Should show "annotations.parquet" and "metadata.json"</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="c1"># Clean up</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="nf">unlink</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">saved_idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">write_immundata</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="w"> </span><span class="n">save_dir</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nf">list.files</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; [1] "annotations.parquet" "metadata.json"
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result: the analysis is serialized as two files.</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># [1] "annotations.parquet" "metadata.json"</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Continue the analysis from the saved files</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">continued_idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_immundata</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">continued_idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nf">summarise</span><span class="p">(</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="n">n_chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n</span><span class="p">(),</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="n">n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 1 × 2
+#&gt;   n_chains n_receptors
+#&gt; *    &lt;int&gt;       &lt;dbl&gt;
+#&gt; 1     1902        1668
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Expected result: all 1,902 chain rows and 1,668 receptors are restored.</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">#   n_chains n_receptors</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1">#       1902        1668</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nf">unlink</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
 </code></pre></div>
 
 

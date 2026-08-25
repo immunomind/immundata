@@ -2,6 +2,8 @@
 
 # Collect ImmunData annotations
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_compute_collect.R#L39)
+
 ## Description
 
 Collects annotations from an <code>ImmunData</code> object and returns

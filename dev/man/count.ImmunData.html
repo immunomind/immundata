@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#count-the-number-of-chains-in-immundata" class="md-skip">
+        <a href="#count-chain-rows-in-immundata" class="md-skip">
           Skip to content
         </a>
       
@@ -1295,6 +1295,50 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Details
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1664,6 +1708,50 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Details
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1684,9 +1772,19 @@
   
 
 
-<h1 id="count-the-number-of-chains-in-immundata">Count the number of chains in ImmunData<a class="headerlink" href="#count-the-number-of-chains-in-immundata" title="Permanent link">&para;</a></h1>
+<h1 id="count-chain-rows-in-immundata">Count chain rows in ImmunData<a class="headerlink" href="#count-chain-rows-in-immundata" title="Permanent link">&para;</a></h1>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_count.R#L59"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Count the number of chains in ImmunData</p>
+<p>Use <code>count()</code> to find how many chain rows are stored in an
+ImmunData object.</p>
+<p>Use this method for a quick check of dataset size. The unit counted is
+one retained chain row. Each retained cell with a paired receptor
+usually contributes two rows, one for each chain. The same receptor can
+therefore contribute two rows for every cell carrying it. For bulk data
+with an abundance column, this method counts table rows rather than the
+summed sequence abundance.</p>
+<p>The function returns a one-row duckplyr table. The original object is
+not changed.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>## S3 method for class 'ImmunData'
 count(x, ..., wt = NULL, sort = FALSE, name = NULL)
@@ -1699,7 +1797,7 @@ count(x, ..., wt = NULL, sort = FALSE, name = NULL)
 <code id="x">x</code>
 </td>
 <td>
-ImmunData object.
+An ImmunData object.
 </td>
 </tr>
 <tr>
@@ -1707,7 +1805,8 @@ ImmunData object.
 <code id="...">…</code>
 </td>
 <td>
-Not used.
+Additional arguments. Accepted for compatibility with
+<code>dplyr::count()</code>, but currently ignored.
 </td>
 </tr>
 <tr>
@@ -1715,7 +1814,8 @@ Not used.
 <code id="wt">wt</code>
 </td>
 <td>
-Not used.
+Any value or <code>NULL</code>. Accepted for compatibility with
+<code>dplyr::count()</code>, but currently ignored.
 </td>
 </tr>
 <tr>
@@ -1723,7 +1823,8 @@ Not used.
 <code id="sort">sort</code>
 </td>
 <td>
-Not used.
+A logical value. Accepted for compatibility with
+<code>dplyr::count()</code>, but currently ignored.
 </td>
 </tr>
 <tr>
@@ -1731,10 +1832,49 @@ Not used.
 <code id="name">name</code>
 </td>
 <td>
-Not used.
+A character string or <code>NULL</code>. Accepted for compatibility with
+<code>dplyr::count()</code>, but currently ignored. The result column is
+always named <code>n</code>.
 </td>
 </tr>
 </table>
+
+<h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
+<p>This method currently provides only the total row count. The grouping,
+weighting, sorting, and result-name arguments of
+<code>dplyr::count()</code> are accepted for method compatibility but
+are not applied.</p>
+<p>The calculation runs on the duckplyr annotation table and can remain in
+DuckDB. Use <code>dplyr::pull()</code> or <code>dplyr::collect()</code>
+to bring the small result into R.</p>
+<h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
+<p>A one-row duckplyr table with an integer column named <code>n</code>.
+This value is the number of rows in the chain-level annotation table.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<p><code>dplyr::count()</code>, <code>dplyr::collect()</code>, ImmunData</p>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">get_test_idata</span><span class="p">()</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">count</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A duckplyr data frame: 1 variable
+#&gt;       n
+#&gt;   &lt;int&gt;
+#&gt; 1  1902
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">#      n</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#   1902</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># The result means that the object contains 1,902 retained chain rows.</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># It does not mean that it contains 1,902 unique receptors.</span>
+</code></pre></div>
 
 
 

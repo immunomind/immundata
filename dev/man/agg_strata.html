@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#aggregate-repertoires-into-strata" class="md-skip">
+        <a href="#group-repertoires-into-biological-strata" class="md-skip">
           Skip to content
         </a>
       
@@ -968,10 +968,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#identifiers-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identifiers and storage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
         See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
       
     </span>
   </a>
@@ -1720,10 +1742,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#identifiers-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identifiers and storage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
         See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
       
     </span>
   </a>
@@ -1750,14 +1794,20 @@
   
 
 
-<h1 id="aggregate-repertoires-into-strata">Aggregate repertoires into strata<a class="headerlink" href="#aggregate-repertoires-into-strata" title="Permanent link">&para;</a></h1>
+<h1 id="group-repertoires-into-biological-strata">Group repertoires into biological strata<a class="headerlink" href="#group-repertoires-into-biological-strata" title="Permanent link">&para;</a></h1>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_agg_strata.R#L77"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Creates a strata layer above repertoires by grouping
-<code>idata$repertoires</code> with user-selected metadata columns.</p>
-<p>This enables a hierarchy of <code>chains -&gt; barcodes -&gt; receptors -&gt;
-repertoires -&gt; strata</code>.</p>
+<p>Use <code>agg_strata()</code> to place sample repertoires into
+biological comparison groups, such as treatment arms, tissues, or
+disease groups.</p>
+<p>Use this function after <code>agg_repertoires()</code> when several
+repertoires should be analysed as one group. A <em>stratum</em> contains
+every repertoire with the same value, or the same combination of values,
+in <code>schema</code>.</p>
+<p>The unit being grouped is a whole repertoire. The function returns a new
+ImmunData object. The original object is not changed.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<pre><code class='language-R'>agg_strata(idata, schema, strata_name_prefix = "Strata")
+<pre><code class='language-R'>agg_strata(idata, schema, prefix = "Strata")
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
@@ -1767,8 +1817,9 @@ repertoires -&gt; strata</code>.</p>
 <code id="idata">idata</code>
 </td>
 <td>
-An <code>ImmunData</code> object with repertoire aggregation already
-available (run <code>agg_repertoires()</code> first).
+An ImmunData object with repertoires already defined. Use
+<code>agg_repertoires()</code> first if the object does not contain
+repertoires.
 </td>
 </tr>
 <tr>
@@ -1776,57 +1827,82 @@ available (run <code>agg_repertoires()</code> first).
 <code id="schema">schema</code>
 </td>
 <td>
-Character vector of columns in <code>idata$repertoires</code> used to
-define strata.
+A non-empty character vector. One or more repertoire-level columns that
+define a stratum. For example, use <code>“Therapy”</code> for treatment
+arms or <code>c(“Tissue”, “Disease”)</code> for each tissue and disease
+combination. The columns must be present in
+<code>idata$repertoires</code>.
 </td>
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="strata_name_prefix">strata_name_prefix</code>
+<code id="prefix">prefix</code>
 </td>
 <td>
-Character(1). Prefix for automatic strata labels in
-<code>strata_name</code>. Default: <code>“Strata”</code>.
+A non-empty character string. Prefix for the automatic stratum labels.
+The default, <code>“Strata”</code>, produces labels such as
+<code>“Strata1”</code> and <code>“Strata2”</code>. You can use
+<code>rename_strata()</code> to assign meaningful labels later instead.
 </td>
 </tr>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>Strata are derived from the current repertoire definition. Calling
-<code>agg_strata()</code> on an already stratified object replaces the
-previous strata mapping, and the generated <code>imd_strata_id</code>
-values should be treated as internal identifiers rather than stable
-identifiers.</p>
-<p>Calling <code>agg_repertoires()</code> after <code>agg_strata()</code>
-intentionally rebuilds the repertoire identifiers and statistics.
-Because the previous strata mapping is tied to the old repertoire state,
-<code>imd_strata_id</code>, <code>strata_name</code>, and the strata
-schema are removed rather than carried forward. To retain a strata layer
-after redefining or recomputing repertoires, call
-<code>agg_strata()</code> again with the desired schema. The same rule
-applies when another operation re-aggregates repertoires internally.</p>
+<p>If <code>schema</code> contains several columns, a separate stratum is
+created for each observed combination. For example, <code>c(“Tissue”,
+“Therapy”)</code> can define separate blood and tumour strata within
+each treatment arm.</p>
+<p>Calling <code>agg_strata()</code> again replaces the existing strata
+with groups defined by the new <code>schema</code>.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>A new <code>ImmunData</code> object where:</p>
-<ul>
-<li>
-
-<code style="white-space: pre;">$repertoires</code> includes
-<code>imd_strata_id</code> and <code>strata_name</code>;
-
-</li>
-<li>
-
-<code style="white-space: pre;">$annotations</code> includes
-<code>imd_strata_id</code> (joined by <code>imd_repertoire_id</code>).
-
-</li>
-</ul>
-
-<p><code>strata_name</code> is stored only in
-<code style="white-space: pre;">$repertoires</code> and is not copied
-into <code style="white-space: pre;">$annotations</code>.</p>
+<p>A new ImmunData object in which every repertoire belongs to one stratum.
+The <code style="white-space: pre;">$strata</code> table lists the
+strata, their defining biological values, and their automatic labels.
+Repertoire definitions and summary statistics are preserved.</p>
+<h2 id="identifiers-and-storage">Identifiers and storage<a class="headerlink" href="#identifiers-and-storage" title="Permanent link">&para;</a></h2>
+<p><code>imd_strata_id</code> is an internal identifier and can change when
+strata are rebuilt. It is added to the repertoire table and to the
+underlying chain annotations. <code>strata_name</code> is stored only in
+the smaller repertoire and strata tables.</p>
+<p>Calling <code>agg_repertoires()</code> again rebuilds the repertoires,
+so it removes the existing strata. Call <code>agg_strata()</code> again
+after redefining repertoires.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><code>agg_repertoires()</code>, <code>rename_strata()</code>, ImmunData</p>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nf">options</span><span class="p">(</span><span class="n">immundata.verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Define sample repertoires using the biological metadata in the test data</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">idata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">get_test_idata</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nf">agg_repertoires</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">"Response"</span><span class="p">,</span><span class="w"> </span><span class="s">"Therapy"</span><span class="p">))</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># Group the sample repertoires into treatment arms</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">treatment_groups</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nf">agg_strata</span><span class="p">(</span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Therapy"</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">treatment_groups</span><span class="o">$</span><span class="n">repertoires</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">Therapy</span><span class="p">,</span><span class="w"> </span><span class="n">Response</span><span class="p">,</span><span class="w"> </span><span class="n">imd_strata_id</span><span class="p">,</span><span class="w"> </span><span class="n">strata_name</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">imd_strata_id</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 2 × 4
+#&gt;   Therapy Response imd_strata_id strata_name
+#&gt; * &lt;chr&gt;   &lt;chr&gt;            &lt;int&gt; &lt;chr&gt;      
+#&gt; 1 CAR-T   PR                   1 Strata1    
+#&gt; 2 ICI     FR                   2 Strata2
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">#   Therapy Response imd_strata_id strata_name</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#   CAR-T   PR                   1 Strata1</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">#   ICI     FR                   2 Strata2</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Each repertoire is now assigned to its treatment stratum. Any additional</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># repertoire with the same Therapy value would receive the same stratum ID.</span>
+</code></pre></div>
 
 
 

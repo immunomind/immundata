@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#preprocessing-and-postprocessing-of-input-immune-repertoire-files" class="md-skip">
+        <a href="#process-chain-rows-while-reading-repertoire-files" class="md-skip">
           Skip to content
         </a>
       
@@ -659,17 +659,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Details
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#value" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -681,10 +670,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#functions" class="md-nav__link">
+  <a href="#choose-processing-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Functions
+        Choose processing steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input formats
       
     </span>
   </a>
@@ -696,6 +696,17 @@
     <span class="md-ellipsis">
       
         See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
       
     </span>
   </a>
@@ -1709,17 +1720,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Details
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#value" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1731,10 +1731,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#functions" class="md-nav__link">
+  <a href="#choose-processing-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Functions
+        Choose processing steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input formats
       
     </span>
   </a>
@@ -1746,6 +1757,17 @@
     <span class="md-ellipsis">
       
         See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
       
     </span>
   </a>
@@ -1772,9 +1794,21 @@
   
 
 
-<h1 id="preprocessing-and-postprocessing-of-input-immune-repertoire-files">Preprocessing and postprocessing of input immune repertoire files<a class="headerlink" href="#preprocessing-and-postprocessing-of-input-immune-repertoire-files" title="Permanent link">&para;</a></h1>
+<h1 id="process-chain-rows-while-reading-repertoire-files">Process chain rows while reading repertoire files<a class="headerlink" href="#process-chain-rows-while-reading-repertoire-files" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Preprocessing and postprocessing of input immune repertoire files</p>
+<p>Use these functions to preprocess or postprocess rows of the input data
+before returning the final <code>ImmunData</code> object to the session.
+A couple of example use cases: keep productive receptor chains, remove
+technical columns, or make cell barcodes unique while importing
+repertoire files with <code>read_repertoires()</code>.</p>
+<p>The defaults provide steps for common AIRR or 10x inputs. Use an
+individual step when your files need only one operation or when you are
+building a custom <code>preprocess</code> or <code>postprocess</code>
+list.</p>
+<p>Preprocessing changes chain rows before receptors are defined. Barcode
+prefixing changes the cell identifier after receptor and manifest
+information are combined. The input files and input table are not
+changed: every step returns a new duckplyr table.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <pre><code class='language-R'>make_default_preprocessing(format = c("default", "airr", "10x"))
 
@@ -1794,10 +1828,10 @@ make_barcode_prefix(prefix_col = "Prefix")
 <code id="format">format</code>
 </td>
 <td>
-For <code>make_default_preprocessing()</code>, a character string
-specifying the input data format. Currently supports <code>“airr”</code>
-(default) or <code>“10x”</code>. This determines the default set of
-columns to exclude and the values considered "productive".
+A character string. One input format: <code>“default”</code>,
+<code>“airr”</code>, or <code>“10x”</code>. The default is
+<code>“default”</code>. This choice controls which technical columns are
+removed. It does not rename columns.
 </td>
 </tr>
 <tr>
@@ -1805,10 +1839,9 @@ columns to exclude and the values considered "productive".
 <code id="cols">cols</code>
 </td>
 <td>
-For <code>make_exclude_columns()</code>, a character vector of column
-names to be removed from the dataset. Defaults to
-<code>imd_drop_cols(“airr”)</code>. If empty, the returned function will
-not remove any columns.
+A character vector. Columns to remove. The default is
+<code>imd_drop_cols(“airr”)</code>. Use <code>character()</code> to
+create a step that removes no columns.
 </td>
 </tr>
 <tr>
@@ -1816,10 +1849,8 @@ not remove any columns.
 <code id="col_name">col_name</code>
 </td>
 <td>
-For <code>make_productive_filter()</code>, a character vector of
-potential column names that indicate sequence productivity (e.g.,
-<code>“productive”</code>). The first matching column found in the
-dataset will be used.
+A character string. Column containing the productive-chain indicator.
+The default is <code>“productive”</code>.
 </td>
 </tr>
 <tr>
@@ -1827,11 +1858,10 @@ dataset will be used.
 <code id="truthy">truthy</code>
 </td>
 <td>
-For <code>make_productive_filter()</code>, a value or vector of values
-that signify a productive sequence in the <code>col_name</code> column.
-Can be a logical <code>TRUE</code> (default for "airr" format) or a
-character vector of strings (e.g., <code>c(“true”, “TRUE”, “True”, “t”,
-“T”, “1”)</code> for "10x" format).
+A vector. Values that mean the chain is productive. Values are compared
+as text. The default is <code>TRUE</code>; use a character vector when
+the source uses several representations, for example <code>c(“TRUE”,
+“true”, “1”)</code>.
 </td>
 </tr>
 <tr>
@@ -1839,96 +1869,120 @@ character vector of strings (e.g., <code>c(“true”, “TRUE”, “True”, �
 <code id="prefix_col">prefix_col</code>
 </td>
 <td>
-For <code>make_barcode_prefix()</code>, the name of the column in the
-dataset that contains the prefix string to be added to each cell
-barcode. Defaults to <code>“Prefix”</code>. The barcode column itself is
-identified internally via <code>imd_schema(“barcode”)</code>.
+A character vector. One or more candidate columns containing the text to
+place before each cell barcode. The first candidate present in the data
+is used. The default is <code>“Prefix”</code>.
 </td>
 </tr>
 </table>
 
-<h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>This collection of "maker" functions generates common preprocessing and
-postprocessing function steps tailored for immune repertoire data. Each
-<code style="white-space: pre;">make_*</code> function returns a new
-function that can then be applied to a dataset.</p>
-<p>These functions are designed to be flexible components in constructing
-custom data processing workflows.</p>
-<p>The functions generated by these factories typically expect a
-<code>dataset</code> (e.g., a <code>duckplyr</code> with annotations) as
-their first argument and may accept additional arguments via
-<code>…</code> (though often unused in the predefined steps).</p>
-<ul>
-<li>
-
-<code>make_default_preprocessing()</code> and
-<code>make_default_postprocessing()</code> assemble a list of such
-processing functions.
-
-</li>
-<li>
-
-The individual <code>make_exclude_columns()</code>,
-<code>make_productive_filter()</code>, and
-<code>make_barcode_prefix()</code> functions create specific
-transformation steps.
-
-</li>
-</ul>
-
-<p>These steps are often used when reading data to standardize formats,
-filter unwanted records, or enrich information like cell barcodes. They
-are designed to gracefully handle cases where an operation is not
-applicable (e.g., a specified column is not found) by issuing a warning
-and returning the dataset unmodified.</p>
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
-<p>Each <code style="white-space: pre;">make_*</code> function returns a
-<em>new function</em>. This returned function takes a
-<code>dataset</code> as its first argument and <code>…</code> for any
-additional arguments, and performs the specific processing step.
-<code>make_default_preprocessing()</code> and
-<code>make_default_postprocessing()</code> return a <em>named list</em>
-of such functions.</p>
-<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
+<p><code>make_default_preprocessing()</code> and
+<code>make_default_postprocessing()</code> return named lists of
+processing functions. The other functions return one processing
+function. Each processing function accepts a duckplyr table as its first
+argument, accepts unused arguments through <code>…</code>, and returns a
+new duckplyr table.</p>
+<h2 id="choose-processing-steps">Choose processing steps<a class="headerlink" href="#choose-processing-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li>
 
-<code>make_default_preprocessing()</code>: Creates a default list of
-preprocessing functions suitable for "airr" or "10x" formatted data.
-This typically includes steps to exclude unnecessary columns and filter
-for productive sequences.
+<code>make_default_preprocessing()</code> returns two steps. The first
+removes common technical columns. The second keeps rows whose
+<code>productive</code> value indicates a productive chain. If the
+<code>productive</code> column is absent, the filtering step gives a
+warning and keeps all rows.
 
 </li>
 <li>
 
-<code>make_default_postprocessing()</code>: Creates a default list of
-postprocessing functions, such as adding a prefix to cell barcodes.
+<code>make_default_postprocessing()</code> returns one step that adds a
+sample-specific prefix to cell barcodes. If the prefix column is absent,
+the step gives a warning and leaves barcodes unchanged.
 
 </li>
 <li>
 
-<code>make_exclude_columns()</code>: Creates a function that, when
-applied to a dataset, removes a specified set of columns.
+<code>make_exclude_columns()</code> creates one step that removes the
+columns in <code>cols</code>. Column names that are not present are
+ignored.
 
 </li>
 <li>
 
-<code>make_productive_filter()</code>: Creates a function that filters a
-dataset to retain only rows where sequences are marked as productive,
-based on a specified column and set of "truthy" values.
+<code>make_productive_filter()</code> creates one step that keeps rows
+whose value in <code>col_name</code> matches any value in
+<code>truthy</code>.
 
 </li>
 <li>
 
-<code>make_barcode_prefix()</code>: Creates a function that prepends a
-prefix (sourced from a specified column in the dataset) to the cell
-barcodes.
+<code>make_barcode_prefix()</code> creates one step that joins a prefix,
+such as <code>“Tumor\_”</code>, to the start of each
+<code>imd_barcode</code> value.
 
 </li>
 </ul>
 
+<p><code>read_repertoires()</code> applies functions in list order. You can
+therefore add, remove, or reorder steps in a custom list.</p>
+<h2 id="input-formats">Input formats<a class="headerlink" href="#input-formats" title="Permanent link">&para;</a></h2>
+<p>For <code>make_default_preprocessing()</code>, <code>format =
+“default”</code> removes the union of the standard AIRR and 10x
+technical columns. Use <code>format = “airr”</code> or <code>format =
+“10x”</code> to remove only the columns expected for that format. All
+three defaults recognize common text representations of a productive
+value, including <code>“TRUE”</code>, <code>“true”</code>,
+<code>“yes”</code>, and <code>“1”</code>.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<p><code>read_repertoires()</code></p>
+<p><code>read_repertoires()</code>, <code>imd_drop_cols()</code>,
+<code>imd_rename_cols()</code></p>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">library</span><span class="p">(</span><span class="s">"immundata"</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">library</span><span class="p">(</span><span class="n">immundata</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Three 10x chain rows from two samples. One chain is non-productive.</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">chains</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">duckplyr</span><span class="o">::</span><span class="nf">duckdb_tibble</span><span class="p">(</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">imd_barcode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"AAAC-1"</span><span class="p">,</span><span class="w"> </span><span class="s">"AAAG-1"</span><span class="p">,</span><span class="w"> </span><span class="s">"AATT-1"</span><span class="p">),</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="n">cdr3_aa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"CASSA"</span><span class="p">,</span><span class="w"> </span><span class="s">"CASSB"</span><span class="p">,</span><span class="w"> </span><span class="s">"CASSC"</span><span class="p">),</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">productive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"TRUE"</span><span class="p">,</span><span class="w"> </span><span class="s">"FALSE"</span><span class="p">,</span><span class="w"> </span><span class="s">"TRUE"</span><span class="p">),</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="n">full_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="n">Prefix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Tumor_"</span><span class="p">,</span><span class="w"> </span><span class="s">"Tumor_"</span><span class="p">,</span><span class="w"> </span><span class="s">"Blood_"</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># read_repertoires() performs these calls for you. They are shown here to</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># make the effect of each list clear.</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">prepared</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Reduce</span><span class="p">(</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="kr">function</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">step</span><span class="p">)</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nf">make_default_preprocessing</span><span class="p">(</span><span class="s">"10x"</span><span class="p">),</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="n">init</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">chains</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">prepared</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Reduce</span><span class="p">(</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">  </span><span class="kr">function</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">step</span><span class="p">)</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nf">make_default_postprocessing</span><span class="p">(),</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">  </span><span class="n">init</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">prepared</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="p">)</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="n">prepared</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">imd_barcode</span><span class="p">,</span><span class="w"> </span><span class="n">cdr3_aa</span><span class="p">,</span><span class="w"> </span><span class="n">productive</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>#&gt; # A tibble: 2 × 3
+#&gt;   imd_barcode  cdr3_aa productive
+#&gt; * &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;     
+#&gt; 1 Tumor_AAAC-1 CASSA   TRUE      
+#&gt; 2 Blood_AATT-1 CASSC   TRUE
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Expected result:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">#   imd_barcode  cdr3_aa productive</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#   Tumor_AAAC-1 CASSA   TRUE</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">#   Blood_AATT-1 CASSC   TRUE</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># The non-productive chain was removed, `full_length` was dropped, and the</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># sample prefixes made the retained cell barcodes unique.</span>
+</code></pre></div>
 
 
 

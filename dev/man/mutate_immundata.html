@@ -1773,6 +1773,7 @@
 
 
 <h1 id="add-or-change-annotation-columns-in-immundata">Add or change annotation columns in ImmunData<a class="headerlink" href="#add-or-change-annotation-columns-in-immundata" title="Permanent link">&para;</a></h1>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_mutate.R#L249"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>Use <code>mutate()</code> to add information to each row of an ImmunData
 object. For example, you can calculate CDR3 length, mark sequences of
@@ -2086,46 +2087,6 @@ columns. Existing repertoire and strata summaries are preserved.</p>
 <a id="__codelineno-0-158" name="__codelineno-0-158" href="#__codelineno-0-158"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
 <a id="__codelineno-0-159" name="__codelineno-0-159" href="#__codelineno-0-159"></a><span class="w">    </span><span class="n">twice_response_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">response_n_receptors</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">2</span>
 <a id="__codelineno-0-160" name="__codelineno-0-160" href="#__codelineno-0-160"></a><span class="w">  </span><span class="p">)</span>
-<a id="__codelineno-0-161" name="__codelineno-0-161" href="#__codelineno-0-161"></a>
-<a id="__codelineno-0-162" name="__codelineno-0-162" href="#__codelineno-0-162"></a><span class="c1"># Add synthetic receptor clusters</span>
-<a id="__codelineno-0-163" name="__codelineno-0-163" href="#__codelineno-0-163"></a><span class="c1"># The receptor table is reduced before collection, so only a small</span>
-<a id="__codelineno-0-164" name="__codelineno-0-164" href="#__codelineno-0-164"></a><span class="c1"># receptor-level result is loaded into memory.</span>
-<a id="__codelineno-0-165" name="__codelineno-0-165" href="#__codelineno-0-165"></a><span class="n">clusters</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="o">$</span><span class="n">receptors</span><span class="w"> </span><span class="o">|&gt;</span>
-<a id="__codelineno-0-166" name="__codelineno-0-166" href="#__codelineno-0-166"></a><span class="w">  </span><span class="nf">select</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
-<a id="__codelineno-0-167" name="__codelineno-0-167" href="#__codelineno-0-167"></a><span class="w">  </span><span class="nf">collect</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span>
-<a id="__codelineno-0-168" name="__codelineno-0-168" href="#__codelineno-0-168"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
-<a id="__codelineno-0-169" name="__codelineno-0-169" href="#__codelineno-0-169"></a><span class="w">    </span><span class="n">imd_group_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span>
-<a id="__codelineno-0-170" name="__codelineno-0-170" href="#__codelineno-0-170"></a><span class="w">      </span><span class="s">"cluster_"</span><span class="p">,</span>
-<a id="__codelineno-0-171" name="__codelineno-0-171" href="#__codelineno-0-171"></a><span class="w">      </span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="w"> </span><span class="o">%%</span><span class="w"> </span><span class="m">3L</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span>
-<a id="__codelineno-0-172" name="__codelineno-0-172" href="#__codelineno-0-172"></a><span class="w">    </span><span class="p">)</span>
-<a id="__codelineno-0-173" name="__codelineno-0-173" href="#__codelineno-0-173"></a><span class="w">  </span><span class="p">)</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174" href="#__codelineno-0-174"></a>
-<a id="__codelineno-0-175" name="__codelineno-0-175" href="#__codelineno-0-175"></a><span class="n">clustered</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">idata</span><span class="w"> </span><span class="o">|&gt;</span>
-<a id="__codelineno-0-176" name="__codelineno-0-176" href="#__codelineno-0-176"></a><span class="w">  </span><span class="nf">annotate_receptors</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span>
-<a id="__codelineno-0-177" name="__codelineno-0-177" href="#__codelineno-0-177"></a>
-<a id="__codelineno-0-178" name="__codelineno-0-178" href="#__codelineno-0-178"></a><span class="c1"># Add statistics for each response and receptor-cluster combination</span>
-<a id="__codelineno-0-179" name="__codelineno-0-179" href="#__codelineno-0-179"></a><span class="n">clustered_with_stats</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">clustered</span><span class="w"> </span><span class="o">|&gt;</span>
-<a id="__codelineno-0-180" name="__codelineno-0-180" href="#__codelineno-0-180"></a><span class="w">  </span><span class="nf">mutate</span><span class="p">(</span>
-<a id="__codelineno-0-181" name="__codelineno-0-181" href="#__codelineno-0-181"></a><span class="w">    </span><span class="n">cluster_n_receptors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">n_distinct</span><span class="p">(</span><span class="n">imd_receptor_id</span><span class="p">),</span>
-<a id="__codelineno-0-182" name="__codelineno-0-182" href="#__codelineno-0-182"></a><span class="w">    </span><span class="n">.by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span><span class="w"> </span><span class="n">imd_group_id</span><span class="p">)</span>
-<a id="__codelineno-0-183" name="__codelineno-0-183" href="#__codelineno-0-183"></a><span class="w">  </span><span class="p">)</span>
-<a id="__codelineno-0-184" name="__codelineno-0-184" href="#__codelineno-0-184"></a>
-<a id="__codelineno-0-185" name="__codelineno-0-185" href="#__codelineno-0-185"></a><span class="c1"># Compute repertoire statistics for each cluster</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186" href="#__codelineno-0-186"></a><span class="n">cluster_repertoires</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">clustered</span><span class="w"> </span><span class="o">|&gt;</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187" href="#__codelineno-0-187"></a><span class="w">  </span><span class="nf">agg_repertoires</span><span class="p">(</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188" href="#__codelineno-0-188"></a><span class="w">    </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Response"</span><span class="p">,</span><span class="w"> </span><span class="s">"imd_group_id"</span><span class="p">)</span>
-<a id="__codelineno-0-189" name="__codelineno-0-189" href="#__codelineno-0-189"></a><span class="w">  </span><span class="p">)</span>
-<a id="__codelineno-0-190" name="__codelineno-0-190" href="#__codelineno-0-190"></a>
-<a id="__codelineno-0-191" name="__codelineno-0-191" href="#__codelineno-0-191"></a><span class="n">cluster_repertoires</span><span class="o">$</span><span class="n">repertoires</span><span class="w"> </span><span class="o">|&gt;</span>
-<a id="__codelineno-0-192" name="__codelineno-0-192" href="#__codelineno-0-192"></a><span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span><span class="w"> </span><span class="n">imd_group_id</span><span class="p">)</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193" href="#__codelineno-0-193"></a><span class="c1"># Expected result:</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194" href="#__codelineno-0-194"></a><span class="c1">#   imd_repertoire_id Response imd_group_id n_barcodes n_receptors</span>
-<a id="__codelineno-0-195" name="__codelineno-0-195" href="#__codelineno-0-195"></a><span class="c1">#                   1 FR       cluster_1           322         289</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196" href="#__codelineno-0-196"></a><span class="c1">#                   2 FR       cluster_2           334         292</span>
-<a id="__codelineno-0-197" name="__codelineno-0-197" href="#__codelineno-0-197"></a><span class="c1">#                   3 FR       cluster_3           299         290</span>
-<a id="__codelineno-0-198" name="__codelineno-0-198" href="#__codelineno-0-198"></a><span class="c1">#                   4 PR       cluster_1           314         286</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199" href="#__codelineno-0-199"></a><span class="c1">#                   5 PR       cluster_2           328         291</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200" href="#__codelineno-0-200"></a><span class="c1">#                   6 PR       cluster_3           305         290</span>
 </code></pre></div>
 
 

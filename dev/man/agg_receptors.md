@@ -2,6 +2,8 @@
 
 # Group AIRR sequence rows into receptors
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_agg_receptors.R#L102)
+
 ## Description
 
 <code>agg_receptors()</code> is a low-level function used during AIRR

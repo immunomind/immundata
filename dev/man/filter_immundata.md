@@ -2,6 +2,8 @@
 
 # Keep selected rows or receptors in ImmunData
 
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_filter.R#L168)
+
 ## Description
 
 Use <code>filter()</code> to keep selected rows in an ImmunData object.
@@ -303,8 +305,8 @@ selected_cells |>
     #> # A tibble: 2 × 1
     #>   imd_barcode
     #> * <chr>      
-    #> 1 S1_1       
-    #> 2 S1_2
+    #> 1 S1_2       
+    #> 2 S1_1
 
 ``` r
 # Expected result:
