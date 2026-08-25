@@ -25,8 +25,8 @@ field names, default file names, and internal error messages.
 }
 \item \code{files}: Default file names used to store structured Immundata:
 \itemize{
-\item \code{receptors}: File name for receptor-level data (\code{receptors.parquet}).
-\item \code{annotations}: File name for annotation-level data (\code{annotations.parquet}).
+\item \code{metadata}: File name for schemas and small summary tables (\code{metadata.json}).
+\item \code{annotations}: File name for chain-level data (\code{annotations.parquet}).
 }
 }
 }

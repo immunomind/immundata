@@ -2,44 +2,46 @@
 % Please edit documentation in R/globals.R
 \name{imd_schema}
 \alias{imd_schema}
-\alias{imd_schema_sym}
-\alias{imd_meta_schema}
-\alias{imd_files}
-\alias{imd_rename_cols}
-\alias{imd_drop_cols}
-\alias{imd_repertoire_schema}
-\alias{imd_receptor_features}
-\alias{imd_receptor_chains}
-\title{Get Immundata internal schema field names}
+\title{Get a standard ImmunData column name}
 \usage{
 imd_schema(key = NULL)
-
-imd_schema_sym(key = NULL)
-
-imd_meta_schema()
-
-imd_files()
-
-imd_rename_cols(format = "default")
-
-imd_drop_cols(format = "airr")
-
-imd_repertoire_schema(format = "airr")
-
-imd_receptor_features(schema)
-
-imd_receptor_chains(schema)
 }
 \arguments{
-\item{key}{Character which field to return.}
-
-\item{format}{Character what format to load - "airr" or "10x".}
-
-\item{schema}{Receptor schema from \code{\link[=make_receptor_schema]{make_receptor_schema()}}.}
+\item{key}{A character string or \code{NULL}. One schema key, for example
+\code{"barcode"}, \code{"receptor"}, \code{"repertoire"}, \code{"count"}, or
+\code{"proportion"}. Use \code{NULL}, the default, to return all available keys and
+column names.}
+}
+\value{
+If \code{key} is supplied, one character string containing the standard
+column name. If \code{key = NULL}, a named list of all schema keys and column
+names.
 }
 \description{
-Returns the standardized field names used across Immundata objects and processing functions,
-as defined in \code{IMD_GLOBALS$schema}. These include column names for cell ids or barcodes, receptors,
-repertoires, and related metadata.
+Use \code{imd_schema()} when code needs the standard column name for an
+\code{ImmunData} identifier or calculated value, such as the cell barcode,
+receptor identifier, repertoire identifier, count, or proportion.
+
+Use this helper in reusable analysis code or package extensions instead of
+writing an internal name such as \code{"imd_barcode"} directly. It only returns
+names; it does not inspect or change an \link{ImmunData} object.
+}
+\examples{
+imd_schema("barcode")
+# Expected result: "imd_barcode"
+
+imd_schema("receptor")
+# Expected result: "imd_receptor_id"
+
+# Use a returned name for programmatic selection.
+barcode_column <- imd_schema("barcode")
+get_test_idata() |>
+  dplyr::collect() |>
+  dplyr::select(dplyr::all_of(barcode_column)) |>
+  head(2)
+
+}
+\seealso{
+\code{\link[=make_receptor_schema]{make_receptor_schema()}}, \code{\link[=imd_rename_cols]{imd_rename_cols()}}, \link{ImmunData}
 }
 \concept{schema}
