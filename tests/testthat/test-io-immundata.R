@@ -105,19 +105,31 @@ test_that("normalize_provenance applies canonical overrides and derives all path
   expect_equal(provenance$home_path, normalized_home)
   expect_equal(
     provenance$current_path,
-    file.path(normalized_home, "snapshots", "baseline", "v003")
+    normalizePath(
+      file.path(normalized_home, "snapshots", "baseline", "v003"),
+      mustWork = FALSE
+    )
   )
   expect_equal(
     provenance$snapshot_root,
-    file.path(normalized_home, "snapshots")
+    normalizePath(
+      file.path(normalized_home, "snapshots"),
+      mustWork = FALSE
+    )
   )
   expect_equal(
     provenance$artifacts_root,
-    file.path(normalized_home, "artifacts")
+    normalizePath(
+      file.path(normalized_home, "artifacts"),
+      mustWork = FALSE
+    )
   )
   expect_equal(
     provenance$artifacts_path,
-    file.path(normalized_home, "artifacts", "baseline", "v003")
+    normalizePath(
+      file.path(normalized_home, "artifacts", "baseline", "v003"),
+      mustWork = FALSE
+    )
   )
   expect_equal(provenance$snapshot_id, "canonical-id")
   expect_identical(provenance$lineage, canonical_lineage)
@@ -149,8 +161,14 @@ test_that("root ingestion exposes a shared artifacts root and root artifact path
   )
 
   normalized_output <- normalizePath(output_dir, mustWork = TRUE)
-  expected_root <- file.path(normalized_output, "artifacts")
-  expected_path <- file.path(expected_root, "root")
+  expected_root <- normalizePath(
+    file.path(normalized_output, "artifacts"),
+    mustWork = FALSE
+  )
+  expected_path <- normalizePath(
+    file.path(expected_root, "root"),
+    mustWork = FALSE
+  )
   provenance <- idata$provenance
 
   expect_equal(provenance$artifacts_root, expected_root)
@@ -198,8 +216,14 @@ test_that("managed snapshots mirror tag and version beneath artifacts root", {
   )
 
   normalized_output <- normalizePath(output_dir, mustWork = TRUE)
-  expected_root <- file.path(normalized_output, "artifacts")
-  expected_path <- file.path(expected_root, "baseline", "v001")
+  expected_root <- normalizePath(
+    file.path(normalized_output, "artifacts"),
+    mustWork = FALSE
+  )
+  expected_path <- normalizePath(
+    file.path(expected_root, "baseline", "v001"),
+    mustWork = FALSE
+  )
 
   expect_equal(snapshot$provenance$artifacts_root, expected_root)
   expect_equal(snapshot$provenance$artifacts_path, expected_path)
