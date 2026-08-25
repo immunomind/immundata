@@ -257,46 +257,6 @@ response_details <- idata |>
     twice_response_n_receptors = response_n_receptors * 2
   )
 
-# Add synthetic receptor clusters
-# The receptor table is reduced before collection, so only a small
-# receptor-level result is loaded into memory.
-clusters <- idata$receptors |>
-  select(imd_receptor_id) |>
-  collect() |>
-  mutate(
-    imd_group_id = paste0(
-      "cluster_",
-      (imd_receptor_id \%\% 3L) + 1L
-    )
-  )
-
-clustered <- idata |>
-  annotate_receptors(clusters)
-
-# Add statistics for each response and receptor-cluster combination
-clustered_with_stats <- clustered |>
-  mutate(
-    cluster_n_receptors = n_distinct(imd_receptor_id),
-    .by = c(Response, imd_group_id)
-  )
-
-# Compute repertoire statistics for each cluster
-cluster_repertoires <- clustered |>
-  agg_repertoires(
-    schema = c("Response", "imd_group_id")
-  )
-
-cluster_repertoires$repertoires |>
-  arrange(Response, imd_group_id)
-# Expected result:
-#   imd_repertoire_id Response imd_group_id n_barcodes n_receptors
-#                   1 FR       cluster_1           322         289
-#                   2 FR       cluster_2           334         292
-#                   3 FR       cluster_3           299         290
-#                   4 PR       cluster_1           314         286
-#                   5 PR       cluster_2           328         291
-#                   6 PR       cluster_3           305         290
-
 }
 \seealso{
 \code{\link[dplyr:mutate]{dplyr::mutate()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=filter_immundata]{filter_immundata()}},
