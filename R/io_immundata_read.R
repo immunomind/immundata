@@ -1,76 +1,114 @@
-#' @title Load a saved ImmunData from disk
+#' @title Load an ImmunData object from disk
 #'
 #' @description
-#' Reconstructs an `ImmunData` object from files previously saved to a directory
-#' by [write_immundata()] or the internal saving step of [read_repertoires()].
-#' It reads the `annotations.parquet` file for the main data and `metadata.json`
-#' to retrieve the necessary receptor and repertoire schemas.
+#' Continue an analysis later by reopening an [ImmunData] dataset saved on disk.
+#' Use `read_immundata()` after restarting R, in another script, or when another
+#' person gives you a dataset created by [write_immundata()] or
+#' [read_repertoires()]. It is that simple, just don't forget to save the
+#' `ImmunData` object first!
 #'
-#' @param path Character(1). Path to the **directory** containing the saved
-#'   `ImmunData` files (`annotations.parquet` and `metadata.json`).
-#' @param tag Character(1) or `NULL`. Optional snapshot tag to load from
-#'   `path/snapshots/<tag>/vNNN`. When provided, `path` must point to the
-#'   project/home folder.
-#' @param version Integer(1) or `NULL`. Optional snapshot version number to
-#'   load within a tag (e.g. `1` means `v001`). If `NULL`, the latest version
-#'   for the tag is loaded.
-#' @param prudence Character(1). Controls strictness of type inference when
-#'   reading the Parquet file, passed to `duckplyr::read_parquet_duckdb()`.
-#'   Default `"stingy"` likely implies stricter type checking or safer inference.
-#' @param verbose Logical(1). Whether to print informative messages. Defaults to
-#'   `getOption("immundata.verbose", TRUE)`.
+#' The unit restored retains all information: chain rows,
+#' cell and receptor identifiers, repertoire and stratum definitions, and
+#' provenance. The function does not change these biological units or the saved
+#' files. It returns a new [ImmunData] object.
+#'
+#' @param path A character string. Path to a saved dataset directory. The
+#'   directory must contain `annotations.parquet` and `metadata.json`. When
+#'   `tag` is supplied, use the project home directory that contains the
+#'   `snapshots` directory. Read more about snapshots on the website.
+#' @param tag A character string or `NULL`. Snapshot tag to read from
+#'   `path/snapshots/<tag>/vNNN`. If `NULL`, the default, `path` itself is read.
+#' @param version A non-negative integer or `NULL`. Snapshot version within
+#'   `tag`. For example, `1` reads `v001`. If `NULL`, the default, the latest
+#'   available version for the tag is read. `version` can only be used with
+#'   `tag`.
+#' @param prudence A character string. Memory protection used while reading the
+#'   Parquet data. This controls whether duckplyr may convert an intermediate
+#'   result from DuckDB-managed memory to an R data frame: `"stingy"`, the
+#'   default here, never permits conversion; `"thrifty"` permits up to 1 million
+#'   table cells (rows multiplied by columns); and `"lavish"` permits conversion
+#'   regardless of size. Here, "table cells" does not mean biological cells.
+#'   Passed to [duckplyr::read_parquet_duckdb()].
+#' @param verbose A logical value. Whether to print progress and summary
+#'   messages. Defaults to `getOption("immundata.verbose", TRUE)`.
 #'
 #' @details
-#' This function expects a directory structure created by [write_immundata()],
-#' containing at least:
-#' - `annotations.parquet`: The main annotation data table.
-#' - `metadata.json`: Contains package version, receptor/repertoire/strata
-#'   schemas, the repertoire table, current `snapshot_id`, lineage events, and
-#'   provenance paths.
+#' Read either a dataset directory directly or a versioned snapshot within its
+#' project home.
 #'
-#' The loading process involves:
-#' 1. Checking that the specified `path` is a directory and contains the
-#'    required `annotations.parquet` and `metadata.json` files.
-#' 2. Reading `metadata.json` using `jsonlite::read_json()`.
-#' 3. Reading `annotations.parquet` using `duckplyr::read_parquet_duckdb()` with
-#'    the specified `prudence` level.
-#' 4. Restoring the receptor, repertoire, and strata schemas and the serialized
-#'    repertoire table from metadata.
-#' 5. Instantiating a new `ImmunData` object directly, without re-aggregating
-#'    repertoires or strata.
+#' @section Choose the saved state:
 #'
-#' @return A new `ImmunData` object reconstructed from the saved files.
+#' To reopen a dataset saved directly in a folder, supply that folder as `path`
+#' and leave `tag` and `version` as `NULL`.
 #'
-#' @seealso [write_immundata()] for saving `ImmunData` objects,
-#'   [read_repertoires()] for the primary data loading pipeline, [ImmunData] class,
-#'   [agg_repertoires()] for repertoire definition.
+#' To reopen a managed snapshot, supply the project home as `path` and its tag.
+#' By default, the latest version for that tag is read. Supply `version` when
+#' you need an exact earlier state.
+#'
+#' @section Backend and serialized data:
+#'
+#' `annotations.parquet` stores the retained chain-level annotation table.
+#' It is reopened as a lazy duckplyr table, so the complete table does not need
+#' to be loaded into R memory. `metadata.json` stores the format and package
+#' versions, receptor, repertoire, and stratum schemas, the repertoire
+#' table, the snapshot identifier, lineage events, and provenance paths.
+#'
+#' Receptor and stratum views are reconstructed from this serialized state; they
+#' are not stored as separate files. Please also mind, that the saved files
+#' is an ImmunData-specific serialization, not an RDS file.
+#'
+#' @return A new, disk-backed [ImmunData] object representing the selected saved
+#'   state. Its provenance records the directory that was read.
+#'
+#' @seealso [write_immundata()] for saving an analysis, [read_repertoires()] for
+#'   importing AIRR-seq files, [ImmunData]
 #'
 #' @concept ingestion
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Assume 'my_idata' is an ImmunData object created previously
-#' # my_idata <- read_repertoires(...)
+#' library(immundata)
+#' library(dplyr)
 #'
-#' # Define a temporary directory for saving
-#' save_dir <- tempfile("saved_immundata_")
+#' options(immundata.verbose = FALSE)
 #'
-#' # Save the ImmunData object
-#' write_immundata(my_idata, save_dir)
+#' # Create a project home and save a filtered biological state as a snapshot
+#' idata <- get_test_idata()
+#' project_dir <- tempfile("immundata-project-")
 #'
-#' # --- Later, in a new session or script ---
+#' project_idata <- write_immundata(
+#'   idata,
+#'   output_folder = project_dir,
+#'   rehome = TRUE
+#' )
 #'
-#' # Load the ImmunData object back from the directory
-#' loaded_idata <- read_immundata(save_dir)
+#' fr_response <- project_idata |>
+#'   filter(Response == "FR")
 #'
-#' # Verify the loaded object
-#' print(loaded_idata)
-#' # compare_methods(my_idata$annotations, loaded_idata$annotations) # If available
+#' write_immundata(fr_response, tag = "fr-response")
 #'
-#' # Clean up
-#' unlink(save_dir, recursive = TRUE)
-#' }
+#' # Read the exact first version of this snapshot
+#' continued_fr <- read_immundata(
+#'   project_dir,
+#'   tag = "fr-response",
+#'   version = 1
+#' )
+#'
+#' continued_fr |>
+#'   collect() |>
+#'   summarise(
+#'     n_chains = n(),
+#'     n_receptors = n_distinct(imd_receptor_id)
+#'   )
+#' # Expected result: the snapshot contains the 955 chain rows and 871
+#' # receptors from the FR response group.
+#' #   n_chains n_receptors
+#' #        955         871
+#'
+#' list.files(file.path(project_dir, "snapshots", "fr-response"))
+#' # Expected result: "v001"
+#'
+#' unlink(project_dir, recursive = TRUE)
 read_immundata <- function(path, tag = NULL, version = NULL, prudence = "stingy",
                            verbose = getOption("immundata.verbose", TRUE)) {
   checkmate::assert_character(path, len = 1, null.ok = FALSE)
