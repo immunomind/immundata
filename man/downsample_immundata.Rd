@@ -2,40 +2,141 @@
 % Please edit documentation in R/operations_downsample.R
 \name{downsample_immundata}
 \alias{downsample_immundata}
-\title{Downsample ImmunData annotations at the repertoire level}
+\title{Reduce repertoires to a common sampling depth}
 \usage{
 downsample_immundata(idata, n, seed = NULL)
 }
 \arguments{
-\item{idata}{An \code{ImmunData} object.}
+\item{idata}{An \link{ImmunData} object. For comparisons between repertoires, its
+repertoires should already be defined with \code{\link[=read_repertoires]{read_repertoires()}} or
+\code{\link[=agg_repertoires]{agg_repertoires()}}.}
 
-\item{n}{Numeric scalar controlling downsampling amount.
-See details for interpretation.}
+\item{n}{A number. Sampling depth. Use a value strictly between 0 and 1 for a
+fraction, or a whole number greater than or equal to 1 for an absolute
+number of cells or bulk sequence counts.}
 
-\item{seed}{Optional integer scalar for reproducible sampling.}
+\item{seed}{A non-negative integer or \code{NULL}. Used to reproduce the same
+random sample. The default is \code{NULL}.}
 }
 \value{
-A new \code{ImmunData} object with downsampled annotations.
+A new \link{ImmunData} object containing the sampled chain observations.
+If the input has repertoires or strata, their summaries are recalculated
+for the sampled data.
 }
 \description{
-Downsamples an \code{ImmunData} object by selecting barcodes within each repertoire.
-If repertoire schema is not defined, the entire dataset is treated as one repertoire.
+Use \code{downsample_immundata()} to reduce every repertoire to the same number or
+fraction of observed cells or bulk sequence counts before comparing
+repertoires. So, it is just a downsampling.
 
-The function uses a single parameter \code{n}:
+Use this function when different sequencing depths could affect a comparison
+of repertoire diversity or composition. In single-cell data, the sampling
+unit is a cell barcode and all selected chains from that cell stay together.
+In bulk data with abundance values, the sampling unit is one sequence count.
+
+The function returns a new \link{ImmunData} object. The original object is not
+changed.
+}
+\section{Meaning of \code{n} for single-cell data}{
+
 \itemize{
-\item If \verb{0 < n < 1}, \code{n} is treated as a proportion of repertoire size.
-\item If \code{n >= 1}, \code{n} is treated as an absolute target count. In particular,
-\code{n = 1} retains one barcode/receptor unit per repertoire for cell-level
-data, or one count per repertoire for bulk data.
+\item \verb{0 < n < 1} keeps \verb{floor(n * number of cells)} cells from each repertoire.
+\item \code{n >= 1} keeps \code{n} cells from each repertoire.
 }
 
-Downsampling is barcode-based. For count-based inputs (e.g. bulk),
-per-barcode counts (\code{imd_n_chains}) are trimmed when needed to reach the target.
-Existing repertoire-derived metrics (\code{imd_count}, \code{imd_proportion},
-\code{n_repertoires}, \code{n_receptors}, \code{n_barcodes}) are dropped and recalculated
-for the downsampled object when a repertoire schema is present. Original
-metrics are not retained because they describe the pre-downsampled universe.
-If the input has a strata schema, the strata layer is rebuilt from that
-schema after repertoire aggregation. Existing strata labels are retained.
+Cell barcodes are sampled without replacement. For paired receptors, all
+retained chains belonging to a selected cell stay together.
+}
+
+\section{Meaning of \code{n} for bulk data}{
+
+\itemize{
+\item \verb{0 < n < 1} keeps \verb{floor(n * total abundance)} sequence counts from each
+repertoire.
+\item \code{n >= 1} keeps a total abundance of \code{n} from each repertoire.
+}
+
+Counts are sampled without replacement according to their observed
+abundance. A retained receptor can therefore have a smaller abundance than
+it had before downsampling. For example, \code{n = 1000} makes the total retained
+abundance equal to 1000 in every repertoire that originally contained at
+least 1000 counts.
+
+If a requested whole-number \code{n} is larger than a repertoire, that repertoire
+is returned unchanged and the function gives a warning. If a fraction is so
+small that it selects zero units in any repertoire, the function stops and
+asks for a larger value.
+}
+
+\section{Repertoire and strata summaries}{
+
+
+When repertoires are defined, the function recalculates receptor counts,
+proportions, repertoire sizes, and the number of repertoires containing each
+receptor. Existing strata are also rebuilt, and their labels are retained.
+When repertoires are not defined, the complete dataset is treated as one
+sampling group and no repertoire summary is added.
+}
+
+\section{Backend and storage}{
+
+
+Chain-level selection and reconstruction use the duckplyr annotation table.
+The small table of sampling units is collected into R for random sampling.
+The function does not overwrite the stored input object. Use
+\code{\link[=write_immundata]{write_immundata()}} to save the returned object.
+}
+
+\examples{
+library(immundata)
+library(dplyr)
+
+options(immundata.verbose = FALSE)
+
+# Create two small bulk T-cell repertoires with different total abundances.
+bulk_data <- tibble(
+  Sample = c("Tumor", "Tumor", "Blood", "Blood"),
+  cdr3_aa = c("CASSA", "CASSB", "CASSA", "CASSC"),
+  v_call = c("TRBV1", "TRBV2", "TRBV1", "TRBV3"),
+  abundance = c(20L, 5L, 4L, 6L)
+)
+bulk_file <- tempfile(fileext = ".tsv")
+readr::write_tsv(bulk_data, bulk_file)
+
+idata <- read_repertoires(
+  path = bulk_file,
+  schema = c("cdr3_aa", "v_call"),
+  count_col = "abundance",
+  repertoire_schema = "Sample",
+  preprocess = NULL,
+  postprocess = NULL,
+  rename_columns = NULL,
+  output_folder = tempfile("immundata-downsample-")
+)
+
+before <- idata$repertoires |>
+  select(Sample, n_barcodes) |>
+  rename(before = n_barcodes)
+
+sampled <- downsample_immundata(idata, n = 5, seed = 42)
+
+before |>
+  left_join(
+    sampled$repertoires |>
+      select(Sample, n_barcodes) |>
+      rename(after = n_barcodes),
+    by = "Sample"
+  ) |>
+  arrange(Sample)
+# Expected result:
+#   Sample before after
+#   Blood      10     5
+#   Tumor      25     5
+
+# Each returned repertoire has five sequence counts. `idata` still has its
+# original repertoire sizes of 10 and 25.
+
+}
+\seealso{
+\code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=filter_immundata]{filter_immundata()}}, \code{\link[=write_immundata]{write_immundata()}}
 }
 \concept{filtering}
