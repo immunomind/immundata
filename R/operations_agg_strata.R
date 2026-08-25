@@ -1,48 +1,83 @@
-#' @title Aggregate repertoires into strata
+#' @title Group repertoires into biological strata
 #'
 #' @description
-#' Creates a strata layer above repertoires by grouping `idata$repertoires`
-#' with user-selected metadata columns.
+#' Use `agg_strata()` to place sample repertoires into biological comparison
+#' groups, such as treatment arms, tissues, or disease groups.
 #'
-#' This enables a hierarchy of
-#' `chains -> barcodes -> receptors -> repertoires -> strata`.
+#' Use this function after [agg_repertoires()] when several repertoires should be
+#' analysed as one group. A *stratum* contains every repertoire with the same
+#' value, or the same combination of values, in `schema`.
 #'
-#' @param idata An `ImmunData` object with repertoire aggregation already
-#'   available (run [agg_repertoires()] first).
-#' @param schema Character vector of columns in `idata$repertoires` used to define
-#'   strata.
-#' @param strata_name_prefix Character(1). Prefix for automatic strata labels in
-#'   `strata_name`. Default: `"Strata"`.
+#' The unit being grouped is a whole repertoire. The function returns a new
+#' [ImmunData] object. The original object is not changed.
 #'
-#' @return A new `ImmunData` object where:
-#' * `$repertoires` includes `imd_strata_id` and `strata_name`;
-#' * `$annotations` includes `imd_strata_id` (joined by `imd_repertoire_id`).
+#' @param idata An [ImmunData] object with repertoires already defined. Use
+#'   [agg_repertoires()] first if the object does not contain repertoires.
+#' @param schema A non-empty character vector. One or more repertoire-level
+#'   columns that define a stratum. For example, use `"Therapy"` for treatment
+#'   arms or `c("Tissue", "Disease")` for each tissue and disease combination.
+#'   The columns must be present in `idata$repertoires`.
+#' @param prefix A non-empty character string. Prefix for the
+#'   automatic stratum labels. The default, `"Strata"`, produces labels such as
+#'   `"Strata1"` and `"Strata2"`. You can use [rename_strata()] to assign meaningful
+#'   labels later instead.
 #'
-#' `strata_name` is stored only in `$repertoires` and is not copied into
-#' `$annotations`.
+#' @return A new [ImmunData] object in which every repertoire belongs to one
+#'   stratum. The `$strata` table lists the strata, their defining biological
+#'   values, and their automatic labels. Repertoire definitions and summary
+#'   statistics are preserved.
 #'
 #' @details
-#' Strata are derived from the current repertoire definition. Calling
-#' `agg_strata()` on an already stratified object replaces the previous strata
-#' mapping, and the generated `imd_strata_id` values should be treated as
-#' internal identifiers rather than stable identifiers.
+#' If `schema` contains several columns, a separate stratum is created for each
+#' observed combination. For example, `c("Tissue", "Therapy")` can define
+#' separate blood and tumour strata within each treatment arm.
 #'
-#' Calling [agg_repertoires()] after `agg_strata()` intentionally rebuilds the
-#' repertoire identifiers and statistics. Because the previous strata mapping
-#' is tied to the old repertoire state, `imd_strata_id`, `strata_name`, and the
-#' strata schema are removed rather than carried forward. To retain a strata
-#' layer after redefining or recomputing repertoires, call `agg_strata()` again
-#' with the desired schema. The same rule applies when another operation
-#' re-aggregates repertoires internally.
+#' Calling `agg_strata()` again replaces the existing strata with groups defined
+#' by the new `schema`.
+#'
+#' @section Identifiers and storage:
+#'
+#' `imd_strata_id` is an internal identifier and can change when strata are
+#' rebuilt. It is added to the repertoire table and to the underlying chain
+#' annotations. `strata_name` is stored only in the smaller repertoire and
+#' strata tables.
+#'
+#' Calling [agg_repertoires()] again rebuilds the repertoires, so it removes the
+#' existing strata. Call `agg_strata()` again after redefining repertoires.
 #'
 #' @seealso [agg_repertoires()], [rename_strata()], [ImmunData]
 #'
 #' @concept aggregation
 #' @export
-agg_strata <- function(idata, schema, strata_name_prefix = "Strata") {
+#'
+#' @examples
+#' library(immundata)
+#' library(dplyr)
+#'
+#' options(immundata.verbose = FALSE)
+#'
+#' # Define sample repertoires using the biological metadata in the test data
+#' idata <- get_test_idata() |>
+#'   agg_repertoires(c("Response", "Therapy"))
+#'
+#' # Group the sample repertoires into treatment arms
+#' treatment_groups <- idata |>
+#'   agg_strata(schema = "Therapy")
+#'
+#' treatment_groups$repertoires |>
+#'   select(Therapy, Response, imd_strata_id, strata_name) |>
+#'   arrange(imd_strata_id)
+#' # Expected result:
+#' #   Therapy Response imd_strata_id strata_name
+#' #   CAR-T   PR                   1 Strata1
+#' #   ICI     FR                   2 Strata2
+#'
+#' # Each repertoire is now assigned to its treatment stratum. Any additional
+#' # repertoire with the same Therapy value would receive the same stratum ID.
+agg_strata <- function(idata, schema, prefix = "Strata") {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_character(schema, min.len = 1, unique = TRUE, any.missing = FALSE)
-  checkmate::assert_string(strata_name_prefix, min.chars = 1)
+  checkmate::assert_string(prefix, min.chars = 1)
 
   if (is.null(idata$repertoires) || is.null(idata$schema_repertoire)) {
     cli::cli_abort(
@@ -81,7 +116,7 @@ agg_strata <- function(idata, schema, strata_name_prefix = "Strata") {
     arrange(!!!rlang::syms(schema)) |>
     mutate(
       {{ strata_col }} := row_number(),
-      {{ strata_name_col }} := paste0(strata_name_prefix, .data[[strata_col]])
+      {{ strata_name_col }} := paste0(prefix, .data[[strata_col]])
     ) |>
     select(all_of(c(strata_col, strata_name_col, schema)))
 
@@ -117,32 +152,87 @@ agg_strata <- function(idata, schema, strata_name_prefix = "Strata") {
 }
 
 
-#' @title Rename strata labels
+#' @title Give biological strata readable labels
 #'
 #' @description
-#' Renames `strata_name` values for existing strata (`imd_strata_id`) in
-#' `idata$repertoires`.
+#' Use `rename_strata()` to replace automatic stratum labels with names that are
+#' clear in figures and result tables, such as `"Control"`, `"Treated"`, or
+#' `"Tumour tissue"`.
 #'
-#' This function updates only repertoire-level metadata; annotations remain
-#' unchanged and keep only `imd_strata_id`.
+#' Use this function after [agg_strata()] when labels such as `"Strata1"` do not
+#' describe the biological groups. The unit being changed is the stratum label.
+#' Stratum membership and the repertoires, receptors, cells, and chains remain
+#' unchanged.
 #'
-#' @param idata An `ImmunData` object with strata already created by
+#' The function returns a new [ImmunData] object. The original object is not
+#' changed.
+#'
+#' @param idata An [ImmunData] object with strata already created by
 #'   [agg_strata()].
-#' @param names Mapping from `imd_strata_id` to `strata_name`. Supported forms:
-#'   * named character vector, where names are strata IDs;
-#'   * data frame with columns `imd_strata_id` and `strata_name`.
-#' @param unnamed What to do with strata IDs not covered by `names`:
-#'   `"error"` (default), `"auto"`, or `"keep"`.
-#' @param auto_prefix Prefix used when `unnamed = "auto"` (or when legacy
-#'   objects miss `strata_name`). Default: `"Strata"`.
+#' @param names A named character vector or a data frame. New labels matched to
+#'   `imd_strata_id`. Supply either:
 #'
-#' @return A new `ImmunData` object with updated `strata_name` in
-#'   `$repertoires`.
+#'   * a named character vector, such as
+#'     `c("1" = "Control", "2" = "Treated")`; or
+#'   * a data frame with columns `imd_strata_id` and `strata_name`.
+#'
+#'   Every new label must be non-empty and unique.
+#' @param unnamed A character string. What to do when `names` does not include
+#'   every stratum. The default, `"error"`, asks for a complete mapping. Use
+#'   `"auto"` to generate labels for missing strata or `"keep"` to preserve
+#'   their current labels.
+#' @param auto_prefix A non-empty character string. Prefix used to generate
+#'   labels when `unnamed = "auto"`. The default is `"Strata"`.
+#'
+#' @return A new [ImmunData] object with the requested labels in its `$strata`
+#'   and `$repertoires` tables. All biological group assignments and repertoire
+#'   summaries are preserved.
+#'
+#' @details
+#' The names of a named character vector are the stratum IDs, not the current
+#' labels. Inspect `idata$strata` to find the ID for each biological group.
+#'
+#' The mapping cannot contain unknown or repeated IDs, and the resulting labels
+#' must be unique across strata.
+#'
+#' @section Storage details:
+#'
+#' The readable `strata_name` is stored in the repertoire and strata tables. The
+#' underlying chain annotations keep only `imd_strata_id`, so renaming a stratum
+#' does not rewrite or regroup chain-level data.
 #'
 #' @seealso [agg_strata()], [agg_repertoires()]
 #'
 #' @concept aggregation
 #' @export
+#'
+#' @examples
+#' library(immundata)
+#' library(dplyr)
+#'
+#' options(immundata.verbose = FALSE)
+#'
+#' # Create treatment strata for the sample repertoires in the test data
+#' treatment_groups <- get_test_idata() |>
+#'   agg_repertoires(c("Response", "Therapy")) |>
+#'   agg_strata(schema = "Therapy")
+#'
+#' # Replace automatic labels with names suitable for a figure
+#' labeled_groups <- treatment_groups |>
+#'   rename_strata(
+#'     names = c("1" = "CAR-T arm", "2" = "ICI arm")
+#'   )
+#'
+#' labeled_groups$strata |>
+#'   select(Therapy, imd_strata_id, strata_name) |>
+#'   arrange(imd_strata_id)
+#' # Expected result:
+#' #   Therapy imd_strata_id strata_name
+#' #   CAR-T               1 CAR-T arm
+#' #   ICI                 2 ICI arm
+#'
+#' # Only the labels changed. Each sample repertoire remains in the same
+#' # treatment stratum.
 rename_strata <- function(idata, names, unnamed = c("error", "auto", "keep"), auto_prefix = "Strata") {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_string(auto_prefix, min.chars = 1)

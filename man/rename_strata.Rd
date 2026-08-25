@@ -2,7 +2,7 @@
 % Please edit documentation in R/operations_agg_strata.R
 \name{rename_strata}
 \alias{rename_strata}
-\title{Rename strata labels}
+\title{Give biological strata readable labels}
 \usage{
 rename_strata(
   idata,
@@ -12,31 +12,87 @@ rename_strata(
 )
 }
 \arguments{
-\item{idata}{An \code{ImmunData} object with strata already created by
+\item{idata}{An \link{ImmunData} object with strata already created by
 \code{\link[=agg_strata]{agg_strata()}}.}
 
-\item{names}{Mapping from \code{imd_strata_id} to \code{strata_name}. Supported forms:
+\item{names}{A named character vector or a data frame. New labels matched to
+\code{imd_strata_id}. Supply either:
 \itemize{
-\item named character vector, where names are strata IDs;
-\item data frame with columns \code{imd_strata_id} and \code{strata_name}.
-}}
+\item a named character vector, such as
+\code{c("1" = "Control", "2" = "Treated")}; or
+\item a data frame with columns \code{imd_strata_id} and \code{strata_name}.
+}
 
-\item{unnamed}{What to do with strata IDs not covered by \code{names}:
-\code{"error"} (default), \code{"auto"}, or \code{"keep"}.}
+Every new label must be non-empty and unique.}
 
-\item{auto_prefix}{Prefix used when \code{unnamed = "auto"} (or when legacy
-objects miss \code{strata_name}). Default: \code{"Strata"}.}
+\item{unnamed}{A character string. What to do when \code{names} does not include
+every stratum. The default, \code{"error"}, asks for a complete mapping. Use
+\code{"auto"} to generate labels for missing strata or \code{"keep"} to preserve
+their current labels.}
+
+\item{auto_prefix}{A non-empty character string. Prefix used to generate
+labels when \code{unnamed = "auto"}. The default is \code{"Strata"}.}
 }
 \value{
-A new \code{ImmunData} object with updated \code{strata_name} in
-\verb{$repertoires}.
+A new \link{ImmunData} object with the requested labels in its \verb{$strata}
+and \verb{$repertoires} tables. All biological group assignments and repertoire
+summaries are preserved.
 }
 \description{
-Renames \code{strata_name} values for existing strata (\code{imd_strata_id}) in
-\code{idata$repertoires}.
+Use \code{rename_strata()} to replace automatic stratum labels with names that are
+clear in figures and result tables, such as \code{"Control"}, \code{"Treated"}, or
+\code{"Tumour tissue"}.
 
-This function updates only repertoire-level metadata; annotations remain
-unchanged and keep only \code{imd_strata_id}.
+Use this function after \code{\link[=agg_strata]{agg_strata()}} when labels such as \code{"Strata1"} do not
+describe the biological groups. The unit being changed is the stratum label.
+Stratum membership and the repertoires, receptors, cells, and chains remain
+unchanged.
+
+The function returns a new \link{ImmunData} object. The original object is not
+changed.
+}
+\details{
+The names of a named character vector are the stratum IDs, not the current
+labels. Inspect \code{idata$strata} to find the ID for each biological group.
+
+The mapping cannot contain unknown or repeated IDs, and the resulting labels
+must be unique across strata.
+}
+\section{Storage details}{
+
+
+The readable \code{strata_name} is stored in the repertoire and strata tables. The
+underlying chain annotations keep only \code{imd_strata_id}, so renaming a stratum
+does not rewrite or regroup chain-level data.
+}
+
+\examples{
+library(immundata)
+library(dplyr)
+
+options(immundata.verbose = FALSE)
+
+# Create treatment strata for the sample repertoires in the test data
+treatment_groups <- get_test_idata() |>
+  agg_repertoires(c("Response", "Therapy")) |>
+  agg_strata(schema = "Therapy")
+
+# Replace automatic labels with names suitable for a figure
+labeled_groups <- treatment_groups |>
+  rename_strata(
+    names = c("1" = "CAR-T arm", "2" = "ICI arm")
+  )
+
+labeled_groups$strata |>
+  select(Therapy, imd_strata_id, strata_name) |>
+  arrange(imd_strata_id)
+# Expected result:
+#   Therapy imd_strata_id strata_name
+#   CAR-T               1 CAR-T arm
+#   ICI                 2 ICI arm
+
+# Only the labels changed. Each sample repertoire remains in the same
+# treatment stratum.
 }
 \seealso{
 \code{\link[=agg_strata]{agg_strata()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}

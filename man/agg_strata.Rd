@@ -2,50 +2,85 @@
 % Please edit documentation in R/operations_agg_strata.R
 \name{agg_strata}
 \alias{agg_strata}
-\title{Aggregate repertoires into strata}
+\title{Group repertoires into biological strata}
 \usage{
-agg_strata(idata, schema, strata_name_prefix = "Strata")
+agg_strata(idata, schema, prefix = "Strata")
 }
 \arguments{
-\item{idata}{An \code{ImmunData} object with repertoire aggregation already
-available (run \code{\link[=agg_repertoires]{agg_repertoires()}} first).}
+\item{idata}{An \link{ImmunData} object with repertoires already defined. Use
+\code{\link[=agg_repertoires]{agg_repertoires()}} first if the object does not contain repertoires.}
 
-\item{schema}{Character vector of columns in \code{idata$repertoires} used to define
-strata.}
+\item{schema}{A non-empty character vector. One or more repertoire-level
+columns that define a stratum. For example, use \code{"Therapy"} for treatment
+arms or \code{c("Tissue", "Disease")} for each tissue and disease combination.
+The columns must be present in \code{idata$repertoires}.}
 
-\item{strata_name_prefix}{Character(1). Prefix for automatic strata labels in
-\code{strata_name}. Default: \code{"Strata"}.}
+\item{prefix}{A non-empty character string. Prefix for the
+automatic stratum labels. The default, \code{"Strata"}, produces labels such as
+\code{"Strata1"} and \code{"Strata2"}. You can use \code{\link[=rename_strata]{rename_strata()}} to assign meaningful
+labels later instead.}
 }
 \value{
-A new \code{ImmunData} object where:
-\itemize{
-\item \verb{$repertoires} includes \code{imd_strata_id} and \code{strata_name};
-\item \verb{$annotations} includes \code{imd_strata_id} (joined by \code{imd_repertoire_id}).
-}
-
-\code{strata_name} is stored only in \verb{$repertoires} and is not copied into
-\verb{$annotations}.
+A new \link{ImmunData} object in which every repertoire belongs to one
+stratum. The \verb{$strata} table lists the strata, their defining biological
+values, and their automatic labels. Repertoire definitions and summary
+statistics are preserved.
 }
 \description{
-Creates a strata layer above repertoires by grouping \code{idata$repertoires}
-with user-selected metadata columns.
+Use \code{agg_strata()} to place sample repertoires into biological comparison
+groups, such as treatment arms, tissues, or disease groups.
 
-This enables a hierarchy of
-\code{chains -> barcodes -> receptors -> repertoires -> strata}.
+Use this function after \code{\link[=agg_repertoires]{agg_repertoires()}} when several repertoires should be
+analysed as one group. A \emph{stratum} contains every repertoire with the same
+value, or the same combination of values, in \code{schema}.
+
+The unit being grouped is a whole repertoire. The function returns a new
+\link{ImmunData} object. The original object is not changed.
 }
 \details{
-Strata are derived from the current repertoire definition. Calling
-\code{agg_strata()} on an already stratified object replaces the previous strata
-mapping, and the generated \code{imd_strata_id} values should be treated as
-internal identifiers rather than stable identifiers.
+If \code{schema} contains several columns, a separate stratum is created for each
+observed combination. For example, \code{c("Tissue", "Therapy")} can define
+separate blood and tumour strata within each treatment arm.
 
-Calling \code{\link[=agg_repertoires]{agg_repertoires()}} after \code{agg_strata()} intentionally rebuilds the
-repertoire identifiers and statistics. Because the previous strata mapping
-is tied to the old repertoire state, \code{imd_strata_id}, \code{strata_name}, and the
-strata schema are removed rather than carried forward. To retain a strata
-layer after redefining or recomputing repertoires, call \code{agg_strata()} again
-with the desired schema. The same rule applies when another operation
-re-aggregates repertoires internally.
+Calling \code{agg_strata()} again replaces the existing strata with groups defined
+by the new \code{schema}.
+}
+\section{Identifiers and storage}{
+
+
+\code{imd_strata_id} is an internal identifier and can change when strata are
+rebuilt. It is added to the repertoire table and to the underlying chain
+annotations. \code{strata_name} is stored only in the smaller repertoire and
+strata tables.
+
+Calling \code{\link[=agg_repertoires]{agg_repertoires()}} again rebuilds the repertoires, so it removes the
+existing strata. Call \code{agg_strata()} again after redefining repertoires.
+}
+
+\examples{
+library(immundata)
+library(dplyr)
+
+options(immundata.verbose = FALSE)
+
+# Define sample repertoires using the biological metadata in the test data
+idata <- get_test_idata() |>
+  agg_repertoires(c("Response", "Therapy"))
+
+# Group the sample repertoires into treatment arms
+treatment_groups <- idata |>
+  agg_strata(schema = "Therapy")
+
+treatment_groups$repertoires |>
+  select(Therapy, Response, imd_strata_id, strata_name) |>
+  arrange(imd_strata_id)
+# Expected result:
+#   Therapy Response imd_strata_id strata_name
+#   CAR-T   PR                   1 Strata1
+#   ICI     FR                   2 Strata2
+
+# Each repertoire is now assigned to its treatment stratum. Any additional
+# repertoire with the same Therapy value would receive the same stratum ID.
 }
 \seealso{
 \code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=rename_strata]{rename_strata()}}, \link{ImmunData}
