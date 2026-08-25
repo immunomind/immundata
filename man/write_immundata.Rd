@@ -2,7 +2,7 @@
 % Please edit documentation in R/io_immundata_write.R
 \name{write_immundata}
 \alias{write_immundata}
-\title{Save ImmunData to disk}
+\title{Save an ImmunData object to disk}
 \usage{
 write_immundata(
   idata,
@@ -15,111 +15,117 @@ write_immundata(
 )
 }
 \arguments{
-\item{idata}{The \code{ImmunData} object to save. Must be an R6 object of class
-\code{ImmunData} containing at least the \verb{$annotations} table and schema information
-(\verb{$schema_receptor}, optionally \verb{$schema_repertoire} and \verb{$schema_strata}).}
+\item{idata}{An \link{ImmunData} object you want to save.}
 
-\item{output_folder}{Character(1) or \code{NULL}. Path to the directory where the
-output files will be written. If \code{NULL}, a snapshot directory is created as
-\verb{home_path/snapshots/<tag>/vNNN}, where \code{home_path} is read from internal
-\code{ImmunData} provenance.}
+\item{output_folder}{A character string or \code{NULL}. Directory in which to
+write \code{annotations.parquet} and \code{metadata.json}. If \code{NULL}, the default, a
+managed snapshot is created at \verb{home_path/snapshots/<tag>/vNNN}. The home
+path comes from the object's provenance.}
 
-\item{tag}{Character(1) or \code{NULL}. Snapshot tag used only when
-\code{output_folder = NULL} (for example, \code{"baseline"}). If \code{NULL}, defaults to
-\code{"default"} for auto-snapshots.}
+\item{tag}{A character string or \code{NULL}. Snapshot tag. With
+\code{output_folder = NULL}, it names the managed snapshot series; if \code{tag} is
+also \code{NULL}, \code{"default"} is used. With an explicit \code{output_folder}, a
+supplied tag is recorded in the lineage but does not change the output
+path.}
 
-\item{rehome}{Logical(1). If \code{TRUE}, and \code{output_folder} is explicitly
-provided, this folder becomes the new snapshot home for future auto-snapshots.
-Default: \code{FALSE}.}
+\item{rehome}{A logical value. Whether an explicit \code{output_folder} becomes
+the home for future managed snapshots. The default is \code{FALSE}, which
+preserves an existing home. If the object has no home yet, its first
+explicit output folder becomes the home with either value. \code{TRUE} requires
+an explicit \code{output_folder}.}
 
-\item{compression}{Character(1) or \code{NULL}. Parquet compression codec passed
-through to DuckDB (via \code{duckplyr::compute_parquet(options = ...)}).
-Defaults to \code{"zstd"}. Set \code{NULL} to let DuckDB choose.}
+\item{compression}{A character string or \code{NULL}. Parquet compression codec
+passed to DuckDB. The default is \code{"zstd"}. Use \code{NULL} to let DuckDB choose.}
 
-\item{compression_level}{Numeric(1) or \code{NULL}. Compression level passed through
-to DuckDB for codecs that support levels (for example, Zstandard). Defaults
-to \code{9}. Set \code{NULL} to let DuckDB choose.}
+\item{compression_level}{A number or \code{NULL}. Compression level for codecs
+that support it. The default is \code{9}. Use \code{NULL} to let DuckDB choose.}
 
-\item{verbose}{Logical(1). Whether to print informative messages. Defaults to
-\code{getOption("immundata.verbose", TRUE)}.}
+\item{verbose}{A logical value. Whether to print progress and summary
+messages. Defaults to \code{getOption("immundata.verbose", TRUE)}.}
 }
 \value{
-Invisibly returns the input \code{idata} object, saved to disk.
-In other words, this allows you to create snapshots of the data in the
-\code{output_folder}. Mind that by saving the object, you execute all the
-stored computations, so this operations can take longer than expected.
-Read more about snapshots on our website in the \href{https://immunomind.github.io/docs/concepts/basics/immutability/}{"Concept" section}.
+Invisibly returns a newly reopened, disk-backed \link{ImmunData} object
+with provenance for the new save. The input \code{idata} remains unchanged.
 }
 \description{
-Serializes the essential components of an \code{ImmunData} object to disk for
-efficient storage and later retrieval. It saves the core annotation data
-(\code{idata$annotations}) as a compressed Parquet file and accompanying metadata
-(including schemas, repertoire data, and package version) as a JSON file
-within a specified directory.
+Save \code{ImmunData} to disk so you can close R and continue the work later (I cannot
+believe it, but it works, I tried it). Use
+\code{write_immundata()} after importing or transforming repertoire data, or when
+you want a named snapshot before the next analysis step.
+
+The unit saved is the complete \link{ImmunData} object. This includes retained
+chain rows, cell and receptor identifiers, repertoire and stratum definitions,
+and provenance. Saving does not add, remove, or change any biological unit.
 }
 \details{
-The function performs the following actions:
-\enumerate{
-\item Validates the input \code{idata} object and write options.
-\item Resolves the destination folder:
-\itemize{
-\item uses \code{output_folder} when explicitly provided, or
-\item creates an auto-snapshot folder under
-\verb{home_path/snapshots/<tag>/vNNN} when \code{output_folder = NULL}.
+Save to an explicit folder for a direct saved state, or use the object's home
+to create a versioned managed snapshot.
 }
-\item Constructs metadata including schemas, the repertoire table, \code{snapshot_id},
-lineage, and provenance paths.
-\item Writes metadata to \code{metadata.json} within the resolved output folder.
-\item Writes the \code{idata$annotations} table (a \code{duckplyr_df} or similar) to
-\code{annotations.parquet} within \code{output_folder}.
-\itemize{
-\item By default, uses \code{compression = "zstd"} and \code{compression_level = 9}.
-\item A common choice is \code{compression = "snappy"} for faster reads/writes
-with larger files.
-\item Another common choice is \code{compression = "zstd"} for smaller files, often
-with higher CPU cost.
-\item \code{compression_level} usually trades speed for size (higher levels: smaller
-output but slower processing).
-\item Compatibility note: for \code{duckplyr} version \verb{1.2.0}, \code{compute_parquet()}
-does not accept extra options due to a known issue. In that version,
-compression-related arguments are ignored and DuckDB defaults are used.
-}
-\item Uses internal helper \code{imd_files()} to determine the standard filenames
-(\code{metadata.json}, \code{annotations.parquet}).
+\section{Choose how to save}{
+
+
+Supply \code{output_folder} to save a standalone state in a specific directory.
+This is useful when sharing a dataset or choosing its first project home.
+If the directory already contains an ImmunData dataset, its
+\code{annotations.parquet} and \code{metadata.json} are replaced.
+
+Leave \code{output_folder = NULL} to create a managed snapshot. The function uses
+the object's home path and writes the next version under
+\verb{snapshots/<tag>/vNNN}, for example \code{snapshots/baseline/v001}. Later writes
+with the same tag create \code{v002}, \code{v003}, and so on; earlier versions remain
+available. Use \code{\link[=read_immundata]{read_immundata()}} with \code{tag} and \code{version} to reopen one.
+
+Every save receives a new snapshot identifier and appends a provenance event.
+The returned object records the new saved directory as its current path.
 }
 
-The receptor data itself is not stored separately; receptors remain a view
-derived from annotations and the receptor schema.
+\section{Backend and serialization}{
+
+
+The retained chain-level annotation table is materialized as compressed
+\code{annotations.parquet}. Materialization executes any pending lazy duckplyr
+calculations. \code{metadata.json} serializes format and package versions,
+receptor, repertoire, and stratum schemas, the small repertoire table, the
+snapshot identifier, lineage events, and provenance paths.
+
+Receptor and stratum views are not written as separate files; they can be
+reconstructed from the annotation table and metadata. This Parquet and JSON
+pair is an ImmunData-specific serialization, not an RDS file.
 }
+
 \examples{
-\dontrun{
-# Assume 'my_idata' is an ImmunData object created previously
-# my_idata <- read_repertoires(...)
+library(immundata)
+library(dplyr)
 
-# Define an output directory
-save_dir <- tempfile("saved_immundata_")
+options(immundata.verbose = FALSE)
 
-# Save the ImmunData object
-write_immundata(my_idata, save_dir)
+# Save a small immune-repertoire analysis
+idata <- get_test_idata()
+save_dir <- tempfile("saved-immundata-")
 
-# Auto-snapshot under <home>/snapshots/baseline/vNNN
-write_immundata(my_idata, tag = "baseline")
+saved_idata <- write_immundata(idata, save_dir)
 
-# Optional: request a specific parquet compression setup
-write_immundata(my_idata, save_dir, compression = "zstd", compression_level = 9)
+list.files(save_dir)
+# Expected result: the analysis is serialized as two files.
+# [1] "annotations.parquet" "metadata.json"
 
-# Optional: let DuckDB choose both settings
-write_immundata(my_idata, save_dir, compression = NULL, compression_level = NULL)
+# Continue the analysis from the saved files
+continued_idata <- read_immundata(save_dir)
 
-# Check the created files
-list.files(save_dir) # Should show "annotations.parquet" and "metadata.json"
+continued_idata |>
+  collect() |>
+  summarise(
+    n_chains = n(),
+    n_receptors = n_distinct(imd_receptor_id)
+  )
+# Expected result: all 1,902 chain rows and 1,668 receptors are restored.
+#   n_chains n_receptors
+#       1902        1668
 
-# Clean up
 unlink(save_dir, recursive = TRUE)
 }
-}
 \seealso{
-\code{\link[=read_immundata]{read_immundata()}} for loading the saved data, \code{\link[=read_repertoires]{read_repertoires()}}
-which uses this function internally, \link{ImmunData} class definition.
+\code{\link[=read_immundata]{read_immundata()}} for continuing a saved analysis,
+\code{\link[=read_repertoires]{read_repertoires()}} for importing AIRR-seq files, \link{ImmunData}
 }
 \concept{ingestion}
