@@ -26,6 +26,13 @@ makes repertoire, strata, and provenance state more explicit and reliable.
 
 ## New features and improvements
 
+* `read_repertoires()` now works approximately 60 times faster by 
+  combining CSV, TSV, and compressed text inputs into
+  one temporary Parquet file before processing by default. This avoids repeated
+  text scans in downstream duckplyr queries while retaining original input
+  paths in provenance. Use `prematerialize = FALSE` to disable it or
+  `prematerialize_folder` to select the temporary storage directory. I recommend you
+  to use it pretty much always.
 * Added `read_manifest()` for CSV, TSV, TXT, and in-memory manifests. It infers
   common delimiters, resolves file-relative paths, validates file availability,
   and adds normalized source paths for joining to repertoire data. The special
