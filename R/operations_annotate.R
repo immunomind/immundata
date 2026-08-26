@@ -236,7 +236,7 @@ annotate_immundata <- function(idata,
   checkmate::assert_logical(keep_repertoires)
   conflicts <- match.arg(conflicts)
 
-  if (!remove_limit && ncol(annotations) >= 100) {
+  if (!remove_limit && length(annotations) >= 100) {
     rlang::abort(cli::format_inline(paste0(
       "Well, well, well, would you look at that... ",
       "Decided to dump all tens of thousands genes into your repertoire data, I guess?",
