@@ -778,7 +778,16 @@ print(idata)
 > [!CAUTION]
 > 🚧 Under construction. 🚧
 
-By default, `read_repertoires()` writes the created Parquet files into a directory named `immundata_<first filen name>`. Consider passing `output_folder` to `read_repertoires()` if you want to specify the output path.
+By default, `read_repertoires()` writes the persistent ImmunData snapshot into
+a directory named `immundata-<first file name>`. Consider passing
+`output_folder` to choose another location.
+
+For CSV, TSV, and compressed text input, `read_repertoires()` first combines
+the source files into one temporary Parquet file. The intermediate is created
+under `tempdir()` and deleted when the function exits. Pass
+`prematerialize_folder` to use another temporary-storage directory, or set
+`prematerialize = FALSE` to disable this step. Original source paths remain in
+`imd_filename` and ingestion provenance.
 
 ### Writing ImmunData objects on disk
  

@@ -2,7 +2,7 @@
 
 # Add or change annotation columns in ImmunData
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_mutate.R#L249)
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_mutate.R#L247)
 
 ## Description
 
@@ -197,6 +197,16 @@ idata_with_length |>
   collect() |>
   select(cdr3_aa, cdr3_length) |>
   slice_head(n = 3)
+```
+
+    #> # A tibble: 3 × 2
+    #>   cdr3_aa       cdr3_length
+    #> * <chr>               <dbl>
+    #> 1 ASFPVLSPYNEQF          13
+    #> 2 ASRAGAGTGELF           12
+    #> 3 ASSPGQGLDTQY           12
+
+``` r
 # Expected result:
 #   cdr3_aa       cdr3_length
 #   ASFPVLSPYNEQF          13
@@ -218,6 +228,15 @@ idata_with_matches <- idata |>
 idata_with_matches |>
   collect() |>
   count(imd_sim_exact_1)
+```
+
+    #> # A tibble: 2 × 2
+    #>   imd_sim_exact_1     n
+    #> * <lgl>           <int>
+    #> 1 FALSE            1901
+    #> 2 TRUE                1
+
+``` r
 # Expected result:
 #   imd_sim_exact_1     n
 #   FALSE            1901
@@ -238,6 +257,16 @@ idata_with_distance |>
   select(cdr3_aa, imd_sim_lev_1) |>
   arrange(imd_sim_lev_1, cdr3_aa) |>
   slice_head(n = 3)
+```
+
+    #> # A tibble: 3 × 2
+    #>   cdr3_aa       imd_sim_lev_1
+    #> * <chr>                 <dbl>
+    #> 1 ASFPVLSPYNEQF             0
+    #> 2 ASSPDSPSYNEQF             4
+    #> 3 ASSPGLAAYNEQF             4
+
+``` r
 # Expected result:
 #   cdr3_aa       imd_sim_lev_1
 #   ASFPVLSPYNEQF             0
@@ -258,6 +287,15 @@ marked_sequences <- idata |>
 marked_sequences |>
   collect() |>
   count(cmv_specific)
+```
+
+    #> # A tibble: 2 × 2
+    #>   cmv_specific     n
+    #> * <lgl>        <int>
+    #> 1 FALSE         1900
+    #> 2 TRUE             2
+
+``` r
 # Expected result:
 #   cmv_specific     n
 #   FALSE         1900
@@ -278,6 +316,15 @@ marked_receptors <- idata |>
 marked_receptors |>
   collect() |>
   count(cmv_specific)
+```
+
+    #> # A tibble: 2 × 2
+    #>   cmv_specific     n
+    #> * <lgl>        <int>
+    #> 1 FALSE         1899
+    #> 2 TRUE             3
+
+``` r
 # Expected result:
 #   cmv_specific     n
 #   FALSE         1898
@@ -296,6 +343,15 @@ response_stats |>
   collect() |>
   distinct(Response, response_n_rows, response_n_receptors) |>
   arrange(Response)
+```
+
+    #> # A tibble: 2 × 3
+    #>   Response response_n_rows response_n_receptors
+    #> * <chr>              <int>                <dbl>
+    #> 1 FR                   955                  871
+    #> 2 PR                   947                  867
+
+``` r
 # Expected result:
 #   Response response_n_rows response_n_receptors
 #   FR                   955                  871
@@ -310,13 +366,12 @@ response_centered <- idata |>
 
 # Do not combine that row-level calculation with a statistic that needs the
 # automatic summary fallback in the same call:
-idata |>
-  mutate(
-    centered_counts = counts - mean(counts, na.rm = TRUE),
-    response_n_receptors = n_distinct(imd_receptor_id),
-    .by = Response
-  )
-
+# idata |>
+#   mutate(
+#     centered_counts = counts - mean(counts, na.rm = TRUE),
+#     response_n_receptors = n_distinct(imd_receptor_id),
+#     .by = Response
+#   )
 
 # Use two mutate calls instead. The work remains lazy in DuckDB.
 response_details <- idata |>

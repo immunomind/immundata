@@ -2,7 +2,7 @@
 
 # Read immune repertoire files into ImmunData
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_repertoires_read.R#L260)
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_repertoires_read.R#L271)
 
 ## Description
 
@@ -32,7 +32,9 @@ memory and reopen the result later with <code>read_immundata()</code>.
   manifest_file_col = "file",
   output_folder = NULL,
   repertoire_schema = "&lt;auto&gt;",
-  verbose = getOption("immundata.verbose", TRUE)
+  verbose = getOption("immundata.verbose", TRUE),
+  prematerialize = TRUE,
+  prematerialize_folder = NULL
 )
 </code></pre>
 
@@ -264,6 +266,28 @@ Whether to print progress and summary messages. Defaults to
 <code>getOption(“immundata.verbose”, TRUE)</code>.
 </td>
 </tr>
+<tr>
+<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
+<code id="prematerialize">prematerialize</code>
+</td>
+<td>
+Whether CSV, TSV, and compressed text inputs should be combined into a
+temporary Parquet file before receptor processing. This avoids
+repeatedly scanning text input during downstream lazy queries. Existing
+Parquet input is used directly. The default is <code>TRUE</code>.
+</td>
+</tr>
+<tr>
+<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
+<code id="prematerialize_folder">prematerialize_folder</code>
+</td>
+<td>
+Directory in which to create the temporary combined Parquet file. If
+<code>NULL</code>, the default, <code>tempdir()</code> is used. The
+directory is created when necessary. The temporary file is deleted when
+<code>read_repertoires()</code> exits, including after an error.
+</td>
+</tr>
 </table>
 
 ## Details
@@ -336,6 +360,11 @@ Unless you override the relevant arguments,
 <ul>
 <li>
 
+temporarily combines text input into Parquet before processing;
+
+</li>
+<li>
+
 standardizes common 10x column names;
 
 </li>
@@ -378,6 +407,12 @@ The function:
 <li>
 
 finds and reads the input files as one duckplyr table;
+
+</li>
+<li>
+
+temporarily combines non-Parquet input into one Parquet file when
+<code>prematerialize = TRUE</code>;
 
 </li>
 <li>

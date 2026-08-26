@@ -92,6 +92,7 @@ use_directory_urls: false
 
 nav:
   - Home: README.md
+  - News: NEWS.md
   - Reference:
       - Overview: reference/index.md
       - Ingestion:
