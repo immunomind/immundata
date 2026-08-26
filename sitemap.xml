@@ -1,29 +1,131 @@
-<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
-<url><loc>https://immunomind.github.io/immundata/404.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/CONTRIBUTING.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/SUPPORT.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/authors.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/index.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/IMD_GLOBALS.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/ImmunData.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/agg_receptors.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/agg_repertoires.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/annotate_immundata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/count.ImmunData.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/filter_immundata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/from_immunarch.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/get_test_idata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/get_test_immundata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/imd_schema.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/immundata-package.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/index.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/make_receptor_schema.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/make_seq_options.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/mutate_immundata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/preprocess_postprocess.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/read_immundata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/read_metadata.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/read_repertoires.html</loc></url>
-<url><loc>https://immunomind.github.io/immundata/reference/write_immundata.html</loc></url>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://immunomind.github.io/immundata/index.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/CITATION.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/NEWS.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/agg_receptors.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/agg_repertoires.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/agg_strata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/annotate_anndata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/annotate_immundata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/annotate_seurat.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/collect.ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/compute.ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/count.ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/dimnames-set-.ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/dimnames.ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/downsample_immundata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/filter_immundata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/from_immunarch.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/imd_input_columns.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/imd_schema.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/make_receptor_schema.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/make_seq_options.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/mutate_immundata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/names-set-.ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/preprocess_postprocess.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/print.ImmunData.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/read_immundata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/read_manifest.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/read_repertoires.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/rename_strata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/man/write_immundata.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://immunomind.github.io/immundata/reference/index.html</loc>
+         <lastmod>2026-08-26</lastmod>
+    </url>
 </urlset>
-
