@@ -2,7 +2,7 @@
 
 # Group AIRR sequence rows into receptors
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_agg_receptors.R#L102)
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/operations_agg_receptors.R#L103)
 
 ## Description
 
@@ -139,7 +139,9 @@ loci. Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
 The receptor features are the columns that define the identity of one
 chain. Two chains with the same values in all feature columns receive
 the same receptor identity in a single-chain analysis. Common features
-include V gene, J gene, and CDR3 amino acid sequence.
+include V gene, J gene, and CDR3 amino acid sequence. Rows with a
+missing, empty, or whitespace-only receptor feature are excluded before
+chains are selected.
 
 The function supports three input modes:
 

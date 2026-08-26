@@ -1797,7 +1797,7 @@
 
 
 <h1 id="group-airr-sequence-rows-into-receptors">Group AIRR sequence rows into receptors<a class="headerlink" href="#group-airr-sequence-rows-into-receptors" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_agg_receptors.R#L102"><strong>Source code</strong></a></p>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/operations_agg_receptors.R#L103"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p><code>agg_receptors()</code> is a low-level function used during AIRR
 data ingestion. It decides which sequence rows represent the same
@@ -1926,7 +1926,9 @@ loci. Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
 <p>The receptor features are the columns that define the identity of one
 chain. Two chains with the same values in all feature columns receive
 the same receptor identity in a single-chain analysis. Common features
-include V gene, J gene, and CDR3 amino acid sequence.</p>
+include V gene, J gene, and CDR3 amino acid sequence. Rows with a
+missing, empty, or whitespace-only receptor feature are excluded before
+chains are selected.</p>
 <p>The function supports three input modes:</p>
 <ul>
 <li>
