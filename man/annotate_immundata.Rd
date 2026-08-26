@@ -6,24 +6,33 @@
 \alias{annotate_receptors}
 \alias{annotate_barcodes}
 \alias{annotate_chains}
-\title{Annotate ImmunData object}
+\title{Add external information to ImmunData}
 \usage{
 annotate_immundata(
   idata,
   annotations,
   by,
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 
-annotate(idata, annotations, by, keep_repertoires = TRUE, remove_limit = FALSE)
+annotate(
+  idata,
+  annotations,
+  by,
+  keep_repertoires = TRUE,
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
+)
 
 annotate_receptors(
   idata,
   annotations,
   annot_col = imd_schema("receptor"),
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 
 annotate_barcodes(
@@ -31,7 +40,8 @@ annotate_barcodes(
   annotations,
   annot_col = "<rownames>",
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 
 annotate_chains(
@@ -39,106 +49,253 @@ annotate_chains(
   annotations,
   annot_col = imd_schema("chain"),
   keep_repertoires = TRUE,
-  remove_limit = FALSE
+  remove_limit = FALSE,
+  conflicts = c("error", "replace")
 )
 }
 \arguments{
-\item{idata}{An \code{ImmunData} R6 object containing repertoire and annotation data.}
+\item{idata}{An \link{ImmunData} object.}
 
-\item{annotations}{A data frame containing the annotations to be joined.}
+\item{annotations}{A data frame containing the information to add. It must
+contain the columns used for matching and at most one row for each matching
+identifier or combination of identifiers.}
 
-\item{by}{A named character vector specifying the columns to join by. The names of the
-vector should be the column names in \code{idata$annotations} and the values should be
-the corresponding column names in the \code{annotations} data frame.}
+\item{by}{A named character vector describing how columns are matched. Names
+are columns in \code{idata}; values are the corresponding columns in
+\code{annotations}. For example, \code{c(Response = "response_code")}.}
 
-\item{keep_repertoires}{Logical. If \code{TRUE} (default) and the \code{ImmunData} object
-contains repertoire data (\code{idata$schema_repertoire} is not NULL), the repertoires
-will be re-aggregated after joining the annotations. Set to \code{FALSE} if you do not
-want to re-aggregate repertoires immediately.}
+\item{keep_repertoires}{Whether to preserve existing repertoire and strata
+summaries without recalculation. The default is \code{TRUE}. If \code{FALSE}, these
+summaries and their derived annotation columns are removed.}
 
-\item{remove_limit}{Logical. If \code{FALSE} (default), a warning will be issued if the
-\code{annotations} data frame has 100 or more columns, suggesting potential performance
-issues. Set to \code{TRUE} to disable this warning and allow joining of annotations
-with an arbitrary number of columns. Use with caution, as joining wide dataframes
-can be memory-intensive and slow.}
+\item{remove_limit}{Whether to allow an annotation table with 100 or more
+columns. The default is \code{FALSE}, which stops the operation for such tables.
+Set to \code{TRUE} only when the wide join is intentional.}
 
-\item{annot_col}{A character vector specifying the column with receptor, barcode or chain identifiers
-to annotate a corresponding receptors, barode or chains in \code{idata}.}
+\item{conflicts}{How to handle new annotation columns whose names already
+exist in \code{idata}. \code{"error"}, the default, stops the operation. \code{"replace"}
+replaces existing columns that are not protected by \code{ImmunData}.}
+
+\item{annot_col}{Name of the identifier column in \code{annotations}. For
+\code{annotate_receptors()} and \code{annotate_chains()}, the default is the standard
+\code{ImmunData} receptor or chain identifier. For \code{annotate_barcodes()}, the
+default \code{"<rownames>"} uses the row names of \code{annotations}. Supplying an
+explicit barcode column is usually clearer.}
 }
 \value{
-A new \code{ImmunData} object with the annotations joined to the \code{annotations} slot.
+A new \link{ImmunData} object containing the added annotation columns.
+Existing repertoire and strata summaries are preserved when
+\code{keep_repertoires = TRUE}.
 }
 \description{
-Joins additional annotation data to the annotations slot of an \code{ImmunData} object.
+Use the \verb{annotate_*()} functions to add information stored in another data
+frame to an \link{ImmunData} object. For example, you can add cell types from a
+single-cell analysis, antigen labels for receptors, or clinical information
+for samples.
 
-This function allows you to add extra information to your repertoire data by joining a
-dataframe of annotations based on specified columns. It supports joining by
-one or more columns.
+When matching identifiers are unique, the functions keep every row in
+\code{idata}. When a row has no match in \code{annotations}, the new columns contain
+\code{NA}. Each function returns a new \link{ImmunData} object. The original object is
+not changed.
 }
 \details{
-The function performs a left join operation, keeping all rows from
-\code{idata$annotations} and adding matching columns from the \code{annotations} data frame.
-If there are multiple matches in \code{annotations} for a row in \code{idata$annotations},
-all combinations will be returned, potentially increasing the number of rows
-in the resulting annotations table.
-
-The function uses \code{checkmate} to validate the input types and structure.
-
-A check is performed to ensure that the columns specified in \code{by} exist in both
-\code{idata$annotations} and the \code{annotations} data frame.
-
-The \code{annotations} data frame is converted to a duckdb tibble internally for
-efficient joining, especially with large datasets.
+The functions differ in how they select the columns used for matching. The
+rules for duplicate identifiers, column conflicts, and preserved summaries
+are the same for all functions.
 }
-\section{Warning}{
+\section{Choose a function}{
 
-By default (\code{remove_limit = FALSE}), joining an \code{annotations} data frame with 100 or
-more columns will trigger a warning. This is a safeguard to prevent accidental
-joining of very wide data (e.g., gene expression data) that could lead to
-performance degradation or crashes. If you understand the risks and intend to join
-a wide data frame, set \code{remove_limit = TRUE}.
+
+Use the function that matches the type of information you want to add:
+\itemize{
+\item \code{\link[=annotate_barcodes]{annotate_barcodes()}} matches cell or barcode identifiers.
+\item \code{\link[=annotate_receptors]{annotate_receptors()}} matches receptor identifiers. All rows belonging to
+a matched receptor receive the new information.
+\item \code{\link[=annotate_chains]{annotate_chains()}} matches chain identifiers.
+\item \code{annotate()} matches any one or more columns that you specify in \code{by}.
+}
+
+The first three functions select the correct \code{ImmunData} identifier for you.
+\code{annotate_immundata()} is an alternative name for \code{annotate()}.
+}
+
+\section{How matching works}{
+
+
+For \code{annotate_barcodes()}, \code{annotate_receptors()}, and \code{annotate_chains()},
+\code{annot_col} names the identifier column in \code{annotations}. For example,
+\code{annot_col = "barcode"} matches the \code{barcode} column in \code{annotations} with
+the barcode identifier in \code{idata}.
+
+For general matching, supply \code{by} in the form
+\code{c(immundata_column = "annotation_column")}. For example,
+\code{by = c(Response = "response_code")} matches the \code{Response} column in
+\code{idata} with the \code{response_code} column in \code{annotations}. To match columns
+with the same name, use a value such as \code{by = c(Response = "Response")}.
+You can include more than one pair of columns in \code{by}.
+
+Columns from \code{annotations} that are not used for matching are added to the
+result. Rows in \code{idata} without a match receive \code{NA}. Rows in \code{annotations}
+without a match are ignored.
+}
+
+\section{Annotation identifiers must be unique}{
+
+
+\code{annotations} must contain at most one row for each identifier, or each
+combination of identifiers when matching several columns. For example, a
+barcode annotation table must contain at most one row per barcode.
+
+The function does not check this rule because the annotation table may be
+very large. If an identifier occurs several times, the corresponding rows in
+\code{idata} are repeated. This can make receptor counts, proportions, and other
+summaries incorrect.
+}
+
+\section{Existing annotation columns}{
+
+
+By default, the function stops if a new annotation column has the same name
+as a column already present in \code{idata}. This prevents accidental replacement.
+
+Use \code{conflicts = "replace"} to replace existing annotation columns. Columns
+that define receptors, repertoires, strata, or other \code{ImmunData} state are
+protected and cannot be replaced. The old column is removed before matching,
+so rows without a new match receive \code{NA}.
+}
+
+\section{Repertoire and strata summaries}{
+
+
+With the default \code{keep_repertoires = TRUE}, existing repertoire and strata
+summaries are copied to the new object without recalculation. Use this option
+when you are only adding information and the matching identifiers in
+\code{annotations} are unique.
+
+Set \code{keep_repertoires = FALSE} when you plan to filter rows or define new
+repertoires using the added information. This removes existing repertoire and
+strata summaries and their derived columns. After annotation and filtering,
+use \code{\link[=agg_repertoires]{agg_repertoires()}} to define the new repertoires.
+}
+
+\section{Very wide annotation tables}{
+
+
+By default, the function stops when \code{annotations} contains 100 or more
+columns. Adding a very wide table, such as a complete gene-expression matrix,
+can be slow and require a large amount of memory. If you understand this cost,
+set \code{remove_limit = TRUE} to allow the operation.
 }
 
 \examples{
-\dontrun{
-# Assuming 'my_immun_data' is an ImmunData object and 'sample_info' is a data frame
-# with a column 'sample_id' matching 'sample' in my_immun_data$annotations
-# and additional columns like 'treatment' and 'disease_status'.
+library(immundata)
+library(dplyr)
 
-sample_info <- data.frame(
-  sample_id = c("sample1", "sample2", "sample3", "sample4"),
-  treatment = c("Treatment A", "Treatment B", "Treatment A", "Treatment C"),
-  disease_status = c("Healthy", "Disease", "Healthy", "Disease"),
-  stringsAsFactors = FALSE # Important to keep characters as characters
+options(immundata.verbose = FALSE)
+
+# Load data included with immundata
+idata <- get_test_idata()
+
+# Add cell types by matching barcode identifiers
+cell_labels <- tibble(
+  barcode = c("S1_1", "S1_2"),
+  cell_type = c("CD8 T cell", "CD4 T cell")
 )
 
-# Join sample information using the 'sample' column
-my_immun_data_annotated <- annotate(
-  idata = my_immun_data,
-  annotations = sample_info,
-  by = c("sample" = "sample_id")
+idata_with_cells <- idata |>
+  annotate_barcodes(
+    annotations = cell_labels,
+    annot_col = "barcode"
+  )
+
+idata_with_cells |>
+  collect() |>
+  filter(imd_barcode \%in\% c("S1_1", "S1_2", "S1_3")) |>
+  select(imd_barcode, cell_type) |>
+  arrange(imd_barcode)
+# Expected result:
+#   imd_barcode cell_type
+#   S1_1        CD8 T cell
+#   S1_2        CD4 T cell
+#   S1_3        NA
+
+# Add antigen labels to selected receptors
+receptor_labels <- tibble(
+  receptor_id = c(738L, 1567L),
+  antigen = c("CMV", "CMV")
 )
 
-# New sample_info
+idata_with_antigens <- idata |>
+  annotate_receptors(
+    annotations = receptor_labels,
+    annot_col = "receptor_id"
+  )
 
-# Join data by multiple columns, e.g., 'sample' and 'barcode'
-# Assuming 'cell_annotations' is a data frame with 'sample_barcode' and 'cell_type'
-my_immun_data_cell_annotated <- annotate(
-  idata = my_immun_data,
-  annotations = cell_annotations,
-  by = c("sample" = "sample", "barcode" = "sample_barcode")
+idata_with_antigens |>
+  collect() |>
+  filter(!is.na(antigen)) |>
+  distinct(imd_receptor_id, cdr3_aa, antigen) |>
+  arrange(imd_receptor_id)
+# Expected result:
+#   imd_receptor_id cdr3_aa       antigen
+#               738 ASRAGAGTGELF  CMV
+#              1567 ASFPVLSPYNEQF CMV
+
+# Match columns with different names
+response_info <- tibble(
+  response_code = c("FR", "PR"),
+  response_label = c("Full response", "Partial response")
 )
 
-# Join a wide dataframe, suppressing the column limit warning
-# Assuming 'gene_expression' is a data frame with 'barcode' and many gene columns
-my_immun_data_gene_expression <- annotate(
-  idata = my_immun_data,
-  annotations = gene_expression,
-  by = c("barcode" = "barcode"),
-  remove_limit = TRUE
+idata_with_response <- idata |>
+  annotate(
+    annotations = response_info,
+    by = c(Response = "response_code")
+  )
+
+idata_with_response |>
+  collect() |>
+  distinct(Response, response_label) |>
+  arrange(Response)
+# Expected result:
+#   Response response_label
+#   FR       Full response
+#   PR       Partial response
+
+# Replace an annotation column intentionally
+revised_cell_labels <- tibble(
+  barcode = c("S1_1", "S1_2"),
+  cell_type = c("Cytotoxic T cell", "Helper T cell")
 )
+
+idata_with_revised_cells <- idata_with_cells |>
+  annotate_barcodes(
+    annotations = revised_cell_labels,
+    annot_col = "barcode",
+    conflicts = "replace"
+  )
+
+# Remove old repertoire summaries before defining repertoires by cell type
+cell_repertoires <- idata |>
+  annotate_barcodes(
+    annotations = cell_labels,
+    annot_col = "barcode",
+    keep_repertoires = FALSE
+  ) |>
+  filter(!is.na(cell_type)) |>
+  agg_repertoires(schema = "cell_type")
+
+cell_repertoires$repertoires |>
+  arrange(cell_type)
+# Expected result:
+#   imd_repertoire_id cell_type  n_barcodes n_receptors
+#                   1 CD4 T cell          1           1
+#                   2 CD8 T cell          1           1
+
 }
-
+\seealso{
+\code{\link[dplyr:left_join]{dplyr::left_join()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \code{\link[=filter_immundata]{filter_immundata()}},
+\code{\link[=mutate_immundata]{mutate_immundata()}}, \link{ImmunData}
 }
 \concept{Annotation}
 \concept{annotation}

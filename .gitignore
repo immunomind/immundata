@@ -15,3 +15,5 @@ immdata-test
 altdoc/freeze.rds
 docs
 wip-*
+annotations.parquet
+metadata.json

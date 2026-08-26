@@ -35,7 +35,7 @@ immunarch object, with data saved under \code{output_folder}.
 \description{
 The \code{from_immunarch()} function takes an \strong{immunarch} object (as returned by
 \code{immunarch::repLoad()}), writes each repertoire to a TSV file with an added
-\code{filename} column in a specified folder, and then imports those files into
+internal filename column in a specified folder, and then imports those files into
 an \strong{ImmunData} object via \code{read_repertoires()}.
 }
 \examples{

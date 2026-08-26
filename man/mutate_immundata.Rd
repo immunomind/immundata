@@ -3,132 +3,261 @@
 \name{mutate_immundata}
 \alias{mutate_immundata}
 \alias{mutate.ImmunData}
-\title{Modify or Add Columns to ImmunData Annotations}
+\title{Add or change annotation columns in ImmunData}
 \usage{
-mutate_immundata(idata, ..., seq_options = NULL)
+mutate_immundata(idata, ..., .by = NULL, seq_options = NULL)
 
-\method{mutate}{ImmunData}(.data, ..., seq_options = NULL)
+\method{mutate}{ImmunData}(.data, ..., .by = NULL, seq_options = NULL)
 }
 \arguments{
-\item{idata, .data}{An \code{ImmunData} object.}
+\item{idata, .data}{An \link{ImmunData} object.}
 
-\item{...}{\code{dplyr::mutate}-style named expressions (e.g., \code{new_col = existing_col * 2},
-\code{category = ifelse(value > 10, "high", "low")}). These are applied first.
-\strong{Important}: You cannot use names for new or modified columns that conflict
-with the core \code{ImmunData} schema columns (retrieved via \code{imd_schema()}).}
+\item{...}{One or more named calculations in the form
+\code{new_column = calculation}. Refer to existing columns directly by name. You
+can add new annotation columns or change columns that are not protected.}
 
-\item{seq_options}{Optional named list specifying sequence-based annotation options.
-Use \code{\link[=make_seq_options]{make_seq_options()}} for convenient creation. See \code{filter_immundata}
-documentation (\code{?filter_immundata}) or the details section here for the list
-structure (\code{query_col}, \code{patterns}, \code{method}, \code{name_type}). \code{max_dist} is
-ignored for mutation. If \code{NULL} (the default), no sequence-based columns are added.}
+\item{.by}{Optional columns used to form temporary groups for this operation.
+For example, \code{.by = Response} calculates separately for each response, and
+\code{.by = c(Response, imd_group_id)} uses each response and receptor-cluster
+combination. The grouping applies only to this \code{mutate()} call.}
+
+\item{seq_options}{Options for comparing sequences with reference sequences or
+patterns. Create these options with \code{\link[=make_seq_options]{make_seq_options()}}. If \code{NULL}, the
+default, no sequence comparisons are performed.}
 }
 \value{
-A \emph{new} \code{ImmunData} object with the \verb{$annotations} table modified according
-to the provided expressions and \code{seq_options}. The \verb{$repertoires} table (if present)
-is carried over unchanged from the input \code{idata}.
+A new \link{ImmunData} object containing the added or changed annotation
+columns. Existing repertoire and strata summaries are preserved.
 }
 \description{
-Applies transformations to the \verb{$annotations} table within an \code{ImmunData}
-object, similar to \code{dplyr::mutate}. It allows adding new columns or modifying
-existing non-schema columns using standard \code{dplyr} expressions. Additionally,
-it can add new columns based on sequence comparisons (exact match, regular
-expression matching, or distance calculation) against specified patterns.
+Use \code{mutate()} to add information to each row of an \link{ImmunData} object. For
+example, you can calculate CDR3 length, mark sequences of interest, or compare
+receptor sequences with reference sequences.
+
+The function returns a new \link{ImmunData} object. The original object is not
+changed.
+
+This function is a direct implementation of \link[dplyr:mutate]{dplyr::mutate}. Alternative
+function name is \code{mutate_immundata}.
 }
 \details{
-The function operates in two main steps:
-\enumerate{
-\item \strong{Standard Mutations (\code{...})}: Applies the standard \code{dplyr::mutate}-style
-expressions provided in \code{...} to the \verb{$annotations} table. You can create
-new columns or modify existing ones, but you \emph{cannot} modify columns
-defined in the core \code{ImmunData} schema (e.g., \code{receptor_id}, \code{cell_id}).
-An error will occur if you attempt to do so.
-\item \strong{Sequence-based Annotations (\code{seq_options})}: If \code{seq_options} is provided,
-the function calculates sequence similarities or distances and adds corresponding
-new columns to the \verb{$annotations} table.
+You can use \code{mutate()} in three ways:
 \itemize{
-\item \code{method = "exact"}: Adds boolean columns (TRUE/FALSE) indicating whether the
-\code{query_col} value exactly matches each \code{pattern}. Column names are generated
-using a prefix (e.g., \code{sim_exact_}) and the pattern or its index.
-\item \code{method = "regex"}: Uses \code{annotate_tbl_regex} to add columns indicating
-matches for each regular expression pattern against the \code{query_col}. The
-exact nature of the added columns depends on \code{annotate_tbl_regex} (e.g.,
-boolean flags or captured groups).
-\item \code{method = "lev"} or \code{method = "hamm"}: Uses \code{annotate_tbl_distance} to
-calculate Levenshtein or Hamming distances between the \code{query_col} and
-each \code{pattern}, adding columns containing these numeric distances.
-\code{max_dist} is ignored in this context (internally treated as \code{NA}) as
-all distances are calculated and added, not used for filtering.
-\item The naming of the new sequence-based columns depends on the \code{name_type}
-option within \code{seq_options} and internal helper functions like
-\code{make_pattern_columns}. Prefixes like \code{sim_exact_}, \code{sim_regex_},
-\code{dist_lev_}, \code{dist_hamm_} are typically used based on the schema.
-}
+\item Supply named calculations in \code{...} to create annotation columns from
+existing data. For example, \code{cmv_specific = cdr3_aa \%in\% cmv_cdr3s} adds a
+column containing \code{TRUE} or \code{FALSE} for each row.
+\item Supply \code{.by} to perform calculations separately for temporary groups. The
+number of rows does not change. A group statistic is repeated for all rows
+in that group.
+\item Supply \code{seq_options}, created with \code{\link[=make_seq_options]{make_seq_options()}}, to compare a
+sequence column with one or more reference sequences or patterns. One result
+column is added for each reference.
 }
 
-The \verb{$repertoires} table, if present in the input \code{idata}, is copied to the
-output object without modification. This function only affects the \verb{$annotations}
-table.
+Named calculations in \code{...} are performed before sequence comparisons.
+
+Most grouped calculations are translated directly to DuckDB. Some group
+statistics, such as \code{n_distinct()}, are not available as DuckDB window
+calculations when a large dataset must stay on disk. In that case, \code{mutate()}
+automatically calculates one summary row per group and joins the values back
+to the annotation rows. This remains lazy and does not load the full dataset
+into R memory.
+
+The automatic fallback works when every calculation in the call produces one
+value per group. If a call combines a row-level calculation with a group
+statistic that needs the fallback, use two \code{mutate()} calls. Also use a second
+call when a later calculation refers to a group statistic created by the
+fallback. See the examples below.
+
+Columns used to identify receptors or repertoires, and identifiers managed by
+\code{ImmunData}, are protected. This prevents accidental changes that would make
+the object inconsistent. You can add new columns and change other annotation
+columns.
+
+Sequence comparison methods are:
+\itemize{
+\item \code{"exact"}: \code{TRUE} when the sequence is identical to the reference.
+\item \code{"regex"}: \code{TRUE} when the sequence matches a regular-expression pattern.
+This is an advanced option for matching text patterns.
+\item \code{"lev"}: the number of substitutions, insertions, or deletions needed to
+change one sequence into the other.
+\item \code{"hamm"}: the number of different positions between sequences of the same
+length. Sequences with different lengths receive \code{NA}.
+}
+
+For the distance methods, \code{0} means an exact match and smaller values mean
+more similar sequences. With \code{name_type = "index"}, the result columns have
+short names such as \code{imd_sim_exact_1} or \code{imd_sim_lev_1}. With
+\code{name_type = "pattern"}, each column name includes its reference pattern.
+
+\code{max_dist} is used by \code{\link[=filter_immundata]{filter_immundata()}} but has no effect here because
+\code{mutate()} reports every calculated distance.
+
+Existing repertoire and strata summaries are carried to the new object
+without modification.
 }
 \examples{
-# Basic setup (assuming idata_test is a valid ImmunData object)
-# print(idata_test)
+library(immundata)
+library(dplyr)
 
-\dontrun{
-# Example 1: Add a simple derived column
-idata_mut1 <- mutate(idata_test, V_family = substr(V_gene, 1, 5))
-print(idata_mut1$annotations)
+options(immundata.verbose = FALSE)
 
-# Example 2: Add multiple columns and modify one (if 'custom_score' exists)
-# Note: Avoid modifying core schema columns like 'V_gene' itself.
-idata_mut2 <- mutate(idata_test,
-  V_basic = gsub("-.*", "", V_gene),
-  J_len = nchar(J_gene),
-  custom_score = custom_score * 1.1
-) # Fails if custom_score doesn't exist
-print(idata_mut2$annotations)
+# Load data included with immundata
+idata <- get_test_idata()
 
-# Example 3: Add boolean columns for exact CDR3 matches
-cdr3_patterns <- c("CARGLGLVFYGMDVW", "CARDNRGAVAGVFGEAFYW")
-seq_opts_exact <- make_seq_options(
-  query_col = "CDR3_aa",
-  patterns = cdr3_patterns,
-  method = "exact",
-  name_type = "pattern"
-) # Name cols by pattern
-idata_mut_exact <- mutate(idata_test, seq_options = seq_opts_exact)
-# Look for new columns like 'sim_exact_CARGLGLVFYGMDVW'
-print(idata_mut_exact$annotations)
+# Add the length of each CDR3 amino acid sequence
+idata_with_length <- idata |>
+  mutate(cdr3_length = dd$length(cdr3_aa))
 
-# Example 4: Add Levenshtein distance columns for a CDR3 pattern
-seq_opts_lev <- make_seq_options(
-  query_col = "CDR3_aa",
-  patterns = "CARGLGLVFYGMDVW",
-  method = "lev",
-  name_type = "index"
-) # Name col like 'dist_lev_1'
-idata_mut_lev <- mutate(idata_test, seq_options = seq_opts_lev)
-# Look for new column 'dist_lev_1' (or similar based on schema)
-print(idata_mut_lev$annotations)
+idata_with_length |>
+  collect() |>
+  select(cdr3_aa, cdr3_length) |>
+  slice_head(n = 3)
+# Expected result:
+#   cdr3_aa       cdr3_length
+#   ASFPVLSPYNEQF          13
+#   ASRAGAGTGELF           12
+#   ASSPGQGLDTQY           12
 
-# Example 5: Combine standard mutation and sequence annotation
-seq_opts_regex <- make_seq_options(
-  query_col = "V_gene",
-  patterns = c(ighv1 = "^IGHV1-", ighv3 = "^IGHV3-"),
-  method = "regex",
-  name_type = "pattern"
+# Compare CDR3 sequences with one reference sequence
+reference_cdr3 <- "ASFPVLSPYNEQF"
+
+idata_with_matches <- idata |>
+  mutate(
+    seq_options = make_seq_options(
+      query_col = "cdr3_aa",
+      patterns = reference_cdr3,
+      method = "exact"
+    )
+  )
+
+idata_with_matches |>
+  collect() |>
+  count(imd_sim_exact_1)
+# Expected result:
+#   imd_sim_exact_1     n
+#   FALSE            1901
+#   TRUE                1
+
+# Calculate Levenshtein distance from the reference sequence
+idata_with_distance <- idata |>
+  mutate(
+    seq_options = make_seq_options(
+      query_col = "cdr3_aa",
+      patterns = reference_cdr3,
+      method = "lev"
+    )
+  )
+
+idata_with_distance |>
+  collect() |>
+  select(cdr3_aa, imd_sim_lev_1) |>
+  arrange(imd_sim_lev_1, cdr3_aa) |>
+  slice_head(n = 3)
+# Expected result:
+#   cdr3_aa       imd_sim_lev_1
+#   ASFPVLSPYNEQF             0
+#   ASSPDSPSYNEQF             4
+#   ASSPGLAAYNEQF             4
+
+# Mark selected sequences
+cmv_cdr3s <- c(
+  "ASFPVLSPYNEQF",
+  "ASRAGAGTGELF"
 )
-idata_mut_combo <- mutate(idata_test,
-  chain_upper = toupper(chain),
-  seq_options = seq_opts_regex
+
+marked_sequences <- idata |>
+  mutate(
+    cmv_specific = cdr3_aa \%in\% cmv_cdr3s
+  )
+
+marked_sequences |>
+  collect() |>
+  count(cmv_specific)
+# Expected result:
+#   cmv_specific     n
+#   FALSE         1900
+#   TRUE             2
+
+# Mark selected receptor identities
+cmv_hits <- tibble(
+  imd_receptor_id = c(1L, 105L),
+  cmv_specific = TRUE
 )
-# Look for 'chain_upper' and regex match columns (e.g., 'sim_regex_ighv1')
-print(idata_mut_combo)
-}
+
+marked_receptors <- idata |>
+  annotate_receptors(cmv_hits) |>
+  mutate(
+    cmv_specific = coalesce(cmv_specific, FALSE)
+  )
+
+marked_receptors |>
+  collect() |>
+  count(cmv_specific)
+# Expected result:
+#   cmv_specific     n
+#   FALSE         1898
+#   TRUE             4
+
+# Add response-level statistics to every annotation row
+# `.by` means: calculate separately for each response.
+response_stats <- idata |>
+  mutate(
+    response_n_rows = n(),
+    response_n_receptors = n_distinct(imd_receptor_id),
+    .by = Response
+  )
+
+response_stats |>
+  collect() |>
+  distinct(Response, response_n_rows, response_n_receptors) |>
+  arrange(Response)
+# Expected result:
+#   Response response_n_rows response_n_receptors
+#   FR                   955                  871
+#   PR                   947                  867
+
+# A grouped calculation can also produce a different value for every row.
+response_centered <- idata |>
+  mutate(
+    centered_counts = counts - mean(counts, na.rm = TRUE),
+    .by = Response
+  )
+
+# Do not combine that row-level calculation with a statistic that needs the
+# automatic summary fallback in the same call:
+# idata |>
+#   mutate(
+#     centered_counts = counts - mean(counts, na.rm = TRUE),
+#     response_n_receptors = n_distinct(imd_receptor_id),
+#     .by = Response
+#   )
+
+# Use two mutate calls instead. The work remains lazy in DuckDB.
+response_details <- idata |>
+  mutate(
+    centered_counts = counts - mean(counts, na.rm = TRUE),
+    .by = Response
+  ) |>
+  mutate(
+    response_n_receptors = n_distinct(imd_receptor_id),
+    .by = Response
+  )
+
+# Also use a second call when a new calculation uses a statistic created by
+# the fallback.
+response_details <- idata |>
+  mutate(
+    response_n_receptors = n_distinct(imd_receptor_id),
+    .by = Response
+  ) |>
+  mutate(
+    twice_response_n_receptors = response_n_receptors * 2
+  )
 
 }
 \seealso{
-\code{\link[dplyr:mutate]{dplyr::mutate()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=filter_immundata]{filter_immundata()}}, \link{ImmunData},
-\code{vignette("immundata-classes", package = "immunarch")} (replace with actual package name if different)
+\code{\link[dplyr:mutate]{dplyr::mutate()}}, \code{\link[=make_seq_options]{make_seq_options()}}, \code{\link[=filter_immundata]{filter_immundata()}},
+\code{\link[=annotate_receptors]{annotate_receptors()}}, \code{\link[=agg_repertoires]{agg_repertoires()}}, \link{ImmunData}
 }
 \concept{mutation}

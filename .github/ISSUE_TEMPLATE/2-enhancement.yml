@@ -3,17 +3,6 @@ description: "Propose a new feature or an improvement."
 labels:
 - enhancement
 body:
-- type: dropdown
-  id: kind
-  attributes:
-    label: What kind of feature would you like to request?
-    options:
-    - 'New data processing, filtering, wrangling methods you are missing'
-    - 'Request enhancement to input/output - format processing, reading data, writing data to the disk'
-    - 'Improve existing functions, e.g., add additional function parameters, change how a function works, change default values'
-    - 'Other - please describe it in the ticket body'
-  validations:
-    required: true
 - type: textarea
   id: description
   attributes:

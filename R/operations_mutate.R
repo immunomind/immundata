@@ -1,162 +1,302 @@
-#' @title Modify or Add Columns to ImmunData Annotations
+#' @title Add or change annotation columns in ImmunData
 #'
 #' @description
-#' Applies transformations to the `$annotations` table within an `ImmunData`
-#' object, similar to `dplyr::mutate`. It allows adding new columns or modifying
-#' existing non-schema columns using standard `dplyr` expressions. Additionally,
-#' it can add new columns based on sequence comparisons (exact match, regular
-#' expression matching, or distance calculation) against specified patterns.
+#' Use `mutate()` to add information to each row of an [ImmunData] object. For
+#' example, you can calculate CDR3 length, mark sequences of interest, or compare
+#' receptor sequences with reference sequences.
+#'
+#' The function returns a new [ImmunData] object. The original object is not
+#' changed.
+#'
+#' This function is a direct implementation of [dplyr::mutate]. Alternative
+#' function name is `mutate_immundata`.
 #'
 #' @details
-#' The function operates in two main steps:
-#' 1.  **Standard Mutations (`...`)**: Applies the standard `dplyr::mutate`-style
-#'     expressions provided in `...` to the `$annotations` table. You can create
-#'     new columns or modify existing ones, but you *cannot* modify columns
-#'     defined in the core `ImmunData` schema (e.g., `receptor_id`, `cell_id`).
-#'     An error will occur if you attempt to do so.
-#' 2.  **Sequence-based Annotations (`seq_options`)**: If `seq_options` is provided,
-#'     the function calculates sequence similarities or distances and adds corresponding
-#'     new columns to the `$annotations` table.
-#'     * `method = "exact"`: Adds boolean columns (TRUE/FALSE) indicating whether the
-#'         `query_col` value exactly matches each `pattern`. Column names are generated
-#'         using a prefix (e.g., `sim_exact_`) and the pattern or its index.
-#'     * `method = "regex"`: Uses `annotate_tbl_regex` to add columns indicating
-#'         matches for each regular expression pattern against the `query_col`. The
-#'         exact nature of the added columns depends on `annotate_tbl_regex` (e.g.,
-#'         boolean flags or captured groups).
-#'     * `method = "lev"` or `method = "hamm"`: Uses `annotate_tbl_distance` to
-#'         calculate Levenshtein or Hamming distances between the `query_col` and
-#'         each `pattern`, adding columns containing these numeric distances.
-#'         `max_dist` is ignored in this context (internally treated as `NA`) as
-#'         all distances are calculated and added, not used for filtering.
-#'     * The naming of the new sequence-based columns depends on the `name_type`
-#'         option within `seq_options` and internal helper functions like
-#'         `make_pattern_columns`. Prefixes like `sim_exact_`, `sim_regex_`,
-#'         `dist_lev_`, `dist_hamm_` are typically used based on the schema.
+#' You can use `mutate()` in three ways:
 #'
-#' The `$repertoires` table, if present in the input `idata`, is copied to the
-#' output object without modification. This function only affects the `$annotations`
-#' table.
+#' * Supply named calculations in `...` to create annotation columns from
+#'   existing data. For example, `cmv_specific = cdr3_aa %in% cmv_cdr3s` adds a
+#'   column containing `TRUE` or `FALSE` for each row.
+#' * Supply `.by` to perform calculations separately for temporary groups. The
+#'   number of rows does not change. A group statistic is repeated for all rows
+#'   in that group.
+#' * Supply `seq_options`, created with [make_seq_options()], to compare a
+#'   sequence column with one or more reference sequences or patterns. One result
+#'   column is added for each reference.
 #'
-#' @param idata,.data An `ImmunData` object.
-#' @param ... `dplyr::mutate`-style named expressions (e.g., `new_col = existing_col * 2`,
-#'   `category = ifelse(value > 10, "high", "low")`). These are applied first.
-#'   **Important**: You cannot use names for new or modified columns that conflict
-#'   with the core `ImmunData` schema columns (retrieved via `imd_schema()`).
-#' @param seq_options Optional named list specifying sequence-based annotation options.
-#'   Use [make_seq_options()] for convenient creation. See `filter_immundata`
-#'   documentation (`?filter_immundata`) or the details section here for the list
-#'   structure (`query_col`, `patterns`, `method`, `name_type`). `max_dist` is
-#'   ignored for mutation. If `NULL` (the default), no sequence-based columns are added.
+#' Named calculations in `...` are performed before sequence comparisons.
 #'
-#' @return A *new* `ImmunData` object with the `$annotations` table modified according
-#'   to the provided expressions and `seq_options`. The `$repertoires` table (if present)
-#'   is carried over unchanged from the input `idata`.
+#' Most grouped calculations are translated directly to DuckDB. Some group
+#' statistics, such as `n_distinct()`, are not available as DuckDB window
+#' calculations when a large dataset must stay on disk. In that case, `mutate()`
+#' automatically calculates one summary row per group and joins the values back
+#' to the annotation rows. This remains lazy and does not load the full dataset
+#' into R memory.
 #'
-#' @seealso [dplyr::mutate()], [make_seq_options()], [filter_immundata()], [ImmunData],
-#'   `vignette("immundata-classes", package = "immunarch")` (replace with actual package name if different)
+#' The automatic fallback works when every calculation in the call produces one
+#' value per group. If a call combines a row-level calculation with a group
+#' statistic that needs the fallback, use two `mutate()` calls. Also use a second
+#' call when a later calculation refers to a group statistic created by the
+#' fallback. See the examples below.
+#'
+#' Columns used to identify receptors or repertoires, and identifiers managed by
+#' `ImmunData`, are protected. This prevents accidental changes that would make
+#' the object inconsistent. You can add new columns and change other annotation
+#' columns.
+#'
+#' Sequence comparison methods are:
+#'
+#' * `"exact"`: `TRUE` when the sequence is identical to the reference.
+#' * `"regex"`: `TRUE` when the sequence matches a regular-expression pattern.
+#'   This is an advanced option for matching text patterns.
+#' * `"lev"`: the number of substitutions, insertions, or deletions needed to
+#'   change one sequence into the other.
+#' * `"hamm"`: the number of different positions between sequences of the same
+#'   length. Sequences with different lengths receive `NA`.
+#'
+#' For the distance methods, `0` means an exact match and smaller values mean
+#' more similar sequences. With `name_type = "index"`, the result columns have
+#' short names such as `imd_sim_exact_1` or `imd_sim_lev_1`. With
+#' `name_type = "pattern"`, each column name includes its reference pattern.
+#'
+#' `max_dist` is used by [filter_immundata()] but has no effect here because
+#' `mutate()` reports every calculated distance.
+#'
+#' Existing repertoire and strata summaries are carried to the new object
+#' without modification.
+#'
+#' @param idata,.data An [ImmunData] object.
+#' @param ... One or more named calculations in the form
+#'   `new_column = calculation`. Refer to existing columns directly by name. You
+#'   can add new annotation columns or change columns that are not protected.
+#' @param .by Optional columns used to form temporary groups for this operation.
+#'   For example, `.by = Response` calculates separately for each response, and
+#'   `.by = c(Response, imd_group_id)` uses each response and receptor-cluster
+#'   combination. The grouping applies only to this `mutate()` call.
+#' @param seq_options Options for comparing sequences with reference sequences or
+#'   patterns. Create these options with [make_seq_options()]. If `NULL`, the
+#'   default, no sequence comparisons are performed.
+#'
+#' @return A new [ImmunData] object containing the added or changed annotation
+#'   columns. Existing repertoire and strata summaries are preserved.
+#'
+#' @seealso [dplyr::mutate()], [make_seq_options()], [filter_immundata()],
+#'   [annotate_receptors()], [agg_repertoires()], [ImmunData]
 #'
 #' @examples
-#' # Basic setup (assuming idata_test is a valid ImmunData object)
-#' # print(idata_test)
+#' library(immundata)
+#' library(dplyr)
 #'
-#' \dontrun{
-#' # Example 1: Add a simple derived column
-#' idata_mut1 <- mutate(idata_test, V_family = substr(V_gene, 1, 5))
-#' print(idata_mut1$annotations)
+#' options(immundata.verbose = FALSE)
 #'
-#' # Example 2: Add multiple columns and modify one (if 'custom_score' exists)
-#' # Note: Avoid modifying core schema columns like 'V_gene' itself.
-#' idata_mut2 <- mutate(idata_test,
-#'   V_basic = gsub("-.*", "", V_gene),
-#'   J_len = nchar(J_gene),
-#'   custom_score = custom_score * 1.1
-#' ) # Fails if custom_score doesn't exist
-#' print(idata_mut2$annotations)
+#' # Load data included with immundata
+#' idata <- get_test_idata()
 #'
-#' # Example 3: Add boolean columns for exact CDR3 matches
-#' cdr3_patterns <- c("CARGLGLVFYGMDVW", "CARDNRGAVAGVFGEAFYW")
-#' seq_opts_exact <- make_seq_options(
-#'   query_col = "CDR3_aa",
-#'   patterns = cdr3_patterns,
-#'   method = "exact",
-#'   name_type = "pattern"
-#' ) # Name cols by pattern
-#' idata_mut_exact <- mutate(idata_test, seq_options = seq_opts_exact)
-#' # Look for new columns like 'sim_exact_CARGLGLVFYGMDVW'
-#' print(idata_mut_exact$annotations)
+#' # Add the length of each CDR3 amino acid sequence
+#' idata_with_length <- idata |>
+#'   mutate(cdr3_length = dd$length(cdr3_aa))
 #'
-#' # Example 4: Add Levenshtein distance columns for a CDR3 pattern
-#' seq_opts_lev <- make_seq_options(
-#'   query_col = "CDR3_aa",
-#'   patterns = "CARGLGLVFYGMDVW",
-#'   method = "lev",
-#'   name_type = "index"
-#' ) # Name col like 'dist_lev_1'
-#' idata_mut_lev <- mutate(idata_test, seq_options = seq_opts_lev)
-#' # Look for new column 'dist_lev_1' (or similar based on schema)
-#' print(idata_mut_lev$annotations)
+#' idata_with_length |>
+#'   collect() |>
+#'   select(cdr3_aa, cdr3_length) |>
+#'   slice_head(n = 3)
+#' # Expected result:
+#' #   cdr3_aa       cdr3_length
+#' #   ASFPVLSPYNEQF          13
+#' #   ASRAGAGTGELF           12
+#' #   ASSPGQGLDTQY           12
 #'
-#' # Example 5: Combine standard mutation and sequence annotation
-#' seq_opts_regex <- make_seq_options(
-#'   query_col = "V_gene",
-#'   patterns = c(ighv1 = "^IGHV1-", ighv3 = "^IGHV3-"),
-#'   method = "regex",
-#'   name_type = "pattern"
+#' # Compare CDR3 sequences with one reference sequence
+#' reference_cdr3 <- "ASFPVLSPYNEQF"
+#'
+#' idata_with_matches <- idata |>
+#'   mutate(
+#'     seq_options = make_seq_options(
+#'       query_col = "cdr3_aa",
+#'       patterns = reference_cdr3,
+#'       method = "exact"
+#'     )
+#'   )
+#'
+#' idata_with_matches |>
+#'   collect() |>
+#'   count(imd_sim_exact_1)
+#' # Expected result:
+#' #   imd_sim_exact_1     n
+#' #   FALSE            1901
+#' #   TRUE                1
+#'
+#' # Calculate Levenshtein distance from the reference sequence
+#' idata_with_distance <- idata |>
+#'   mutate(
+#'     seq_options = make_seq_options(
+#'       query_col = "cdr3_aa",
+#'       patterns = reference_cdr3,
+#'       method = "lev"
+#'     )
+#'   )
+#'
+#' idata_with_distance |>
+#'   collect() |>
+#'   select(cdr3_aa, imd_sim_lev_1) |>
+#'   arrange(imd_sim_lev_1, cdr3_aa) |>
+#'   slice_head(n = 3)
+#' # Expected result:
+#' #   cdr3_aa       imd_sim_lev_1
+#' #   ASFPVLSPYNEQF             0
+#' #   ASSPDSPSYNEQF             4
+#' #   ASSPGLAAYNEQF             4
+#'
+#' # Mark selected sequences
+#' cmv_cdr3s <- c(
+#'   "ASFPVLSPYNEQF",
+#'   "ASRAGAGTGELF"
 #' )
-#' idata_mut_combo <- mutate(idata_test,
-#'   chain_upper = toupper(chain),
-#'   seq_options = seq_opts_regex
+#'
+#' marked_sequences <- idata |>
+#'   mutate(
+#'     cmv_specific = cdr3_aa %in% cmv_cdr3s
+#'   )
+#'
+#' marked_sequences |>
+#'   collect() |>
+#'   count(cmv_specific)
+#' # Expected result:
+#' #   cmv_specific     n
+#' #   FALSE         1900
+#' #   TRUE             2
+#'
+#' # Mark selected receptor identities
+#' cmv_hits <- tibble(
+#'   imd_receptor_id = c(1L, 105L),
+#'   cmv_specific = TRUE
 #' )
-#' # Look for 'chain_upper' and regex match columns (e.g., 'sim_regex_ighv1')
-#' print(idata_mut_combo)
-#' }
+#'
+#' marked_receptors <- idata |>
+#'   annotate_receptors(cmv_hits) |>
+#'   mutate(
+#'     cmv_specific = coalesce(cmv_specific, FALSE)
+#'   )
+#'
+#' marked_receptors |>
+#'   collect() |>
+#'   count(cmv_specific)
+#' # Expected result:
+#' #   cmv_specific     n
+#' #   FALSE         1898
+#' #   TRUE             4
+#'
+#' # Add response-level statistics to every annotation row
+#' # `.by` means: calculate separately for each response.
+#' response_stats <- idata |>
+#'   mutate(
+#'     response_n_rows = n(),
+#'     response_n_receptors = n_distinct(imd_receptor_id),
+#'     .by = Response
+#'   )
+#'
+#' response_stats |>
+#'   collect() |>
+#'   distinct(Response, response_n_rows, response_n_receptors) |>
+#'   arrange(Response)
+#' # Expected result:
+#' #   Response response_n_rows response_n_receptors
+#' #   FR                   955                  871
+#' #   PR                   947                  867
+#'
+#' # A grouped calculation can also produce a different value for every row.
+#' response_centered <- idata |>
+#'   mutate(
+#'     centered_counts = counts - mean(counts, na.rm = TRUE),
+#'     .by = Response
+#'   )
+#'
+#' # Do not combine that row-level calculation with a statistic that needs the
+#' # automatic summary fallback in the same call:
+#' # idata |>
+#' #   mutate(
+#' #     centered_counts = counts - mean(counts, na.rm = TRUE),
+#' #     response_n_receptors = n_distinct(imd_receptor_id),
+#' #     .by = Response
+#' #   )
+#'
+#' # Use two mutate calls instead. The work remains lazy in DuckDB.
+#' response_details <- idata |>
+#'   mutate(
+#'     centered_counts = counts - mean(counts, na.rm = TRUE),
+#'     .by = Response
+#'   ) |>
+#'   mutate(
+#'     response_n_receptors = n_distinct(imd_receptor_id),
+#'     .by = Response
+#'   )
+#'
+#' # Also use a second call when a new calculation uses a statistic created by
+#' # the fallback.
+#' response_details <- idata |>
+#'   mutate(
+#'     response_n_receptors = n_distinct(imd_receptor_id),
+#'     .by = Response
+#'   ) |>
+#'   mutate(
+#'     twice_response_n_receptors = response_n_receptors * 2
+#'   )
 #'
 #' @concept mutation
 #' @export
 mutate_immundata <- function(idata,
                              ...,
+                             .by = NULL,
                              seq_options = NULL) {
   checkmate::assert_r6(idata, "ImmunData")
   checkmate::assert_list(seq_options, null.ok = TRUE)
 
   dots <- rlang::enquos(..., .named = TRUE) # keep names exactly as passed
-  bad <- names(dots)[names(dots) %in% imd_schema()]
+  by <- rlang::enquo(.by)
+  assert_mutable_annotation_columns(idata, names(dots))
 
-  if (length(bad)) {
-    cli::cli_abort(
-      "You cannot create or overwrite system columns. Offending names: {.val {bad}}"
+  sequence_annotation_cols <- NULL
+  if (!is.null(seq_options)) {
+    seq_options <- check_seq_options(seq_options, mode = "mutate")
+    sequence_col_prefix <- switch(seq_options$method,
+      exact = imd_schema("sim_exact"),
+      regex = imd_schema("sim_regex"),
+      lev = imd_schema("sim_lev"),
+      hamm = imd_schema("sim_hamm")
     )
+    sequence_annotation_cols <- make_pattern_columns(
+      patterns = seq_options$patterns,
+      col_prefix = sequence_col_prefix,
+      name_type = seq_options$name_type
+    )
+
+    assert_mutable_annotation_columns(idata, sequence_annotation_cols)
   }
 
   # Run "basic" mutate first
   new_annotations <- idata$annotations
   if (length(dots) > 0) {
-    new_annotations <- new_annotations |> mutate(!!!dots)
+    new_annotations <- mutate_annotations_by(
+      annotations = new_annotations,
+      dots = dots,
+      by = by
+    )
   }
 
   receptor_id <- imd_schema("receptor")
 
   # Run the sequence-based mutations
   if (!is.null(seq_options)) {
-    seq_options <- check_seq_options(seq_options, mode = "mutate")
-
     col_sym <- rlang::sym(seq_options$query_col)
 
     #
     # Exact
     #
     if (seq_options$method == "exact") {
-      dist_cols <- make_pattern_columns(
-        patterns = seq_options$patterns,
-        col_prefix = imd_schema("sim_exact"),
-        name_type = seq_options$name_type
-      )
-
       for (p_index in seq_along(seq_options$patterns)) {
         p_seq <- seq_options$patterns[p_index]
         new_annotations <- new_annotations |>
-          mutate(!!rlang::sym(dist_cols[p_index]) := !!col_sym == p_seq)
+          mutate(!!rlang::sym(sequence_annotation_cols[p_index]) := !!col_sym == p_seq)
       }
     } else {
       #
@@ -194,18 +334,74 @@ mutate_immundata <- function(idata,
     }
   }
 
-  new_idata <- ImmunData$new(
-    schema = idata$schema_receptor,
-    annotations = new_annotations,
-    repertoires = idata$repertoires
-  )
-
-  new_idata
+  clone_with_annotations(idata, new_annotations)
 }
 
 
 #' @rdname mutate_immundata
 #' @exportS3Method dplyr::mutate
-mutate.ImmunData <- function(.data, ..., seq_options = NULL) {
-  mutate_immundata(idata = .data, ..., seq_options = seq_options)
+mutate.ImmunData <- function(.data, ..., .by = NULL, seq_options = NULL) {
+  mutate_immundata(
+    idata = .data,
+    ...,
+    .by = {{ .by }},
+    seq_options = seq_options
+  )
+}
+
+
+is_unsupported_duckplyr_window_error <- function(error) {
+  parent <- error$parent
+
+  inherits(error, "rlang_error") &&
+    !is.null(parent) &&
+    grepl(
+      "stingy duckplyr frame",
+      conditionMessage(error),
+      fixed = TRUE
+    ) &&
+    grepl(
+      "not supported in window functions",
+      conditionMessage(parent),
+      fixed = TRUE
+    )
+}
+
+mutate_annotations_by <- function(annotations, dots, by) {
+  mutated <- tryCatch(
+    annotations |>
+      mutate(!!!dots, .by = !!by),
+    error = identity
+  )
+
+  if (!inherits(mutated, "error")) {
+    return(mutated)
+  }
+
+  if (!is_unsupported_duckplyr_window_error(mutated) || rlang::quo_is_null(by)) {
+    rlang::cnd_signal(mutated)
+  }
+
+  by_names <- names(annotations |> select(!!by))
+  if (length(intersect(names(dots), by_names)) > 0) {
+    rlang::cnd_signal(mutated)
+  }
+
+  stats <- tryCatch(
+    annotations |>
+      summarise(!!!dots, .by = !!by),
+    error = identity
+  )
+
+  if (inherits(stats, "error")) {
+    rlang::cnd_signal(mutated)
+  }
+
+  value_names <- setdiff(names(stats), by_names)
+  desired_order <- base::union(names(annotations), value_names)
+
+  annotations |>
+    select(-any_of(value_names)) |>
+    left_join(stats, by = by_names, na_matches = "na") |>
+    select(all_of(desired_order))
 }

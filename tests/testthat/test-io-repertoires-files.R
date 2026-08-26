@@ -1,0 +1,626 @@
+test_that("read_repertoires() fails if path doesn't exist", {
+  expect_error(
+    read_repertoires(
+      path = "nonexistent_file.tsv",
+      schema = c("cdr3_aa", "v_call")
+    ),
+    "No file provided|does not exist|cannot find"
+  )
+})
+
+test_that("read_repertoires() works with single file input", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  # Single file as documented
+  inp_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+
+  idata <- read_repertoires(
+    path = inp_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL, # Disable for testing
+    postprocess = NULL
+  )
+
+  # Verify result
+  expect_s3_class(idata, "ImmunData")
+  expect_true(file.exists(file.path(output_dir, "annotations.parquet")))
+  expect_true(file.exists(file.path(output_dir, "metadata.json")))
+
+  # Check data was loaded
+  annotations <- idata$annotations |> collect()
+  expect_gt(nrow(annotations), 0)
+
+  # Check required columns exist
+  expect_true("imd_receptor_id" %in% colnames(annotations))
+  expect_true("cdr3_aa" %in% colnames(annotations))
+  expect_true("v_call" %in% colnames(annotations))
+})
+
+test_that("read_repertoires() works with vector of file names", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  # Vector of files as documented
+  inp_file1 <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  inp_file2 <- system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+  file_vec <- c(inp_file1, inp_file2)
+
+  idata <- read_repertoires(
+    path = file_vec,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  # Verify result
+  expect_s3_class(idata, "ImmunData")
+
+  # Check that data from both files is present
+  annotations <- idata$annotations |> collect()
+  expect_gt(nrow(annotations), 0)
+
+  # Should have data from both files
+  if ("imd_filename" %in% colnames(annotations)) {
+    unique_files <- unique(basename(annotations$imd_filename))
+    expect_true("sample_0_1k.tsv" %in% unique_files || length(unique_files) > 0)
+  }
+})
+
+test_that("text input is prematerialized by default and the temporary file is removed", {
+  output_dir <- create_test_output_dir()
+  prematerialize_dir <- tempfile("test-prematerialize-")
+  dir.create(prematerialize_dir)
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+  on.exit(cleanup_output_dir(prematerialize_dir), add = TRUE)
+
+  input_files <- c(
+    system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
+    system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+  )
+
+  idata <- read_repertoires(
+    path = input_files,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    prematerialize_folder = prematerialize_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    verbose = FALSE
+  )
+
+  observed_files <- idata$annotations |>
+    collect() |>
+    distinct(imd_filename) |>
+    pull(imd_filename)
+
+  expect_setequal(observed_files, normalizePath(input_files))
+  expect_length(list.files(prematerialize_dir, all.files = TRUE, no.. = TRUE), 0L)
+
+  metadata <- jsonlite::read_json(
+    file.path(output_dir, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  ingestion_event <- metadata$lineage[[1]]
+  expect_equal(
+    unlist(ingestion_event$inputs$files, use.names = FALSE),
+    normalizePath(input_files)
+  )
+  expect_true(isTRUE(ingestion_event$pipeline$prematerialize$requested))
+  expect_true(isTRUE(ingestion_event$pipeline$prematerialize$applied))
+})
+
+test_that("Parquet input skips prematerialization", {
+  input_file <- tempfile(fileext = ".parquet")
+  output_dir <- create_test_output_dir()
+  unused_prematerialize_dir <- tempfile("test-unused-prematerialize-")
+  on.exit(unlink(input_file), add = TRUE)
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  input_data <- duckplyr::duckdb_tibble(tibble::tibble(
+    cdr3_aa = c("CASSA", "CASSB"),
+    v_call = c("TRBV1", "TRBV2")
+  ))
+  suppressMessages(duckplyr::compute_parquet(input_data, input_file))
+
+  read_repertoires(
+    path = input_file,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    prematerialize_folder = unused_prematerialize_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    verbose = FALSE
+  )
+
+  expect_false(dir.exists(unused_prematerialize_dir))
+
+  metadata <- jsonlite::read_json(
+    file.path(output_dir, "metadata.json"),
+    simplifyVector = FALSE
+  )
+  prematerialize_event <- metadata$lineage[[1]]$pipeline$prematerialize
+  expect_true(isTRUE(prematerialize_event$requested))
+  expect_false(isTRUE(prematerialize_event$applied))
+})
+
+test_that("an unusable explicit prematerialization folder errors without fallback", {
+  output_dir <- create_test_output_dir()
+  input_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  expect_error(
+    read_repertoires(
+      path = input_file,
+      schema = c("cdr3_aa", "v_call"),
+      output_folder = output_dir,
+      prematerialize_folder = input_file,
+      preprocess = NULL,
+      postprocess = NULL,
+      verbose = FALSE
+    ),
+    "Cannot create.*prematerialize_folder"
+  )
+})
+
+test_that("the prematerialized file is removed after a downstream error", {
+  output_dir <- create_test_output_dir()
+  prematerialize_dir <- tempfile("test-prematerialize-error-")
+  dir.create(prematerialize_dir)
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+  on.exit(cleanup_output_dir(prematerialize_dir), add = TRUE)
+
+  input_file <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+
+  expect_error(
+    read_repertoires(
+      path = input_file,
+      schema = "missing_receptor_column",
+      output_folder = output_dir,
+      prematerialize_folder = prematerialize_dir,
+      preprocess = NULL,
+      postprocess = NULL,
+      verbose = FALSE
+    ),
+    "Missing receptor feature column"
+  )
+
+  expect_length(list.files(prematerialize_dir, all.files = TRUE, no.. = TRUE), 0L)
+})
+
+test_that("single-cell pairing does not combine equal barcodes from different files", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_a_file <- tempfile("sample_A_", fileext = ".tsv")
+  sample_b_file <- tempfile("sample_B_", fileext = ".tsv")
+  on.exit(unlink(c(sample_a_file, sample_b_file)), add = TRUE)
+
+  # The AAAC-1 rows come from independent libraries. Although their raw
+  # barcodes match, neither AAAC-1 cell has a complete TRA/TRB receptor.
+  # VALID-A is an unrelated complete receptor that keeps the result non-empty.
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = c("AAAC-1", "VALID-A", "VALID-A"),
+      locus = c("TRA", "TRA", "TRB"),
+      UMI = c(12L, 10L, 11L),
+      v_call = c("TRAV1", "TRAV2", "TRBV2"),
+      j_call = c("TRAJ1", "TRAJ2", "TRBJ2"),
+      junction_aa = c("CAVR", "CAVVALID", "CASSVALID")
+    ),
+    sample_a_file
+  )
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = "AAAC-1",
+      locus = "TRB",
+      UMI = 18L,
+      v_call = "TRBV1",
+      j_call = "TRBJ1",
+      junction_aa = "CASSR"
+    ),
+    sample_b_file
+  )
+
+  idata <- read_repertoires(
+    path = c(sample_a_file, sample_b_file),
+    schema = make_receptor_schema(
+      features = c("v_call", "j_call", "junction_aa"),
+      chains = c("TRA", "TRB")
+    ),
+    barcode_col = "barcode",
+    locus_col = "locus",
+    umi_col = "UMI",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    rename_columns = NULL
+  )
+
+  cross_file_receptors <- idata$annotations |>
+    collect() |>
+    summarise(
+      n_source_files = n_distinct(imd_filename),
+      .by = imd_receptor_id
+    ) |>
+    filter(n_source_files > 1L)
+
+  expect_equal(
+    nrow(cross_file_receptors),
+    0L,
+    info = "a receptor must never contain chains from distinct input files"
+  )
+})
+
+test_that("single-chain selection treats equal barcodes from different files independently", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  sample_a_file <- tempfile("sample_A_", fileext = ".tsv")
+  sample_b_file <- tempfile("sample_B_", fileext = ".tsv")
+  on.exit(unlink(c(sample_a_file, sample_b_file)), add = TRUE)
+
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = "AAAC-1",
+      locus = "TRA",
+      UMI = 12L,
+      v_call = "TRAV1",
+      j_call = "TRAJ1",
+      junction_aa = "CAVA"
+    ),
+    sample_a_file
+  )
+  readr::write_tsv(
+    tibble::tibble(
+      barcode = "AAAC-1",
+      locus = "TRA",
+      UMI = 20L,
+      v_call = "TRAV2",
+      j_call = "TRAJ2",
+      junction_aa = "CAVB"
+    ),
+    sample_b_file
+  )
+
+  idata <- read_repertoires(
+    path = c(sample_a_file, sample_b_file),
+    schema = make_receptor_schema(
+      features = c("v_call", "j_call", "junction_aa"),
+      chains = "TRA"
+    ),
+    barcode_col = "barcode",
+    locus_col = "locus",
+    umi_col = "UMI",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL,
+    rename_columns = NULL
+  )
+
+  observed_source_files <- idata$annotations |>
+    collect() |>
+    distinct(imd_filename) |>
+    pull(imd_filename)
+
+  expect_setequal(
+    observed_source_files,
+    normalizePath(c(sample_a_file, sample_b_file))
+  )
+})
+
+test_that("read_repertoires() works with glob pattern", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  # Glob pattern as documented
+  folder_with_files <- system.file("extdata/tsv", package = "immundata")
+  glob_files <- file.path(folder_with_files, "sample*.tsv")
+
+  # Verify glob expands to actual files
+  expanded_files <- Sys.glob(glob_files)
+  expect_gt(length(expanded_files), 0)
+
+  idata <- read_repertoires(
+    path = glob_files,
+    schema = c("cdr3_aa", "v_call"),
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  # Verify result
+  expect_s3_class(idata, "ImmunData")
+  annotations <- idata$annotations |> collect()
+  expect_gt(nrow(annotations), 0)
+})
+
+test_that("read_repertoires() works with manifest table and file vector", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  # Load manifest
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
+
+  # Get sample files
+  sample_files <- c(
+    system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata"),
+    system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+  )
+
+  idata <- read_repertoires(
+    path = sample_files,
+    schema = c("cdr3_aa", "v_call"),
+    manifest = manifest_df,
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  # Verify result
+  expect_s3_class(idata, "ImmunData")
+  expect_true(file.exists(file.path(output_dir, "annotations.parquet")))
+  expect_true(file.exists(file.path(output_dir, "metadata.json")))
+
+  # Check manifest annotations were joined
+  annotations <- idata$annotations |> collect()
+  if (!is.null(manifest_df) && "Therapy" %in% colnames(manifest_df)) {
+    expect_true("Therapy" %in% colnames(annotations))
+    expect_true("Response" %in% colnames(annotations))
+  }
+})
+
+test_that("read_repertoires() works with <manifest> directive", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  # Load manifest with proper file paths
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
+
+  idata <- read_repertoires(
+    path = "<manifest>",
+    schema = c("cdr3_aa", "v_call"),
+    manifest = manifest_df,
+    manifest_file_col = "file",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  # Verify result
+  expect_s3_class(idata, "ImmunData")
+
+  # Check manifest columns are present
+  annotations <- idata$annotations |> collect()
+  expect_true("Therapy" %in% colnames(annotations))
+  expect_true("Response" %in% colnames(annotations))
+  expect_true("Prefix" %in% colnames(annotations))
+})
+
+test_that("read_repertoires() creates one repertoire per manifest row with <manifest> repertoire_schema", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
+
+  idata <- read_repertoires(
+    path = "<manifest>",
+    schema = c("cdr3_aa", "v_call"),
+    manifest = manifest_df,
+    manifest_file_col = "file",
+    repertoire_schema = "<manifest>",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  expect_s3_class(idata, "ImmunData")
+  expect_false(is.null(idata$repertoires))
+
+  annotations <- idata$annotations |> collect()
+  repertoires <- idata$repertoires |> collect()
+
+  expect_equal(nrow(repertoires), nrow(manifest_df))
+  expect_true("imd_filename" %in% colnames(repertoires))
+  expect_true("imd_filename" %in% idata$schema_repertoire)
+  expect_true(all(colnames(manifest_df) %in% idata$schema_repertoire))
+  expect_true(all(colnames(manifest_df) %in% colnames(repertoires)))
+
+  file_to_repertoire <- annotations |>
+    dplyr::summarise(
+      n_repertoires = dplyr::n_distinct(imd_repertoire_id),
+      .by = imd_filename
+    )
+
+  expect_equal(nrow(file_to_repertoire), nrow(manifest_df))
+  expect_true(all(file_to_repertoire$n_repertoires == 1))
+})
+
+test_that("read_repertoires() rejects repeated manifest paths", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir), add = TRUE)
+
+  input_file <- tempfile(fileext = ".tsv")
+  on.exit(unlink(input_file), add = TRUE)
+  readr::write_tsv(
+    data.frame(cdr3_aa = "AAA", v_call = "V1"),
+    input_file
+  )
+
+  normalized_input_file <- normalizePath(input_file)
+  equivalent_input_file <- file.path(
+    dirname(normalized_input_file),
+    ".",
+    basename(normalized_input_file)
+  )
+
+  manifests <- list(
+    exact = data.frame(
+      file = rep(normalized_input_file, 2),
+      sample_id = c("S1", "S2")
+    ),
+    normalized = data.frame(
+      file = c(normalized_input_file, equivalent_input_file),
+      sample_id = c("S1", "S2")
+    )
+  )
+
+  for (manifest_name in names(manifests)) {
+    expect_error(
+      read_repertoires(
+        path = "<manifest>",
+        schema = c("cdr3_aa", "v_call"),
+        manifest = manifests[[manifest_name]],
+        repertoire_schema = "<manifest>",
+        output_folder = output_dir,
+        preprocess = NULL,
+        postprocess = NULL,
+        rename_columns = NULL
+      ),
+      "duplicated repertoire file paths after normalization",
+      info = manifest_name
+    )
+  }
+
+  explicit_path_manifest <- data.frame(
+    imd_filename = rep(normalized_input_file, 2),
+    sample_id = c("S1", "S2")
+  )
+
+  expect_error(
+    read_repertoires(
+      path = normalized_input_file,
+      schema = c("cdr3_aa", "v_call"),
+      manifest = explicit_path_manifest,
+      output_folder = output_dir,
+      preprocess = NULL,
+      postprocess = NULL,
+      rename_columns = NULL
+    ),
+    "duplicated repertoire file paths after normalization"
+  )
+})
+
+test_that("read_repertoires() <auto> uses all manifest columns when path is <manifest>", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  manifest_path <- system.file("extdata/tsv", "manifest.csv", package = "immundata")
+  manifest_df <- read_manifest(manifest_path)
+
+  idata <- read_repertoires(
+    path = "<manifest>",
+    schema = c("cdr3_aa", "v_call"),
+    manifest = manifest_df,
+    manifest_file_col = "file",
+    repertoire_schema = "<auto>",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  repertoires <- idata$repertoires |> collect()
+
+  expect_equal(nrow(repertoires), nrow(manifest_df))
+  expect_true(all(colnames(manifest_df) %in% idata$schema_repertoire))
+  expect_true(all(colnames(manifest_df) %in% colnames(repertoires)))
+  expect_true("imd_filename" %in% idata$schema_repertoire)
+})
+
+test_that("read_repertoires() <auto> creates one repertoire per file without manifest", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  inp_file1 <- system.file("extdata/tsv", "sample_0_1k.tsv", package = "immundata")
+  inp_file2 <- system.file("extdata/tsv", "sample_1k_2k.tsv", package = "immundata")
+  file_vec <- c(inp_file1, inp_file2)
+
+  idata <- read_repertoires(
+    path = file_vec,
+    schema = c("cdr3_aa", "v_call"),
+    repertoire_schema = "<auto>",
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  expect_s3_class(idata, "ImmunData")
+  expect_equal(idata$schema_repertoire, "imd_filename")
+
+  annotations <- idata$annotations |> collect()
+  repertoires <- idata$repertoires |> collect()
+
+  expect_equal(nrow(repertoires), length(file_vec))
+  expect_true("imd_filename" %in% colnames(repertoires))
+
+  file_to_repertoire <- annotations |>
+    dplyr::summarise(
+      n_repertoires = dplyr::n_distinct(imd_repertoire_id),
+      .by = imd_filename
+    )
+
+  expect_equal(nrow(file_to_repertoire), length(file_vec))
+  expect_true(all(file_to_repertoire$n_repertoires == 1))
+})
+
+test_that("read_manifest() rejects old metadata filenames", {
+  manifest_dir <- tempfile("old_manifest_name_")
+  dir.create(manifest_dir)
+  on.exit(unlink(manifest_dir, recursive = TRUE), add = TRUE)
+
+  old_path <- file.path(manifest_dir, "metadata.tsv")
+  writeLines(c("file", "sample_0_1k.tsv"), old_path)
+
+  expect_error(
+    read_manifest(old_path),
+    "repertoire metadata tables are now manifests"
+  )
+})
+
+test_that("read_repertoires() fails with <manifest> when no manifest provided", {
+  expect_error(
+    read_repertoires(
+      path = "<manifest>",
+      schema = c("cdr3_aa", "v_call"),
+      manifest = NULL
+    ),
+    "no `manifest` table provided"
+  )
+})
+
+test_that("read_repertoires() handles custom manifest_file_col", {
+  output_dir <- create_test_output_dir()
+  on.exit(cleanup_output_dir(output_dir))
+
+  # Create custom manifest with different column name
+  base_dir <- system.file("extdata/tsv", package = "immundata")
+  custom_manifest <- data.frame(
+    FilePath = c(
+      file.path(base_dir, "sample_0_1k.tsv"),
+      file.path(base_dir, "sample_1k_2k.tsv")
+    ),
+    SampleID = c("S1", "S2"),
+    Treatment = c("A", "B")
+  )
+
+  idata <- read_repertoires(
+    path = "<manifest>",
+    schema = c("cdr3_aa", "v_call"),
+    manifest = custom_manifest,
+    manifest_file_col = "FilePath", # Custom column name
+    output_folder = output_dir,
+    preprocess = NULL,
+    postprocess = NULL
+  )
+
+  # Verify result
+  expect_s3_class(idata, "ImmunData")
+  annotations <- idata$annotations |> collect()
+  expect_true("SampleID" %in% colnames(annotations))
+  expect_true("Treatment" %in% colnames(annotations))
+})

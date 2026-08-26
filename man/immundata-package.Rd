@@ -20,5 +20,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Vadim I. Nazarov \email{support@immunomind.com} (\href{https://orcid.org/0000-0003-3659-2709}{ORCID})
 
+Authors:
+\itemize{
+  \item Vadim I. Nazarov \email{support@immunomind.com} (\href{https://orcid.org/0000-0003-3659-2709}{ORCID})
+}
+
 }
 \keyword{internal}

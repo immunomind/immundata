@@ -1,5 +1,5 @@
 test_that("exact matching with single and multiple patterns", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   all_receptors <- idata$receptors %>% collect()
 
   # Single pattern
@@ -34,4 +34,28 @@ test_that("exact matching with single and multiple patterns", {
     out2$receptors %>% collect() %>% arrange(cdr3_aa),
     gold2 %>% arrange(cdr3_aa)
   )
+})
+
+test_that("exact matching preserves preceding annotation filters", {
+  idata <- make_paired_filter_test_idata()
+
+  out <- filter_immundata(
+    idata,
+    sample_id == "S1",
+    seq_options = make_seq_options(
+      query_col = "cdr3_aa",
+      patterns = "AAA",
+      method = "exact"
+    ),
+    keep_repertoires = FALSE
+  )
+
+  actual <- out$annotations |>
+    dplyr::collect() |>
+    dplyr::arrange(imd_chain_id)
+
+  expect_equal(nrow(actual), 2L)
+  expect_setequal(actual$sample_id, "S1")
+  expect_setequal(actual$locus, c("IGH", "IGL"))
+  expect_setequal(actual$cdr3_aa, c("AAA", "CCC"))
 })

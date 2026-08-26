@@ -1,6 +1,6 @@
 # 4. Hamming fuzzy matching
 test_that("Hamming fuzzy matching returns correct results", {
-  idata <- get_test_idata_tsv_no_metadata()
+  idata <- get_test_idata_tsv_no_manifest()
   all_receptors <- idata$receptors %>% collect()
 
   orig <- all_receptors$cdr3_aa[1]
@@ -28,4 +28,32 @@ test_that("Hamming fuzzy matching returns correct results", {
     out_receptors %>% arrange(cdr3_aa),
     gold %>% arrange(cdr3_aa)
   )
+})
+
+test_that("Hamming matching preserves paired chains within preceding filters", {
+  idata <- make_paired_filter_test_idata()
+
+  actual <- filter_immundata(
+    idata,
+    sample_id == "S1",
+    seq_options = make_seq_options(
+      query_col = "cdr3_aa",
+      patterns = "AAT",
+      method = "hamm",
+      max_dist = 1L
+    ),
+    keep_repertoires = FALSE
+  )$annotations |>
+    dplyr::collect() |>
+    dplyr::arrange(imd_chain_id) |>
+    dplyr::select(imd_chain_id, locus, cdr3_aa, sample_id)
+
+  expected <- tibble::tibble(
+    imd_chain_id = 1:2,
+    locus = c("IGH", "IGL"),
+    cdr3_aa = c("AAA", "CCC"),
+    sample_id = c("S1", "S1")
+  )
+
+  expect_equal(actual, expected)
 })

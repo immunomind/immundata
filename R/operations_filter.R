@@ -1,144 +1,167 @@
-#' @title Filter ImmunData by receptor features, barcodes or any annotations
+#' @title Keep selected rows or receptors in ImmunData
 #'
 #' @description
-#' Provides flexible filtering options for an `ImmunData` object.
+#' Use `filter()` to keep selected rows in an [ImmunData] object. For example,
+#' you can keep rows from one response group, rows using a selected V gene, or
+#' receptors containing a CDR3 sequence similar to a reference sequence.
 #'
-#' `filter()` is the main function, allowing filtering based on receptor features
-#' (e.g., CDR3 sequence) using various matching methods (exact, regex, fuzzy) and/or
-#' standard `dplyr`-style filtering on annotation columns.
+#' The function returns a new [ImmunData] object. The original object is not
+#' changed.
 #'
-#' `filter_barcodes()` is a convenience function to filter by specific cell barcodes.
+#' This function is a direct implementation of [dplyr::filter]. Alternative
+#' function name is `filter_immundata`.
 #'
-#' `filter_receptors()` is a convenience function to filter by specific receptor identifiers.
+#' Use `filter_barcodes()` to keep selected cell barcodes and
+#' `filter_receptors()` to keep selected receptor identifiers.
 #'
 #' @details
-#' For `filter`:
-#' * User-provided `dplyr`-style filters (`...`) are applied *before* any sequence-based
-#'     filtering defined in `seq_options`.
-#' * Sequence filtering compares values in the `query_col` of the annotations table
-#'     against the provided `patterns`.
-#' * Supported sequence matching methods are:
-#'     * `"exact"`: Keeps rows where `query_col` exactly matches any of the `patterns`.
-#'     * `"regex"`: Keeps rows where `query_col` matches any of the regular expressions
-#'         in `patterns`.
-#'     * `"lev"` (Levenshtein distance): Keeps rows where the edit distance between
-#'         `query_col` and any pattern is less than or equal to `max_dist`.
-#'     * `"hamm"` (Hamming distance): Keeps rows where the Hamming distance (for
-#'         equal length strings) between `query_col` and any pattern is less than
-#'         or equal to `max_dist`.
-#' * The filtering operations act on the `$annotations` table. A new `ImmunData`
-#'     object is created containing only the rows (and corresponding receptors)
-#'     that pass the filter(s).
-#' * If `keep_repertoires = TRUE` (and repertoire data exists in the input),
-#'     the repertoire-level summaries (`$repertoires` table) are recalculated based
-#'     on the filtered annotations. Otherwise, the `$repertoires` table in the
-#'     output will be `NULL`.
+#' You can filter an [ImmunData] object in three ways:
 #'
-#' For `filter_barcodes` and `filter_receptors`:
-#' * These functions provide a simpler interface for common filtering tasks based on
-#'     cell barcodes or receptor IDs, respectively. They use efficient `semi_join`
-#'     operations internally.
+#' * Supply conditions in `...` to filter using annotation columns. Refer to
+#'   columns directly by name. For example, `Response == "FR"` keeps rows from
+#'   the `FR` response group.
+#' * Supply `seq_options`, created with [make_seq_options()], to find receptors
+#'   containing a sequence that matches one or more reference sequences or
+#'   patterns.
+#' * Use `filter_barcodes()` or `filter_receptors()` when you already have the
+#'   identifiers that you want to keep.
 #'
-#' @param idata,.data An `ImmunData` object.
-#' @param ... For `filter`, these are regular `dplyr`-style filtering
-#'   expressions (e.g., `V_gene == "IGHV1-1"`, `chain == "IGH"`) applied to the
-#'   `$annotations` table *before* sequence filtering. Ignored by `filter_barcodes`
-#'   and `filter_receptors`.
-#' @param .by Not used.
-#' @param .preserve Not used.
-#' @param seq_options For `filter`, an optional named list specifying sequence-based
-#'   filtering options. Use [make_seq_options()] for convenient creation.
-#'   The list can contain:
-#'   * `query_col` (Character scalar): The name of the column in `$annotations`
-#'       containing sequences to compare (e.g., `"CDR3_aa"`, `"FR1_nt"`).
-#'   * `patterns` (Character vector): A vector of sequences or regular expressions
-#'       to match against `query_col`.
-#'   * `method` (Character scalar): The matching method. One of `"exact"`,
-#'       `"regex"`, `"lev"` (Levenshtein distance), or `"hamm"` (Hamming distance).
-#'       Defaults typically handled by `make_seq_options`.
-#'   * `max_dist` (Numeric scalar): For fuzzy methods (`"lev"`, `"hamm"`), the
-#'       maximum allowed distance. Rows with distance <= `max_dist` are kept.
-#'       Defaults typically handled by `make_seq_options`.
-#'   * `name_type` (Character scalar): Determines column names in intermediate distance
-#'        calculations if applicable (`"index"` or `"pattern"`). Passed through to
-#'        internal annotation functions. Defaults typically handled by `make_seq_options`.
-#'   If `seq_options` is `NULL` (the default), no sequence-based filtering is performed.
-#' @param keep_repertoires Logical scalar. If `TRUE` (the default) and the input
-#'   `idata` has repertoire information (`idata$schema_repertoire` is not `NULL`),
-#'   the repertoire summaries will be recalculated based on the filtered data using
-#'   [agg_repertoires()]. If `FALSE`, or if no repertoire schema exists, the
-#'   returned `ImmunData` object will not contain repertoire summaries (`$repertoires`
-#'   will be `NULL`).
-#' @param barcodes For `filter_barcodes`, a vector of cell identifiers (barcodes)
-#'   to keep. Can be character, integer, or numeric.
-#' @param receptors For `filter_receptors`, a vector of receptor identifiers
-#'   to keep. Can be character, integer, or numeric.
+#' Conditions in `...` are applied before sequence matching. Sequence matching
+#' then identifies receptors from the remaining rows. When one chain matches,
+#' all remaining chains belonging to the same receptor are kept. A chain removed
+#' by a condition in `...` is not added back by sequence matching.
 #'
-#' @return A new `ImmunData` object containing only the filtered annotations
-#'   (and potentially recalculated repertoire summaries). The schema remains the same.
+#' Sequence matching methods are:
 #'
-#' @seealso [make_seq_options()], [dplyr::filter()], [agg_repertoires()], [ImmunData]
+#' * `"exact"`: the sequence must be identical to one of the references.
+#' * `"regex"`: the sequence must match a regular-expression pattern. This is
+#'   an advanced option for matching text patterns.
+#' * `"lev"`: the Levenshtein distance counts the substitutions, insertions, or
+#'   deletions needed to change one sequence into the other.
+#' * `"hamm"`: the Hamming distance counts different positions between
+#'   sequences of the same length. Sequences of different lengths do not match.
+#'
+#' For `"lev"` and `"hamm"`, provide `max_dist`. A sequence is accepted when
+#' its distance from at least one reference is less than or equal to this value.
+#' A distance of `0` means an exact match, and smaller values mean more similar
+#' sequences.
+#'
+#' By default, existing repertoire summaries are recalculated from the filtered
+#' data. Existing strata are also rebuilt, and their labels are retained. Set
+#' `keep_repertoires = FALSE` to return an object without repertoire or strata
+#' summaries.
+#'
+#' @param idata,.data An [ImmunData] object.
+#' @param ... One or more conditions used to keep rows. Refer to annotation
+#'   columns directly by name. Multiple conditions are combined with `&`.
+#'   Conditions are applied before sequence matching.
+#' @param .by,.preserve Accepted for compatibility with [dplyr::filter()], but
+#'   currently not used for [ImmunData] objects.
+#' @param seq_options Options for matching sequences with reference sequences or
+#'   patterns. Create these options with [make_seq_options()]. If `NULL`, the
+#'   default, no sequence matching is performed.
+#' @param keep_repertoires If `TRUE`, the default, existing repertoire and strata
+#'   summaries are recalculated from the filtered data. If `FALSE`, the returned
+#'   object does not contain these summaries.
+#' @param barcodes A character, integer, or numeric vector of cell barcodes to
+#'   keep with `filter_barcodes()`.
+#' @param receptors A character, integer, or numeric vector of receptor
+#'   identifiers to keep with `filter_receptors()`.
+#'
+#' @return A new [ImmunData] object containing the selected rows and receptors.
+#' If requested, repertoire and strata summaries are recalculated for the
+#' selected data.
+#'
+#' @seealso [dplyr::filter()], [make_seq_options()], [mutate_immundata()],
+#'   [agg_repertoires()], [ImmunData]
 #'
 #' @examples
-#' # Basic setup (assuming idata_test is a valid ImmunData object)
-#' # print(idata_test)
+#' library(immundata)
+#' library(dplyr)
 #'
-#' # --- filter examples ---
-#' \dontrun{
-#' # Example 1: dplyr-style filtering on annotations
-#' filtered_heavy <- filter(idata_test, chain == "IGH")
-#' print(filtered_heavy)
+#' options(immundata.verbose = FALSE)
 #'
-#' # Example 2: Exact sequence matching on CDR3 amino acid sequence
-#' cdr3_patterns <- c("CARGLGLVFYGMDVW", "CARDNRGAVAGVFGEAFYW")
-#' seq_opts_exact <- make_seq_options(query_col = "CDR3_aa", patterns = cdr3_patterns)
-#' filtered_exact_cdr3 <- filter(idata_test, seq_options = seq_opts_exact)
-#' print(filtered_exact_cdr3)
+#' # Load data included with immundata
+#' idata <- get_test_idata()
 #'
-#' # Example 3: Combining dplyr-style and fuzzy sequence matching (Levenshtein)
-#' seq_opts_lev <- make_seq_options(
-#'   query_col = "CDR3_aa",
-#'   patterns = "CARGLGLVFYGMDVW",
-#'   method = "lev",
-#'   max_dist = 1
-#' )
-#' filtered_combined <- filter(idata_test,
-#'   chain == "IGH",
-#'   C_gene == "IGHG1",
-#'   seq_options = seq_opts_lev
-#' )
-#' print(filtered_combined)
+#' # Keep rows from one response group
+#' fr_response <- idata |>
+#'   filter(Response == "FR")
 #'
-#' # Example 4: Regex matching on V gene
-#' v_gene_pattern <- "^IGHV[13]-" # Keep only IGHV1 or IGHV3 families
-#' seq_opts_regex <- make_seq_options(
-#'   query_col = "V_gene",
-#'   patterns = v_gene_pattern,
-#'   method = "regex"
-#' )
-#' filtered_regex_v <- filter(idata_test, seq_options = seq_opts_regex)
-#' print(filtered_regex_v)
+#' fr_response |>
+#'   collect() |>
+#'   summarise(
+#'     n_rows = n(),
+#'     n_receptors = n_distinct(imd_receptor_id)
+#'   )
+#' # Expected result:
+#' #   n_rows n_receptors
+#' #      955         871
 #'
-#' # Example 5: Filtering without recalculating repertoires
-#' filtered_no_rep <- filter(idata_test, chain == "IGK", keep_repertoires = FALSE)
-#' print(filtered_no_rep) # $repertoires should be NULL
-#' }
+#' # Keep receptors containing one reference CDR3 sequence
+#' reference_cdr3 <- "ASFPVLSPYNEQF"
 #'
-#' # --- filter_barcodes example ---
-#' \dontrun{
-#' # Assuming 'cell1_barcode' and 'cell5_barcode' exist in idata_test$annotations$cell_id
-#' specific_barcodes <- c("cell1_barcode", "cell5_barcode")
-#' filtered_cells <- filter_barcodes(idata_test, barcodes = specific_barcodes)
-#' print(filtered_cells)
-#' }
+#' exact_match <- idata |>
+#'   filter(
+#'     seq_options = make_seq_options(
+#'       query_col = "cdr3_aa",
+#'       patterns = reference_cdr3,
+#'       method = "exact"
+#'     )
+#'   )
 #'
-#' # --- filter_receptors example ---
-#' \dontrun{
-#' # Assuming receptor IDs 101 and 205 exist in idata_test$annotations$receptor_id
-#' specific_receptors <- c(101, 205) # Or character IDs if applicable
-#' filtered_recs <- filter_receptors(idata_test, receptors = specific_receptors)
-#' print(filtered_recs)
-#' }
+#' exact_match |>
+#'   collect() |>
+#'   select(cdr3_aa, v_call, Response)
+#' # Expected result:
+#' #   cdr3_aa       v_call    Response
+#' #   ASFPVLSPYNEQF TRBV28*01 FR
+#'
+#' # Keep receptors within four sequence changes of the reference
+#' similar_sequences <- idata |>
+#'   filter(
+#'     seq_options = make_seq_options(
+#'       query_col = "cdr3_aa",
+#'       patterns = reference_cdr3,
+#'       method = "lev",
+#'       max_dist = 4
+#'     )
+#'   )
+#'
+#' similar_sequences |>
+#'   collect() |>
+#'   distinct(cdr3_aa) |>
+#'   arrange(cdr3_aa)
+#' # Expected result:
+#' #   cdr3_aa
+#' #   ASFPVLSPYNEQF
+#' #   ASSPDSPSYNEQF
+#' #   ASSPGLAAYNEQF
+#' #   ASSPTLYNEQF
+#'
+#' # Keep two selected cell barcodes
+#' selected_barcodes <- c("S1_1", "S1_2")
+#'
+#' selected_cells <- idata |>
+#'   filter_barcodes(selected_barcodes)
+#'
+#' selected_cells |>
+#'   collect() |>
+#'   distinct(imd_barcode)
+#' # Expected result:
+#' #   imd_barcode
+#' #   S1_1
+#' #   S1_2
+#'
+#' # The same approach can keep selected receptor identifiers
+#' selected_receptors <- idata |>
+#'   collect() |>
+#'   distinct(imd_receptor_id) |>
+#'   slice_head(n = 2) |>
+#'   pull(imd_receptor_id)
+#'
+#' selected_receptors_data <- idata |>
+#'   filter_receptors(selected_receptors)
 #'
 #' @concept filtering
 #' @export
@@ -169,11 +192,14 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     # Exact
     #
     if (seq_options$method == "exact") {
-      new_annotations <- new_annotations |> filter(!!col_sym %in% seq_options$patterns)
+      filtered_universe <- new_annotations
 
-      keep_ids <- new_annotations |> select({{ receptor_id }})
+      keep_ids <- filtered_universe |>
+        filter(!!col_sym %in% seq_options$patterns) |>
+        select(all_of(receptor_id)) |>
+        distinct()
 
-      new_annotations <- idata$annotations |>
+      new_annotations <- filtered_universe |>
         semi_join(keep_ids, by = receptor_id)
     }
 
@@ -207,11 +233,16 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     #
     # Select only those receptors which passed the filer
     #
-    # TODO: Refactor, but I'm not sure how to do it properly. Simply split to separte functions <compute distance> + <filter immundata>?
+    # TODO: Refactor, but I'm not sure how to do it properly. Simply split to separate functions <compute distance> + <filter immundata>?
     # TODO: looks like a case for <move_annotations> from receptors to annotations
     if (seq_options$method != "exact") {
+      keep_ids <- new_annotations |>
+        semi_join(distance_data, by = seq_options$query_col) |>
+        select(all_of(receptor_id)) |>
+        distinct()
+
       new_annotations <- new_annotations |>
-        semi_join(distance_data, by = seq_options$query_col)
+        semi_join(keep_ids, by = receptor_id)
     }
   }
 
@@ -225,13 +256,19 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
       semi_join(keep_ids, by = receptor_id)
   }
 
+  keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!keep_repertoires) {
+    new_annotations <- drop_repertoire_state(new_annotations)
+  }
+
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = get_provenance(idata)
   )
 
-  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
+  if (keep_repertoires) {
+    rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }
@@ -260,13 +297,19 @@ filter_barcodes <- function(idata, barcodes, keep_repertoires = TRUE) {
 
   new_annotations <- idata$annotations |> semi_join(barcodes_table, by = barcode_col_id)
 
+  keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!keep_repertoires) {
+    new_annotations <- drop_repertoire_state(new_annotations)
+  }
+
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = get_provenance(idata)
   )
 
-  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
+  if (keep_repertoires) {
+    rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }
@@ -290,13 +333,19 @@ filter_receptors <- function(idata, receptors, keep_repertoires = TRUE) {
 
   new_annotations <- idata$annotations |> semi_join(receptors_table, by = receptors_col_id)
 
+  keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
+  if (!keep_repertoires) {
+    new_annotations <- drop_repertoire_state(new_annotations)
+  }
+
   new_idata <- ImmunData$new(
     schema = idata$schema_receptor,
-    annotations = new_annotations
+    annotations = new_annotations,
+    provenance = get_provenance(idata)
   )
 
-  if (keep_repertoires && !is.null(idata$schema_repertoire)) {
-    new_idata |> agg_repertoires(idata$schema_repertoire)
+  if (keep_repertoires) {
+    rebuild_repertoire_and_strata(new_idata, idata)
   } else {
     new_idata
   }

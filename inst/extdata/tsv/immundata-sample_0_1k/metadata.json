@@ -1,1 +1,92 @@
-{"version":["0.0.3"],"receptor_schema":{"features":["cdr3_aa","v_call"],"chains":{}},"repertoire_schema":{}}
+{
+  "format_version": 2,
+  "package_version": "0.0.6",
+  "schema_receptor": {
+    "features": ["cdr3_aa", "v_call"],
+    "chains": null
+  },
+  "schema_repertoire": null,
+  "producer": {
+    "function": "read_repertoires"
+  },
+  "snapshot_id": "imd_20260403T110305Z_ctrax314",
+  "lineage": [
+    {
+      "event": "ingestion",
+      "created_at": "2026-04-03T11:03:05Z",
+      "snapshot_id": "imd_20260403T110305Z_ctrax314",
+      "producer": {
+        "function": "read_repertoires"
+      },
+      "inputs": {
+        "files": "/Users/vdn/Projects/immundata-rlang/inst/extdata/tsv/sample_0_1k.tsv",
+        "metadata_joined": false,
+        "enforce_schema": true
+      },
+      "args": {
+        "barcode_col": null,
+        "count_col": null,
+        "locus_col": null,
+        "umi_col": null,
+        "metadata_file_col": "File"
+      },
+      "column_lineage": {
+        "renamed": {
+          "requested": ["v_gene", "d_gene", "j_gene", "d_gene", "chain"],
+          "applied": [],
+          "not_found": ["v_gene", "d_gene", "j_gene", "d_gene", "chain"]
+        },
+        "dropped": {
+          "applied": []
+        }
+      },
+      "pipeline": {
+        "preprocess": null,
+        "postprocess": "prefix_barcodes"
+      }
+    }
+  ],
+  "provenance": {
+    "home_path": "/Users/vdn/Projects/immundata-rlang/inst/extdata/tsv/immundata-sample_0_1k",
+    "current_path": "/Users/vdn/Projects/immundata-rlang/inst/extdata/tsv/immundata-sample_0_1k",
+    "snapshot_root": "/Users/vdn/Projects/immundata-rlang/inst/extdata/tsv/immundata-sample_0_1k/snapshots",
+    "snapshot_id": "imd_20260403T110305Z_ctrax314",
+    "lineage": [
+      {
+        "event": "ingestion",
+        "created_at": "2026-04-03T11:03:05Z",
+        "snapshot_id": "imd_20260403T110305Z_ctrax314",
+        "producer": {
+          "function": "read_repertoires"
+        },
+        "inputs": {
+          "files": "/Users/vdn/Projects/immundata-rlang/inst/extdata/tsv/sample_0_1k.tsv",
+          "metadata_joined": false,
+          "enforce_schema": true
+        },
+        "args": {
+          "barcode_col": null,
+          "count_col": null,
+          "locus_col": null,
+          "umi_col": null,
+          "metadata_file_col": "File"
+        },
+        "column_lineage": {
+          "renamed": {
+            "requested": ["v_gene", "d_gene", "j_gene", "d_gene", "chain"],
+            "applied": [],
+            "not_found": ["v_gene", "d_gene", "j_gene", "d_gene", "chain"]
+          },
+          "dropped": {
+            "applied": []
+          }
+        },
+        "pipeline": {
+          "preprocess": null,
+          "postprocess": "prefix_barcodes"
+        }
+      }
+    ]
+  },
+  "extensions": []
+}
