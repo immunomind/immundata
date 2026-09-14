@@ -25,6 +25,7 @@ get_test_idata <- function() {
     path = sample_files,
     schema = c("cdr3_aa", "v_call"),
     manifest = manifest,
-    output_folder = tempfile()
+    output_folder = tempfile(),
+    verbose = FALSE
   )
 }
