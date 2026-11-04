@@ -242,7 +242,19 @@ Before we go into more details for each of the phase, there are three straightfo
 
     The moment data leave an AIRR-assembly tool such as **Cell Ranger**, you are handed an ocean of individual V(D)J chains, yet every biological question you care about is phrased in terms of receptors ("this αβ TCR") or repertoires ("all receptors from donor A on day 30"). As with "receptors as logical units", the underlying assumption the second concept is based upon is *researchers work with rearrangements but think in receptors*. `immundata` formalises the climb from raw chains to those higher-order concepts through **controlled aggregation** – explicit, user-defined rules that transform data without obscuring their origin.
 
-    The function `agg_receptors()` lets you declare what *one receptor* means in your study. You choose a schema – perhaps "pair chains that share a barcode and have complementary α and β loci" or "group every IGH with whatever IGL shares the same CDR3 amino-acid sequence." The function re-aggregates the data and returns a new `ImmunData` object, so you keep the previous receptor definition intact; every receptor now has a stable identifier and can be traced back to its constituent chains and barcode. There is no need to touch the downstream pipeline – just change the input.
+    Receptors are defined **once, at ingestion**. When you call `read_repertoires()`,
+    it uses the `schema` you pass to decide what *one receptor* means in your study,
+    for example "pair chains that share a barcode and have complementary α and β
+    loci" or "group by CDR3 amino-acid sequence plus V gene". Every receptor gets a
+    stable identifier and can be traced back to its constituent chains and barcode.
+    The definition is stored in `idata$schema_receptor` and stays fixed for that
+    `ImmunData` object.
+
+    To use a different receptor definition, re-run `read_repertoires()` from the
+    source files with a new `schema` (see
+    [Changing the receptor definition later](#changing-the-receptor-definition-later)).
+    Under the hood this step calls `agg_receptors()`, a low-level function that takes
+    a table and returns a table. Most users never need to call it directly.
 
     The function `agg_repertoires()` states how receptors should be bundled into biologically meaningful cohorts: all receptors from a biopsy, from a therapy responder, from a single-cell-defined cluster, or any combination of manifest-derived annotation columns. The result is a physical `idata$repertoires` table with basic statistics (numbers of chains, barcodes, and unique receptors), again preserving direct links to the receptors it aggregates.
 
@@ -250,11 +262,18 @@ Before we go into more details for each of the phase, there are three straightfo
 
     - **Convenience with rigour:** you can run high-level computations – Jaccard coefficients, diversity indices – knowing that the exact receptor definition is stored alongside the result, so you never mis-specify parameters such as `"cdr3+v"`;
     
-    - **Provenance and data lineage by design:** every receptor records every chain it contains, every repertoire records every receptor, and the full recipe is stored in the object's metadata. Six months later – or six reviewers later – you can trace any summary statistic back to the precise chains that produced it, enabling fully reproducible pipelines with no hidden transformations.
+    - **Provenance and data lineage by design:** every receptor records every chain it contains, 
+    every repertoire records every receptor, and the full recipe, including the receptor schema, is stored in the object’s metadata. 
+    Six months later – or six reviewers later – you can trace any summary statistic back 
+    to the precise chains that produced it, 
+    enabling fully reproducible pipelines with no hidden transformations.
 
 3. **Pipeline-based execution: immutability and materialisation**
 
-    The explicit data lineage we talked about in concepts 1 & 2 pays its dividend only if every step is re-playable. That is why `immundata` treats an analysis as a *pipeline of immutable transformations*. Each function returns a fresh `ImmunData` object, leaving the parent untouched; the full chain of objects records how the data travelled from raw chains to final statistics.
+    The explicit data lineage we talked about in concepts 1 & 2 pays its dividend only if every step is re-playable. That is why `immundata` treats an analysis as a *pipeline of immutable transformations*. 
+    Each transformation function (`filter()`, `annotate_*()`, `mutate()`, `agg_repertoires()`) 
+    returns a fresh ImmunData object, and the full chain of objects records 
+    how the data travelled from raw chains to final statistics.
 
     Because immunomics datasets started to regularly outgrow RAM, those objects do **not** live in memory by default. Their tables are persisted as column-compressed Parquet files and "materialised" – pulled into RAM – only when a computation truly needs them, typically to crunch a subset or to emit the final numbers such as repertoire-overlap indices. For a 10 GB dataset that fits in memory, this behaviour is invisible: DuckDB streams the file, you get an in-memory frame, and life goes on. For a 100 GB experiment, the same code still runs; the heavy joins spill to disk, and the intermediate results are cached so downstream steps can reuse them without recomputation.
     
@@ -700,6 +719,44 @@ Cheat-sheet for arguments to `read_repertoires`:
 | Pair TRA+TRB, pick best chain per cell   | no          | **yes**      | **yes**     | **yes**   | `c("TRA","TRB")` |
 
 ¹ If you pass barcodes, they're stored but used for counting only.
+
+#### Changing the receptor definition later
+
+The receptor schema is fixed when the data is ingested. `agg_receptors()` works
+on tables, not on `ImmunData` objects, and there is currently no function that
+redefines receptors on an existing `ImmunData`. Ingestion is not lossless:
+depending on the schema, `read_repertoires()` may filter chains (e.g. keep only
+the highest-UMI chain per barcode and locus), drop barcodes without all required
+chains, remove non-productive chains and unused columns. The receptor and chain
+identifiers, counts and proportions in `$annotations` are derived from the
+original definition. For these reasons the supported way to change the
+definition is to re-ingest, i.e., read the original input data from the disk again.
+
+Example: use an external clustering result (e.g. `scoper::spectralClones()`)
+as the receptor definition.
+
+```r
+# 1. Collect annotations and merge the clone labels
+annot <- idata$annotations |> collect()
+annot <- dplyr::left_join(annot, clones, by = "imd_barcode")   # `clones` has clone_id
+
+# 2. Write to disk
+arrow::write_parquet(annot, "annotations_with_clones.parquet")
+
+# 3. Re-ingest with the new schema
+idata_clones <- read_repertoires(
+  path   = "annotations_with_clones.parquet",
+  schema = make_receptor_schema(features = "clone_id"),
+  output_folder = "./immundata-clones"
+)
+```
+
+If you only need clone labels as an extra annotation, not as the receptor unit,
+use `annotate_barcodes()` or `annotate_receptors()` instead. Redefining receptors
+in place is not planned for now.
+
+TODO: in the nearest future the function `immunarch::vdj_groups` will cover this use case
+for re-aggregating the receptors to clusters without the workaround.
 
 ### Repertoire schema
 
@@ -1411,4 +1468,9 @@ If you are looking for prioritized support and setting up your data pipelines, c
 
 12. **Q: Why are the counts for receptors available only after all the aggregation?**
 
-    A: Counts and proportions are properties of a receptor inside a specific repertoire. A receptor seen in two samples will be counted twice – once per repertoire. Until receptors and repertoires are defined, any "count" would be ambiguous. That's why the numbers appear only after `agg_receptors()` and `agg_repertoires()` have locked those definitions in.
+    A: Counts and proportions are properties of a receptor inside a specific
+    repertoire. A receptor seen in two samples will be counted twice – once per
+    repertoire. Until receptors and repertoires are defined, any "count" would be
+    ambiguous. Receptors are defined during `read_repertoires()` and repertoires via
+    `repertoire_schema` there or later via `agg_repertoires()`. Counts and
+    proportions appear once both definitions are in place.
