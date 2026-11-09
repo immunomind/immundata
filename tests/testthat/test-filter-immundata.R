@@ -129,3 +129,24 @@ test_that("filters rebuild strata and retain strata labels", {
     )
   }
 })
+
+
+test_that("filters preserve empty repertoire and strata definitions", {
+  idata <- get_test_idata() |>
+    agg_repertoires(c("Response", "Therapy")) |>
+    agg_strata("Therapy")
+
+  filtered <- list(
+    filter_immundata(idata, FALSE),
+    filter_receptors(idata, .Machine$integer.max),
+    filter_barcodes(idata, "not-observed-barcode")
+  )
+  for (out in filtered) {
+    expect_s3_class(out$annotations, "duckplyr_df")
+    expect_equal(nrow(collect(out)), 0L)
+    expect_equal(nrow(out$repertoires), 0L)
+    expect_equal(nrow(out$strata), 0L)
+    expect_equal(out$schema_repertoire, idata$schema_repertoire)
+    expect_equal(out$schema_strata, idata$schema_strata)
+  }
+})
