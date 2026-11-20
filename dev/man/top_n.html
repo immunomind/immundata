@@ -19,7 +19,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -1681,50 +1681,44 @@ changed.</p>
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="n">n</code>
-</td>
-<td>
-A non-negative whole number. How many receptors to keep in each
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="n">n</code></td>
+<td>A non-negative whole number. How many receptors to keep in each
 repertoire, or in the whole dataset when repertoires are not defined.
 The default is <code>1L</code>. Set <code>n = 0</code> for an empty
 result. If fewer receptors are available, all available receptors are
-kept.
-</td>
+kept.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="order_by">order_by</code>
-</td>
-<td>
-A character string. Use <code>“imd_count”</code>, the default, to select
-by the number of cells or bulk sequence counts. Use
-<code>“imd_proportion”</code> to select by each receptor’s fraction of
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="order_by">order_by</code></td>
+<td>A character string. Use <code>"imd_count"</code>, the default, to
+select by the number of cells or bulk sequence counts. Use
+<code>"imd_proportion"</code> to select by each receptor's fraction of
 its repertoire, or of the whole dataset when repertoires are not
-defined.
-</td>
+defined.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="with_ties">with_ties</code>
-</td>
-<td>
-A logical value. If <code>FALSE</code>, the default, keep at most
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="with_ties">with_ties</code></td>
+<td>A logical value. If <code>FALSE</code>, the default, keep at most
 <code>n</code> receptors per group. If <code>TRUE</code>, keep all
 receptors tied at the selection limit, which can return more than
-<code>n</code> receptors.
-</td>
+<code>n</code> receptors.</td>
 </tr>
+</tbody>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
@@ -1739,7 +1733,7 @@ to the result.</p>
 <p>When repertoires are defined, selection uses the input counts or
 proportions. Repertoire and strata summaries are then recalculated for
 the selected data, as in <code>filter_immundata()</code>. Returned
-proportions describe each receptor’s share of its filtered repertoire
+proportions describe each receptor's share of its filtered repertoire
 and can be larger than the input values.</p>
 <p>With <code>with_ties = FALSE</code>, the default, at most <code>n</code>
 receptors are kept per repertoire, or in total when repertoires are not

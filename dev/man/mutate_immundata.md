@@ -26,47 +26,43 @@ mutate(.data, ..., .by = NULL, seq_options = NULL)
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>, <code id=".data">.data</code>
-</td>
-<td>
-An ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code>, <code id=".data">.data</code></td>
+<td>An ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
-</td>
-<td>
-One or more named calculations in the form <code>new_column =
-calculation</code>. Refer to existing columns directly by name. You can
-add new annotation columns or change columns that are not protected.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="...">...</code></td>
+<td>One or more named calculations in the form
+<code>new_column = calculation</code>. Refer to existing columns
+directly by name. You can add new annotation columns or change columns
+that are not protected.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id=".by">.by</code>
-</td>
-<td>
-Optional columns used to form temporary groups for this operation. For
-example, <code>.by = Response</code> calculates separately for each
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id=".by">.by</code></td>
+<td>Optional columns used to form temporary groups for this operation.
+For example, <code>.by = Response</code> calculates separately for each
 response, and <code>.by = c(Response, imd_group_id)</code> uses each
 response and receptor-cluster combination. The grouping applies only to
-this <code>mutate()</code> call.
-</td>
+this <code>mutate()</code> call.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="seq_options">seq_options</code>
-</td>
-<td>
-Options for comparing sequences with reference sequences or patterns.
-Create these options with <code>make_seq_options()</code>. If
-<code>NULL</code>, the default, no sequence comparisons are performed.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="seq_options">seq_options</code></td>
+<td>Options for comparing sequences with reference sequences or
+patterns. Create these options with <code>make_seq_options()</code>. If
+<code>NULL</code>, the default, no sequence comparisons are
+performed.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details
@@ -74,32 +70,23 @@ Create these options with <code>make_seq_options()</code>. If
 You can use <code>mutate()</code> in three ways:
 
 <ul>
-<li>
-
-Supply named calculations in <code>…</code> to create annotation columns
-from existing data. For example, <code>cmv_specific = cdr3_aa %in%
-cmv_cdr3s</code> adds a column containing <code>TRUE</code> or
-<code>FALSE</code> for each row.
+<li> Supply named calculations in <code>...</code> to create annotation columns from
+existing data. For example, <code>cmv_specific = cdr3_aa %in% cmv_cdr3s</code> adds a
+column containing <code>TRUE</code> or <code>FALSE</code> for each row.
 
 </li>
-<li>
-
-Supply <code>.by</code> to perform calculations separately for temporary
-groups. The number of rows does not change. A group statistic is
-repeated for all rows in that group.
+<li> Supply <code>.by</code> to perform calculations separately for temporary groups. The
+number of rows does not change. A group statistic is repeated for all rows
+in that group.
 
 </li>
-<li>
+<li> Supply <code>seq_options</code>, created with <code>make_seq_options()</code>, to compare a
+sequence column with one or more reference sequences or patterns. One result
+column is added for each reference.
 
-Supply <code>seq_options</code>, created with
-<code>make_seq_options()</code>, to compare a sequence column with one
-or more reference sequences or patterns. One result column is added for
-each reference.
+</li></ul>
 
-</li>
-</ul>
-
-Named calculations in <code>…</code> are performed before sequence
+Named calculations in <code>...</code> are performed before sequence
 comparisons.
 
 Most grouped calculations are translated directly to DuckDB. Some group
@@ -123,39 +110,27 @@ new columns and change other annotation columns.
 Sequence comparison methods are:
 
 <ul>
-<li>
-
-<code>“exact”</code>: <code>TRUE</code> when the sequence is identical
-to the reference.
+<li> <code>"exact"</code>: <code>TRUE</code> when the sequence is identical to the reference.
 
 </li>
-<li>
-
-<code>“regex”</code>: <code>TRUE</code> when the sequence matches a
-regular-expression pattern. This is an advanced option for matching text
-patterns.
+<li> <code>"regex"</code>: <code>TRUE</code> when the sequence matches a regular-expression pattern.
+This is an advanced option for matching text patterns.
 
 </li>
-<li>
-
-<code>“lev”</code>: the number of substitutions, insertions, or
-deletions needed to change one sequence into the other.
+<li> <code>"lev"</code>: the number of substitutions, insertions, or deletions needed to
+change one sequence into the other.
 
 </li>
-<li>
+<li> <code>"hamm"</code>: the number of different positions between sequences of the same
+length. Sequences with different lengths receive <code>NA</code>.
 
-<code>“hamm”</code>: the number of different positions between sequences
-of the same length. Sequences with different lengths receive
-<code>NA</code>.
-
-</li>
-</ul>
+</li></ul>
 
 For the distance methods, <code>0</code> means an exact match and
 smaller values mean more similar sequences. With <code>name_type =
-“index”</code>, the result columns have short names such as
+"index"</code>, the result columns have short names such as
 <code>imd_sim_exact_1</code> or <code>imd_sim_lev_1</code>. With
-<code>name_type = “pattern”</code>, each column name includes its
+<code>name_type = "pattern"</code>, each column name includes its
 reference pattern.
 
 <code>max_dist</code> is used by <code>filter_immundata()</code> but has

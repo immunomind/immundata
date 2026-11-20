@@ -66,81 +66,70 @@ annotate_chains(
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="annotations">annotations</code>
-</td>
-<td>
-A data frame containing the information to add. It must contain the
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="annotations">annotations</code></td>
+<td>A data frame containing the information to add. It must contain the
 columns used for matching and at most one row for each matching
-identifier or combination of identifiers.
-</td>
+identifier or combination of identifiers.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="by">by</code>
-</td>
-<td>
-A named character vector describing how columns are matched. Names are
-columns in <code>idata</code>; values are the corresponding columns in
-<code>annotations</code>. For example, <code>c(Response =
-“response_code”)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="by">by</code></td>
+<td>A named character vector describing how columns are matched. Names
+are columns in <code>idata</code>; values are the corresponding columns
+in <code>annotations</code>. For example,
+<code>c(Response = "response_code")</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="keep_repertoires">keep_repertoires</code>
-</td>
-<td>
-Whether to preserve existing repertoire and strata summaries without
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="keep_repertoires">keep_repertoires</code></td>
+<td>Whether to preserve existing repertoire and strata summaries without
 recalculation. The default is <code>TRUE</code>. If <code>FALSE</code>,
-these summaries and their derived annotation columns are removed.
-</td>
+these summaries and their derived annotation columns are removed.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="remove_limit">remove_limit</code>
-</td>
-<td>
-Whether to allow an annotation table with 100 or more columns. The
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="remove_limit">remove_limit</code></td>
+<td>Whether to allow an annotation table with 100 or more columns. The
 default is <code>FALSE</code>, which stops the operation for such
-tables. Set to <code>TRUE</code> only when the wide join is intentional.
-</td>
+tables. Set to <code>TRUE</code> only when the wide join is
+intentional.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="conflicts">conflicts</code>
-</td>
-<td>
-How to handle new annotation columns whose names already exist in
-<code>idata</code>. <code>“error”</code>, the default, stops the
-operation. <code>“replace”</code> replaces existing columns that are not
-protected by <code>ImmunData</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="conflicts">conflicts</code></td>
+<td>How to handle new annotation columns whose names already exist in
+<code>idata</code>. <code>"error"</code>, the default, stops the
+operation. <code>"replace"</code> replaces existing columns that are not
+protected by <code>ImmunData</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="annot_col">annot_col</code>
-</td>
-<td>
-Name of the identifier column in <code>annotations</code>. For
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="annot_col">annot_col</code></td>
+<td>Name of the identifier column in <code>annotations</code>. For
 <code>annotate_receptors()</code> and <code>annotate_chains()</code>,
 the default is the standard <code>ImmunData</code> receptor or chain
 identifier. For <code>annotate_barcodes()</code>, the default
-<code>“\<rownames\>”</code> uses the row names of
+<code>"&lt;rownames&gt;"</code> uses the row names of
 <code>annotations</code>. Supplying an explicit barcode column is
-usually clearer.
-</td>
+usually clearer.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details
@@ -160,29 +149,19 @@ repertoire and strata summaries are preserved when
 Use the function that matches the type of information you want to add:
 
 <ul>
-<li>
-
-<code>annotate_barcodes()</code> matches cell or barcode identifiers.
+<li> <code>annotate_barcodes()</code> matches cell or barcode identifiers.
 
 </li>
-<li>
-
-<code>annotate_receptors()</code> matches receptor identifiers. All rows
-belonging to a matched receptor receive the new information.
+<li> <code>annotate_receptors()</code> matches receptor identifiers. All rows belonging to
+a matched receptor receive the new information.
 
 </li>
-<li>
-
-<code>annotate_chains()</code> matches chain identifiers.
+<li> <code>annotate_chains()</code> matches chain identifiers.
 
 </li>
-<li>
+<li> <code>annotate()</code> matches any one or more columns that you specify in <code>by</code>.
 
-<code>annotate()</code> matches any one or more columns that you specify
-in <code>by</code>.
-
-</li>
-</ul>
+</li></ul>
 
 The first three functions select the correct <code>ImmunData</code>
 identifier for you. <code>annotate_immundata()</code> is an alternative
@@ -193,17 +172,17 @@ name for <code>annotate()</code>.
 For <code>annotate_barcodes()</code>, <code>annotate_receptors()</code>,
 and <code>annotate_chains()</code>, <code>annot_col</code> names the
 identifier column in <code>annotations</code>. For example,
-<code>annot_col = “barcode”</code> matches the <code>barcode</code>
+<code>annot_col = "barcode"</code> matches the <code>barcode</code>
 column in <code>annotations</code> with the barcode identifier in
 <code>idata</code>.
 
 For general matching, supply <code>by</code> in the form
-<code>c(immundata_column = “annotation_column”)</code>. For example,
-<code>by = c(Response = “response_code”)</code> matches the
+<code>c(immundata_column = "annotation_column")</code>. For example,
+<code>by = c(Response = "response_code")</code> matches the
 <code>Response</code> column in <code>idata</code> with the
 <code>response_code</code> column in <code>annotations</code>. To match
 columns with the same name, use a value such as <code>by = c(Response =
-“Response”)</code>. You can include more than one pair of columns in
+"Response")</code>. You can include more than one pair of columns in
 <code>by</code>.
 
 Columns from <code>annotations</code> that are not used for matching are
@@ -229,7 +208,7 @@ By default, the function stops if a new annotation column has the same
 name as a column already present in <code>idata</code>. This prevents
 accidental replacement.
 
-Use <code>conflicts = “replace”</code> to replace existing annotation
+Use <code>conflicts = "replace"</code> to replace existing annotation
 columns. Columns that define receptors, repertoires, strata, or other
 <code>ImmunData</code> state are protected and cannot be replaced. The
 old column is removed before matching, so rows without a new match

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -1804,7 +1804,7 @@ for an <code>ImmunData</code> identifier or calculated value, such as
 the cell barcode, receptor identifier, repertoire identifier, count, or
 proportion.</p>
 <p>Use this helper in reusable analysis code or package extensions instead
-of writing an internal name such as <code>“imd_barcode”</code> directly.
+of writing an internal name such as <code>"imd_barcode"</code> directly.
 It only returns names; it does not inspect or change an ImmunData
 object.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
@@ -1812,19 +1812,19 @@ object.</p>
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="key">key</code>
-</td>
-<td>
-A character string or <code>NULL</code>. One schema key, for example
-<code>“barcode”</code>, <code>“receptor”</code>,
-<code>“repertoire”</code>, <code>“count”</code>, or
-<code>“proportion”</code>. Use <code>NULL</code>, the default, to return
-all available keys and column names.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="key">key</code></td>
+<td>A character string or <code>NULL</code>. One schema key, for example
+<code>"barcode"</code>, <code>"receptor"</code>,
+<code>"repertoire"</code>, <code>"count"</code>, or
+<code>"proportion"</code>. Use <code>NULL</code>, the default, to return
+all available keys and column names.</td>
 </tr>
+</tbody>
 </table>
 
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>

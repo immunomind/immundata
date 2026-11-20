@@ -36,66 +36,53 @@ schema.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="manifest">manifest</code>
-</td>
-<td>
-
-A manifest table. Can be either:
-
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="manifest">manifest</code></td>
+<td>A manifest table. Can be either:
 <ul>
-<li>
-
-a data frame with per-file annotations,
-
-</li>
-<li>
-
-or a path to a CSV/TSV/TXT manifest file.
-
-</li>
-</ul>
-</td>
+<li>a data frame with per-file annotations,</li>
+<li>or a path to a CSV/TSV/TXT manifest file.</li>
+</ul></td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="file_col">file_col</code>
-</td>
-<td>
-A string specifying the name of the column in the manifest that contains
-paths to repertoire files. Defaults to <code>“file”</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="file_col">file_col</code></td>
+<td>A string specifying the name of the column in the manifest that
+contains paths to repertoire files. Defaults to
+<code>"file"</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="delim">delim</code>
-</td>
-<td>
-Delimiter used to read the manifest file. If <code>NULL</code>, it is
-inferred from the extension: comma for <code>.csv</code>, tab for
-<code>.tsv</code> and <code>.txt</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="delim">delim</code></td>
+<td>Delimiter used to read the manifest file. If <code>NULL</code>, it
+is inferred from the extension: comma for <code>.csv</code>, tab for
+<code>.tsv</code> and <code>.txt</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
-</td>
-<td>
-Additional arguments passed to <code>readr::read_delim()</code> when
-reading a manifest from a file.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="...">...</code></td>
+<td>Additional arguments passed to <code>readr::read_delim()</code> when
+reading a manifest from a file.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="verbose">verbose</code>
-</td>
-<td>
-Logical(1). Whether to print informative messages. Defaults to
-<code>getOption(“immundata.verbose”, TRUE)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="verbose">verbose</code></td>
+<td>Logical(1). Whether to print informative messages. Defaults to
+<code>getOption("immundata.verbose", TRUE)</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Value

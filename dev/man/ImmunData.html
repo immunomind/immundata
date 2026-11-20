@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -1912,51 +1912,36 @@ definiton for a unique receptor, you will need to create a separate
 transform an <code>ImmunData</code> object return a new object, and the
 original object is not changed. Due to multiple optimisations on the
 backend, it does not mean that you re-create the whole dataset each time
-you run a, let’s stay, a filter. However, it does affect analysis
+you run a, let's stay, a filter. However, it does affect analysis
 workflow significantly. You can read about it more on the website and in
 tutorials.</p>
 <h2 id="from-observed-data-to-analysis-units">From observed data to analysis units<a class="headerlink" href="#from-observed-data-to-analysis-units" title="Permanent link">&para;</a></h2>
 <p><code>ImmunData</code> connects observed records to user-defined
 analysis units:</p>
 <ul>
-<li>
-
-A <strong>chain observation</strong> is an observed receptor-chain
-sequence, such as a TRA, TRB, or IGH sequence. Chain observations form
-the main table.
+<li> A <strong>chain observation</strong> is an observed receptor-chain sequence, such as a
+TRA, TRB, or IGH sequence. Chain observations form the main table.
 
 </li>
-<li>
-
-A <strong>barcode</strong> is an observed identifier for a cell in
-single-cell data. It links chains found in the same cell.
+<li> A <strong>barcode</strong> is an observed identifier for a cell in single-cell data. It
+links chains found in the same cell.
 
 </li>
-<li>
-
-A <strong>receptor</strong> is a virtual analysis unit that you define.
-For example, you may define it by CDR3 sequence alone, by CDR3 and V
-gene, or as a paired TRA-TRB receptor. The receptor schema records which
-chain features and loci must match for observations to receive the same
-receptor identifier.
+<li> A <strong>receptor</strong> is a virtual analysis unit that you define. For example, you
+may define it by CDR3 sequence alone, by CDR3 and V gene, or as a paired
+TRA-TRB receptor. The receptor schema records which chain features and loci
+must match for observations to receive the same receptor identifier.
 
 </li>
-<li>
-
-A <strong>repertoire</strong> is a virtual collection of receptors that
-you define from annotation columns. For example, one repertoire may
-contain all receptors from one sample, or from one donor at one time
-point.
+<li> A <strong>repertoire</strong> is a virtual collection of receptors that you define from
+annotation columns. For example, one repertoire may contain all receptors
+from one sample, or from one donor at one time point.
 
 </li>
-<li>
+<li> A <strong>stratum</strong> is a virtual collection of repertoires for a comparison. For
+example, one stratum may contain all repertoires from one treatment arm.
 
-A <strong>stratum</strong> is a virtual collection of repertoires for a
-comparison. For example, one stratum may contain all repertoires from
-one treatment arm.
-
-</li>
-</ul>
+</li></ul>
 
 <p>These definitions do not change the observed sequences. They determine
 how observations are grouped and counted during analysis. The resulting
@@ -1972,33 +1957,21 @@ Most analysis functions accept the complete <code>ImmunData</code>
 object directly.</p>
 <p>Common transformations include:</p>
 <ul>
-<li>
-
-<code>filter_immundata()</code> to keep selected chains, cells, or
-receptors;
+<li> <code>filter_immundata()</code> to keep selected chains, cells, or receptors;
 
 </li>
-<li>
-
-<code>mutate_immundata()</code> to calculate annotation columns;
+<li> <code>mutate_immundata()</code> to calculate annotation columns;
 
 </li>
-<li>
-
-<code>annotate()</code> to add external biological information;
+<li> <code>annotate()</code> to add external biological information;
 
 </li>
-<li>
-
-<code>agg_repertoires()</code> to define repertoires; and
+<li> <code>agg_repertoires()</code> to define repertoires; and
 
 </li>
-<li>
+<li> <code>agg_strata()</code> to group repertoires into strata.
 
-<code>agg_strata()</code> to group repertoires into strata.
-
-</li>
-</ul>
+</li></ul>
 
 <h2 id="create-an-object">Create an object<a class="headerlink" href="#create-an-object" title="Permanent link">&para;</a></h2>
 <p>Create an <code>ImmunData</code> object with
@@ -2021,173 +1994,109 @@ in their output folder. Keep that folder while you use the object. Use
 <code>read_immundata()</code> to reopen it.</p>
 <h2 id="public-fields">Public fields<a class="headerlink" href="#public-fields" title="Permanent link">&para;</a></h2>
 <dl>
-<dt>
-<code>schema_receptor</code>
-</dt>
-<dd>
-A named list defining the virtual receptor unit. The
-<code>features</code> element names the chain columns used to group
-observations, such as CDR3 sequence and V gene. The <code>chains</code>
-element selects one chain or a paired set of chains.
+<dt><code>schema_receptor</code></dt><dd>A named list defining the virtual receptor unit.
+The <code>features</code> element names the chain columns used to group
+observations, such as CDR3 sequence and V gene. The <code>chains</code> element
+selects one chain or a paired set of chains.
 </dd>
-<dt>
-<code>schema_repertoire</code>
-</dt>
-<dd>
-A character vector naming annotation columns whose unique combinations
-define one repertoire, such as <code>sample_id</code> or
-<code>c(“donor_id”, “timepoint”)</code>. It is <code>NULL</code> when
-repertoires have not been defined.
+<dt><code>schema_repertoire</code></dt><dd>A character vector naming annotation columns
+whose unique combinations define one repertoire, such as <code>sample_id</code>
+or <code>c("donor_id", "timepoint")</code>. It is <code>NULL</code> when repertoires have
+not been defined.
 </dd>
-<dt>
-<code>schema_strata</code>
-</dt>
-<dd>
-A character vector naming repertoire-level columns whose unique
-combinations define one stratum, such as <code>treatment</code>. It is
-<code>NULL</code> when strata have not been defined.
+<dt><code>schema_strata</code></dt><dd>A character vector naming repertoire-level columns
+whose unique combinations define one stratum, such as <code>treatment</code>. It
+is <code>NULL</code> when strata have not been defined.
 </dd>
 </dl>
 
 <h2 id="active-bindings">Active bindings<a class="headerlink" href="#active-bindings" title="Permanent link">&para;</a></h2>
 <dl>
-<dt>
-<code>receptors</code>
-</dt>
-<dd>
-A derived duckplyr table of distinct receptors. For a paired receptor,
-the selected chain features are shown side by side.
+<dt><code>receptors</code></dt><dd>A derived duckplyr table of distinct receptors. For a
+paired receptor, the selected chain features are shown side by side.
 </dd>
-<dt>
-<code>annotations</code>
-</dt>
-<dd>
-The lazy duckplyr table of retained chain observations and their
-biological annotations. For most tasks, pass the complete
-<code>ImmunData</code> object to a transformation function or use
+<dt><code>annotations</code></dt><dd>The lazy duckplyr table of retained chain
+observations and their biological annotations. For most tasks, pass the
+complete <code>ImmunData</code> object to a transformation function or use
 <code>collect(idata)</code> to inspect this table in memory.
 </dd>
-<dt>
-<code>repertoires</code>
-</dt>
-<dd>
-A small table with one row per repertoire, the columns that define it,
-and summary statistics such as <code>n_barcodes</code> and
-<code>n_receptors</code>. It is <code>NULL</code> when repertoires have
+<dt><code>repertoires</code></dt><dd>A small table with one row per repertoire, the columns
+that define it, and summary statistics such as <code>n_barcodes</code> and
+<code>n_receptors</code>. It is <code>NULL</code> when repertoires have not been defined.
+</dd>
+<dt><code>strata</code></dt><dd>A small table with one row per stratum, its label, and the
+repertoire-level columns that define it. It is <code>NULL</code> when strata have
 not been defined.
 </dd>
-<dt>
-<code>strata</code>
-</dt>
-<dd>
-A small table with one row per stratum, its label, and the
-repertoire-level columns that define it. It is <code>NULL</code> when
-strata have not been defined.
-</dd>
-<dt>
-<code>provenance</code>
-</dt>
-<dd>
+<dt><code>provenance</code></dt><dd>Read-only named list describing the snapshot origin
+and storage context carried by this object. Retrieve the complete list with
+<code>idata\$provenance</code>, or one field with, for example,
+<code>idata\$provenance\$current_path</code>. The fields are:
 
-Read-only named list describing the snapshot origin and storage context
-carried by this object. Retrieve the complete list with
-<code>idata$provenance</code>, or one field with, for example,
-<code>idata$provenance$current_path</code>. The fields are:
 
 <ul>
-<li>
-
-<code>home_path</code>: project home used for managed snapshots and
-artifacts. The original ingestion snapshot is stored directly in this
-folder; it is <code>NULL</code> for an object with no persisted home.
+<li> <code>home_path</code>: project home used for managed snapshots and artifacts.
+The original ingestion snapshot is stored directly in this folder;
+it is <code>NULL</code> for an object with no persisted home.
 
 </li>
-<li>
-
-<code>current_path</code>: exact folder of the most recently loaded or
-written snapshot. Transformations preserve this source path until the
-transformed object is written as another snapshot; it is
-<code>NULL</code> for an object that has never been loaded from or
-written to disk.
+<li> <code>current_path</code>: exact folder of the most recently loaded or written
+snapshot. Transformations preserve this source path until the
+transformed object is written as another snapshot; it is <code>NULL</code> for
+an object that has never been loaded from or written to disk.
 
 </li>
-<li>
-
-<code>snapshot_root</code>: derived managed-snapshot root,
-<code>home_path/snapshots</code>, or <code>NULL</code> when
-<code>home_path</code> is <code>NULL</code>.
+<li> <code>snapshot_root</code>: derived managed-snapshot root,
+<code>home_path/snapshots</code>, or <code>NULL</code> when <code>home_path</code> is <code>NULL</code>.
 
 </li>
-<li>
-
-<code>artifacts_root</code>: derived project-level root for optional
-external tool outputs, <code>home_path/artifacts</code>, or
-<code>NULL</code> when <code>home_path</code> is <code>NULL</code>.
+<li> <code>artifacts_root</code>: derived project-level root for optional external
+tool outputs, <code>home_path/artifacts</code>, or <code>NULL</code> when <code>home_path</code> is
+<code>NULL</code>.
 
 </li>
-<li>
-
-<code>artifacts_path</code>: derived namespace for artifacts associated
-with the most recently loaded or written snapshot. It is
-<code>artifacts_root/root</code> for the original ingestion,
-<code style="white-space: pre;">artifacts_root/\<tag\>/vNNN</code> for a
-managed snapshot, and
-<code style="white-space: pre;">artifacts_root/by-id/\<snapshot_id\></code>
-for a detached explicit snapshot. External tools can append
-<code style="white-space: pre;">\<tool\>/\<run\></code> and create that
-directory; artifact contents are not part of <code>ImmunData</code>.
-Write a transformed object as a new snapshot before storing artifacts
-that should be associated with the transformed data.
+<li> <code>artifacts_path</code>: derived namespace for artifacts associated with the
+most recently loaded or written snapshot. It is
+<code>artifacts_root/root</code> for the original
+ingestion, <code style="white-space: pre;">artifacts_root/&lt;tag&gt;/vNNN</code> for a managed snapshot, and
+<code style="white-space: pre;">artifacts_root/by-id/&lt;snapshot_id&gt;</code> for a detached explicit snapshot.
+External tools can append <code style="white-space: pre;">&lt;tool&gt;/&lt;run&gt;</code> and create that directory;
+artifact contents are not part of <code>ImmunData</code>. Write a transformed
+object as a new snapshot before storing artifacts that should be
+associated with the transformed data.
 
 </li>
-<li>
-
-<code>snapshot_id</code>: unique identifier generated when the snapshot
-is written; <code>NULL</code> for an in-memory object that has never
-been written.
+<li> <code>snapshot_id</code>: unique identifier generated when the snapshot is
+written; <code>NULL</code> for an in-memory object that has never been written.
 
 </li>
-<li>
+<li> <code>lineage</code>: ordered list of ingestion and snapshot events leading to
+the current snapshot.
 
-<code>lineage</code>: ordered list of ingestion and snapshot events
-leading to the current snapshot.
+</li></ul>
 
-</li>
-</ul>
-The accessor is read-only; assigning to <code>idata$provenance</code> is
-an error.
+The accessor is read-only; assigning to <code>idata\$provenance</code> is an error.
 </dd>
 </dl>
 
 <h2 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h2>
-<h4>
-Public methods
-</h4>
+<h4>Public methods</h4>
 <ul>
-<li>
-
-<a href="#method-ImmunData-initialize"><code>ImmunData$new()</code></a>
+<li> <a href="#method-ImmunData-initialize"><code>ImmunData\$new()</code></a>
 
 </li>
-<li>
+<li> <a href="#method-ImmunData-clone"><code>ImmunData\$clone()</code></a>
 
-<a href="#method-ImmunData-clone"><code>ImmunData$clone()</code></a>
-
-</li>
-</ul>
+</li></ul>
 <hr>
 
 <p><a id="method-ImmunData-initialize"></a></p>
-<h4>
-<code>ImmunData$new()</code>
-</h4>
+<h4><code>ImmunData\$new()</code></h4>
 
 <p>Low-level constructor for package developers. Analysis code must create
 an <code>ImmunData</code> object with <code>read_repertoires()</code> or
 reopen one with <code>read_immundata()</code>.</p>
-<h5>
-Usage
-</h5>
+<h5>Usage</h5>
 
 <pre>ImmunData\$new(
   schema,
@@ -2197,74 +2106,42 @@ Usage
   strata = NULL
 )</pre>
 
-<h5>
-Arguments
-</h5>
+<h5>Arguments</h5>
 
 <dl>
-<dt>
-<code>schema</code>
-</dt>
-<dd>
-A character vector or named list. A character vector names the features
-used to define a chain-agnostic receptor. A named list is created by
-<code>make_receptor_schema()</code> and can also select receptor chains.
+<dt><code>schema</code></dt><dd>A character vector or named list. A character vector names
+the features used to define a chain-agnostic receptor. A named list is
+created by <code>make_receptor_schema()</code> and can also select receptor chains.
 </dd>
-<dt>
-<code>annotations</code>
-</dt>
-<dd>
-A duckplyr table. It contains retained chain observations, receptor
-identifiers, and biological annotations.
+<dt><code>annotations</code></dt><dd>A duckplyr table. It contains retained chain
+observations, receptor identifiers, and biological annotations.
 </dd>
-<dt>
-<code>repertoires</code>
-</dt>
-<dd>
-A data frame or <code>NULL</code>. It contains one row per repertoire
-and its summary statistics and is usually created by
+<dt><code>repertoires</code></dt><dd>A data frame or <code>NULL</code>. It contains one row per
+repertoire and its summary statistics and is usually created by
 <code>agg_repertoires()</code>.
 </dd>
-<dt>
-<code>provenance</code>
-</dt>
-<dd>
-A list or <code>NULL</code>. It contains internal storage and snapshot
-history.
+<dt><code>provenance</code></dt><dd>A list or <code>NULL</code>. It contains internal storage and
+snapshot history.
 </dd>
-<dt>
-<code>strata</code>
-</dt>
-<dd>
-A data frame or <code>NULL</code>. It contains one row per stratum, its
-label, and the repertoire-level columns that define it.
+<dt><code>strata</code></dt><dd>A data frame or <code>NULL</code>. It contains one row per stratum,
+its label, and the repertoire-level columns that define it.
 </dd>
 </dl>
 
 <hr>
 
 <p><a id="method-ImmunData-clone"></a></p>
-<h4>
-<code>ImmunData$clone()</code>
-</h4>
+<h4><code>ImmunData\$clone()</code></h4>
 
 <p>The objects of this class are cloneable with this method.</p>
-<h5>
-Usage
-</h5>
+<h5>Usage</h5>
 
 <pre>ImmunData\$clone(deep = FALSE)</pre>
 
-<h5>
-Arguments
-</h5>
+<h5>Arguments</h5>
 
 <dl>
-<dt>
-<code>deep</code>
-</dt>
-<dd>
-Whether to make a deep clone.
+<dt><code>deep</code></dt><dd>Whether to make a deep clone.
 </dd>
 </dl>
 
