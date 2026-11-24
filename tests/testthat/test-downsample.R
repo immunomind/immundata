@@ -120,6 +120,34 @@ test_that("downsample_immundata downsampled bulk repertoires by count", {
   expect_true(all(ann_with_original$imd_n_chains <= ann_with_original$imd_n_chains_before))
 })
 
+test_that("count-mode downsampling collapses duplicate rows added by annotation", {
+  path <- file.path(withr::local_tempdir(), "bulk.parquet")
+  duckplyr::duckdb_tibble(junction_aa = c("AB", "AC"), abundance = c(3L, 2L)) |>
+    duckplyr::compute_parquet(path)
+  idata <- read_repertoires(
+    path,
+    schema = "junction_aa",
+    count_col = "abundance",
+    preprocess = NULL,
+    postprocess = NULL,
+    rename_columns = NULL,
+    repertoire_schema = NULL
+  ) |>
+    annotate_immundata(
+      duckplyr::duckdb_tibble(junction_aa = c("AB", "AB"), label = c("X", "Y")),
+      by = c(junction_aa = "junction_aa")
+    )
+
+  expect_warning(
+    out <- downsample_immundata(idata, n = 5L),
+    "duplicated unit rows in count mode \\(1\\)"
+  )
+
+  sampled <- out |> collect() |> arrange(junction_aa)
+  expect_equal(sampled$junction_aa, c("AB", "AC"))
+  expect_equal(sampled$imd_n_chains, c(3L, 2L))
+})
+
 test_that("downsample_immundata keeps paired chains intact", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir))

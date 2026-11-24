@@ -160,20 +160,27 @@ downsample_immundata <- function(idata, n, seed = NULL) {
     collect() |>
     pull("any_non_unit")
 
+  unit_rows_col <- "n_rows"
   unit_base <- annotations_base |>
     select(all_of(unique(c(unit_cols, receptor_col, chain_count_col)))) |>
     summarise(
       .by = all_of(c(unit_cols, receptor_col)),
-      !!chain_count_col := dplyr::first(!!rlang::sym(chain_count_col))
+      !!chain_count_col := dplyr::first(!!rlang::sym(chain_count_col)),
+      !!unit_rows_col := n()
     )
 
   unit_table <- if (is_count_mode) {
-    unit_base |>
+    count_units <- unit_base |>
       summarise(
         .by = all_of(unit_cols),
-        !!count_col := sum(!!rlang::sym(chain_count_col))
+        !!count_col := sum(!!rlang::sym(chain_count_col)),
+        !!unit_rows_col := sum(!!rlang::sym(unit_rows_col))
       ) |>
       collect()
+
+    n_duplicate_units <- sum(count_units[[unit_rows_col]] > 1L)
+    count_units[[unit_rows_col]] <- NULL
+    count_units
   } else {
     unit_base |>
       summarise(
@@ -251,20 +258,6 @@ downsample_immundata <- function(idata, n, seed = NULL) {
     new_annotations <- annotations_base |>
       semi_join(sampled_keys, by = unit_cols)
   } else {
-    n_duplicate_units <- annotations_base |>
-      summarise(
-        .by = all_of(unit_cols),
-        n_rows = n()
-      ) |>
-      filter(.data$n_rows > 1) |>
-      summarise(n_dups = n()) |>
-      collect() |>
-      pull("n_dups")
-
-    if (length(n_duplicate_units) == 0) {
-      n_duplicate_units <- 0
-    }
-
     if (n_duplicate_units > 0) {
       cli::cli_warn("Detected duplicated unit rows in count mode ({n_duplicate_units}). Collapsing to one row per unit before downsampling join.")
     }
