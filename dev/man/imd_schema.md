@@ -2,7 +2,7 @@
 
 # Get a standard ImmunData column name
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/globals.R#L169)
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/globals.R#L172)
 
 ## Description
 
