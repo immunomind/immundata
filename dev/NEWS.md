@@ -2,7 +2,7 @@
 
 ---
 
-## immundata 0.1.1 (November 2026)
+## immundata 0.2.0 (November 2026)
 
 This release adds abundance-based receptor selection and improves handling of
 incomplete receptor features, missing values, and empty filtered datasets.
@@ -19,12 +19,18 @@ incomplete receptor features, missing values, and empty filtered datasets.
   values in the receptor-defining features before chain selection. This also
   applies during `read_repertoires()` ingestion. For paired receptors, a complete
   chain can now be selected even when an incomplete chain has a higher UMI count.
+* `filter_immundata()` skips a redundant join when `seq_options` is `NULL`.
+* Count-mode downsampling detects duplicate units during its existing
+  aggregation. It still warns and collapses duplicate rows.
 
 ### Bug fixes
 
 * Filtering out all observations now returns an empty `ImmunData` object while
   preserving repertoire and strata definitions, instead of failing when
-  restoring stratum labels.
+  restoring stratum labels. Regex filters retain matches when different
+  patterns produce the same column name.
+* `read_manifest()` now rejects duplicate paths after normalization. On Windows,
+  it recognizes drive and UNC paths written with backslashes.
 * `from_immunarch()` now preserves typed missing values during conversion,
   preventing numeric columns from being read as text while retaining literal
   `"NA"` strings.
@@ -37,6 +43,10 @@ incomplete receptor features, missing values, and empty filtered datasets.
 
 * Clarified in the README that receptor definitions are set during ingestion
   and that changing the receptor schema requires re-reading the source data.
+* Clarified the `read_immundata()` help and updated the README clone example to
+  use `collect(idata)`.
+* Annotation errors for missing columns now point users to `colnames(idata)`.
+  The annotation limit error shows `remove_limit = TRUE`.
 * Reduced verbosity in test helpers and made test-wide options and environment
   settings consistent across test entry points, restoring them after each run.
   

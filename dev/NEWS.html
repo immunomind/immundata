@@ -447,15 +447,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#immundata-011-november-2026" class="md-nav__link">
+  <a href="#immundata-020-november-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
-        immundata 0.1.1 (November 2026)
+        immundata 0.2.0 (November 2026)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="immundata 0.1.1 (November 2026)">
+    <nav class="md-nav" aria-label="immundata 0.2.0 (November 2026)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1734,15 +1734,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#immundata-011-november-2026" class="md-nav__link">
+  <a href="#immundata-020-november-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
-        immundata 0.1.1 (November 2026)
+        immundata 0.2.0 (November 2026)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="immundata 0.1.1 (November 2026)">
+    <nav class="md-nav" aria-label="immundata 0.2.0 (November 2026)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1866,7 +1866,7 @@
 
 <h1 id="releases">Releases<a class="headerlink" href="#releases" title="Permanent link">&para;</a></h1>
 <hr />
-<h2 id="immundata-011-november-2026">immundata 0.1.1 (November 2026)<a class="headerlink" href="#immundata-011-november-2026" title="Permanent link">&para;</a></h2>
+<h2 id="immundata-020-november-2026">immundata 0.2.0 (November 2026)<a class="headerlink" href="#immundata-020-november-2026" title="Permanent link">&para;</a></h2>
 <p>This release adds abundance-based receptor selection and improves handling of
 incomplete receptor features, missing values, and empty filtered datasets.</p>
 <h3 id="new-features-and-improvements">New features and improvements<a class="headerlink" href="#new-features-and-improvements" title="Permanent link">&para;</a></h3>
@@ -1881,12 +1881,18 @@ incomplete receptor features, missing values, and empty filtered datasets.</p>
   values in the receptor-defining features before chain selection. This also
   applies during <code>read_repertoires()</code> ingestion. For paired receptors, a complete
   chain can now be selected even when an incomplete chain has a higher UMI count.</li>
+<li><code>filter_immundata()</code> skips a redundant join when <code>seq_options</code> is <code>NULL</code>.</li>
+<li>Count-mode downsampling detects duplicate units during its existing
+  aggregation. It still warns and collapses duplicate rows.</li>
 </ul>
 <h3 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Filtering out all observations now returns an empty <code>ImmunData</code> object while
   preserving repertoire and strata definitions, instead of failing when
-  restoring stratum labels.</li>
+  restoring stratum labels. Regex filters retain matches when different
+  patterns produce the same column name.</li>
+<li><code>read_manifest()</code> now rejects duplicate paths after normalization. On Windows,
+  it recognizes drive and UNC paths written with backslashes.</li>
 <li><code>from_immunarch()</code> now preserves typed missing values during conversion,
   preventing numeric columns from being read as text while retaining literal
   <code>"NA"</code> strings.</li>
@@ -1899,6 +1905,10 @@ incomplete receptor features, missing values, and empty filtered datasets.</p>
 <ul>
 <li>Clarified in the README that receptor definitions are set during ingestion
   and that changing the receptor schema requires re-reading the source data.</li>
+<li>Clarified the <code>read_immundata()</code> help and updated the README clone example to
+  use <code>collect(idata)</code>.</li>
+<li>Annotation errors for missing columns now point users to <code>colnames(idata)</code>.
+  The annotation limit error shows <code>remove_limit = TRUE</code>.</li>
 <li>Reduced verbosity in test helpers and made test-wide options and environment
   settings consistent across test entry points, restoring them after each run.</li>
 </ul>
