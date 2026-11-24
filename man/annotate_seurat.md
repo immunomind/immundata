@@ -2,7 +2,7 @@
 
 # Annotate a Seurat object from ImmunData (by barcode)
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/operations_external_annotate_seurat.R#L38)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/operations_external_annotate_seurat.R#L38)
 
 ## Description
 

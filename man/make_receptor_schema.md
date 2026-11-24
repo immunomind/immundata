@@ -2,7 +2,7 @@
 
 # Define which chain observations form the same receptor
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/utils_schema.R#L106)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/utils_schema.R#L106)
 
 ## Description
 

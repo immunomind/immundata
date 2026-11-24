@@ -2,7 +2,7 @@
 
 # Keep selected rows or receptors in ImmunData
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/operations_filter.R#L168)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/operations_filter.R#L168)
 
 ## Description
 

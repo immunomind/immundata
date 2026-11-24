@@ -2,7 +2,7 @@
 
 # Load and Validate a Manifest for Immune Repertoire Files
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/io_manifest_read.R#L40)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/io_manifest_read.R#L40)
 
 ## Description
 

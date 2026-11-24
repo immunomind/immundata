@@ -2,7 +2,7 @@
 
 # Group AIRR sequence rows into receptors
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/operations_agg_receptors.R#L103)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/operations_agg_receptors.R#L103)
 
 ## Description
 

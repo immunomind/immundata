@@ -2,7 +2,7 @@
 
 # Save an ImmunData object to disk
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/io_immundata_write.R#L106)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/io_immundata_write.R#L106)
 
 ## Description
 

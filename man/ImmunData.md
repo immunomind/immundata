@@ -2,7 +2,7 @@
 
 # ImmunData: A data structure for storing adaptive immune receptor repertoire data
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/#L)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/#L)
 
 ## Description
 

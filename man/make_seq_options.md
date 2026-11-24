@@ -2,7 +2,7 @@
 
 # Create options for comparing receptor sequences
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/utils_seq.R#L30)
+[**Source code**](https://github.com/immunomind/immundata/tree/3dfb9178af910d588d53ae2bff114cd18e49d5ca/R/utils_seq.R#L30)
 
 ## Description
 
