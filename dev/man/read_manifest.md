@@ -2,7 +2,7 @@
 
 # Load and Validate a Manifest for Immune Repertoire Files
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_manifest_read.R#L39)
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_manifest_read.R#L40)
 
 ## Description
 
@@ -15,7 +15,8 @@ data across samples.
 If the input is a file path, the function reads it with
 <code>readr::read_delim</code>. If the input is a data frame, it checks
 whether file paths are absolute; relative paths are only allowed when
-the manifest is loaded from a file.
+the manifest is loaded from a file. Each repertoire file must appear
+only once.
 
 It warns the user if many of the files listed in the manifest are
 missing, and stops execution if none of the files exist.

@@ -2,16 +2,14 @@
 
 # Load an ImmunData object from disk
 
-[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_immundata_read.R#L112)
+[**Source code**](https://github.com/immunomind/immundata/tree/dev/R/io_immundata_read.R#L111)
 
 ## Description
 
-Continue an analysis later by reopening an ImmunData dataset saved on
-disk. Use <code>read_immundata()</code> after restarting R, in another
-script, or when another person gives you a dataset created by
-<code>write_immundata()</code> or <code>read_repertoires()</code>. It is
-that simple, just don't forget to save the <code>ImmunData</code> object
-first!
+Use <code>read_immundata()</code> to reopen an ImmunData dataset saved
+by <code>write_immundata()</code> or <code>read_repertoires()</code>.
+Use it to resume an analysis after restarting R or from another script.
+You can also open a dataset someone shares with you.
 
 The unit restored retains all information: chain rows, cell and receptor
 identifiers, repertoire and stratum definitions, and provenance. The
@@ -115,9 +113,9 @@ complete table does not need to be loaded into R memory.
 receptor, repertoire, and stratum schemas, the repertoire table, the
 snapshot identifier, lineage events, and provenance paths.
 
-Receptor and stratum views are reconstructed from this serialized state;
-they are not stored as separate files. Please also mind, that the saved
-files is an ImmunData-specific serialization, not an RDS file.
+The function reconstructs receptor and stratum views from
+<code>annotations.parquet</code> and <code>metadata.json</code>.
+Together, these files form the ImmunData storage format.
 
 ## See Also
 

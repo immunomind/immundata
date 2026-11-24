@@ -6,10 +6,10 @@
 
 ## Description
 
-Copy selected columns from <code>idata$annotations</code> to Seurat
-metadata using the cell barcode. This is the simplest way to transfer
-data from <code>immundata</code> to Seurat object, e.g., for plotting
-data on UMAP.
+Copy selected columns from <code>idata</code> to Seurat metadata using
+the cell barcode. This is the simplest way to transfer data from
+<code>immundata</code> to Seurat object, e.g., for plotting data on
+UMAP.
 
 ## Usage
 
@@ -37,9 +37,9 @@ id="sdata">sdata</code></td>
 <td
 style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
 id="cols">cols</code></td>
-<td>Character vector with column names to transfer from
-<code>idata\$annotations</code>. Typical choices:
-<code>"clonal_prop_bin"</code> or <code>"clonal_rank_bin"</code>.</td>
+<td>Character vector with names of columns in <code>idata</code> to
+copy. Typical choices: <code>"clonal_prop_bin"</code> or
+<code>"clonal_rank_bin"</code>.</td>
 </tr>
 </tbody>
 </table>

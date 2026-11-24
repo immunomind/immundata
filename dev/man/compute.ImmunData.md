@@ -30,8 +30,8 @@ id="x">x</code></td>
 <td
 style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
 id="...">...</code></td>
-<td>Additional arguments passed to <code>dplyr::compute()</code> for
-<code>x\$annotations</code>.</td>
+<td>Additional arguments passed to <code>dplyr::compute()</code> for the
+annotation table.</td>
 </tr>
 </tbody>
 </table>

@@ -1863,14 +1863,12 @@
 
 
 <h1 id="load-an-immundata-object-from-disk">Load an ImmunData object from disk<a class="headerlink" href="#load-an-immundata-object-from-disk" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/immunomind/immundata/tree/dev/R/io_immundata_read.R#L112"><strong>Source code</strong></a></p>
+<p><a href="https://github.com/immunomind/immundata/tree/dev/R/io_immundata_read.R#L111"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Continue an analysis later by reopening an ImmunData dataset saved on
-disk. Use <code>read_immundata()</code> after restarting R, in another
-script, or when another person gives you a dataset created by
-<code>write_immundata()</code> or <code>read_repertoires()</code>. It is
-that simple, just don't forget to save the <code>ImmunData</code> object
-first!</p>
+<p>Use <code>read_immundata()</code> to reopen an ImmunData dataset saved
+by <code>write_immundata()</code> or <code>read_repertoires()</code>.
+Use it to resume an analysis after restarting R or from another script.
+You can also open a dataset someone shares with you.</p>
 <p>The unit restored retains all information: chain rows, cell and receptor
 identifiers, repertoire and stratum definitions, and provenance. The
 function does not change these biological units or the saved files. It
@@ -1961,9 +1959,9 @@ complete table does not need to be loaded into R memory.
 <code>metadata.json</code> stores the format and package versions,
 receptor, repertoire, and stratum schemas, the repertoire table, the
 snapshot identifier, lineage events, and provenance paths.</p>
-<p>Receptor and stratum views are reconstructed from this serialized state;
-they are not stored as separate files. Please also mind, that the saved
-files is an ImmunData-specific serialization, not an RDS file.</p>
+<p>The function reconstructs receptor and stratum views from
+<code>annotations.parquet</code> and <code>metadata.json</code>.
+Together, these files form the ImmunData storage format.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><code>write_immundata()</code> for saving an analysis,
 <code>read_repertoires()</code> for importing AIRR-seq files, ImmunData</p>
