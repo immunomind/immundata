@@ -737,7 +737,7 @@ as the receptor definition.
 
 ```r
 # 1. Collect annotations and merge the clone labels
-annot <- idata$annotations |> collect()
+annot <- collect(idata)
 annot <- dplyr::left_join(annot, clones, by = "imd_barcode")   # `clones` has clone_id
 
 # 2. Write to disk
