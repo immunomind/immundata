@@ -31,40 +31,36 @@ object. The original object is not changed.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object containing receptor observations and the columns
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object containing receptor observations and the columns
 named in <code>schema</code>. This is usually created by
-<code>read_repertoires()</code> or <code>read_immundata()</code>.
-</td>
+<code>read_repertoires()</code> or <code>read_immundata()</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="schema">schema</code>
-</td>
-<td>
-A non-empty character vector. One or more column names that together
-define a repertoire. For example, <code>“Sample”</code> creates one
-repertoire per sample, and <code>c(“Sample”, “TimePoint”)</code> creates
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="schema">schema</code></td>
+<td>A non-empty character vector. One or more column names that together
+define a repertoire. For example, <code>"Sample"</code> creates one
+repertoire per sample, and <code>c("Sample", "TimePoint")</code> creates
 one repertoire per sample and time-point combination. The default is
-<code>“repertoire_id”</code>; this column must exist if the default is
-used.
-</td>
+<code>"repertoire_id"</code>; this column must exist if the default is
+used.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="verbose">verbose</code>
-</td>
-<td>
-A logical value. Accepted for consistency with other aggregation
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="verbose">verbose</code></td>
+<td>A logical value. Accepted for consistency with other aggregation
 functions. It currently does not change the output. Defaults to
-<code>getOption(“immundata.verbose”, TRUE)</code>.
-</td>
+<code>getOption("immundata.verbose", TRUE)</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details
@@ -86,54 +82,34 @@ columns, <code>imd_repertoire_id</code>, <code>n_barcodes</code>, and
 The returned repertoire summary contains one row for each repertoire:
 
 <ul>
-<li>
-
-<code>imd_repertoire_id</code>: a new integer identifier for the
-repertoire.
+<li> <code>imd_repertoire_id</code>: a new integer identifier for the repertoire.
 
 </li>
-<li>
-
-<code>n_barcodes</code>: the number of observed cells for single-cell
-data, or the total abundance for bulk data.
+<li> <code>n_barcodes</code>: the number of observed cells for single-cell data, or the
+total abundance for bulk data.
 
 </li>
-<li>
+<li> <code>n_receptors</code>: the number of distinct receptors in the repertoire.
 
-<code>n_receptors</code>: the number of distinct receptors in the
-repertoire.
-
-</li>
-</ul>
+</li></ul>
 
 The function also adds these values to each chain row:
 
 <ul>
-<li>
-
-<code>imd_repertoire_id</code>: the repertoire containing the row.
+<li> <code>imd_repertoire_id</code>: the repertoire containing the row.
 
 </li>
-<li>
-
-<code>imd_count</code>: the number of cells carrying that receptor in
-single-cell data, or its summed abundance in bulk data, within the
-repertoire.
+<li> <code>imd_count</code>: the number of cells carrying that receptor in single-cell
+data, or its summed abundance in bulk data, within the repertoire.
 
 </li>
-<li>
-
-<code>imd_proportion</code>: the receptor’s fraction of the repertoire,
-calculated as <code>imd_count / n_barcodes</code>.
+<li> <code>imd_proportion</code>: the receptor's fraction of the repertoire, calculated as
+<code>imd_count / n_barcodes</code>.
 
 </li>
-<li>
+<li> <code>n_repertoires</code>: the number of repertoires in which the receptor occurs.
 
-<code>n_repertoires</code>: the number of repertoires in which the
-receptor occurs.
-
-</li>
-</ul>
+</li></ul>
 
 Values calculated for a receptor are repeated on all chain rows
 belonging to that receptor in the same repertoire.
@@ -150,13 +126,13 @@ summary is collected and stored in the returned object.
 
 Aggregation can be expensive for a large dataset. After checking the
 result, consider saving it so later analyses do not repeat the
-calculation. Use <code>write_immundata(idata, tag = “by-sample”)</code>
-to create a managed snapshot in the object’s project home. Managed
+calculation. Use <code>write_immundata(idata, tag = "by-sample")</code>
+to create a managed snapshot in the object's project home. Managed
 snapshots are versioned, so another write with the same tag creates a
 new version and keeps the earlier version.
 
 Use <code>write_immundata(idata, output_folder =
-“path/to/result”)</code> when you need a standalone saved state in a
+"path/to/result")</code> when you need a standalone saved state in a
 specific folder, for example to share it or to choose a new storage
 location. Unlike a managed snapshot, writing to an existing explicit
 folder replaces the ImmunData files in that folder. Both forms

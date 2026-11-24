@@ -25,60 +25,49 @@ imports those files into an <strong>ImmunData</strong> object via
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="imm">imm</code>
-</td>
-<td>
-
-A list returned by <code>immunarch::repLoad()</code>, typically
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="imm">imm</code></td>
+<td>A list returned by <code>immunarch::repLoad()</code>, typically
 containing:
-
 <ul>
-<li>
-
-<strong><code>data</code></strong>: a named list of
-<code>data.frame</code>s, one per repertoire.
-
-</li>
-<li>
-
-<strong><code>meta</code></strong>: (optional) a <code>data.frame</code>
-of sample metadata.
-
-</li>
-</ul>
-</td>
+<li><strong><code>data</code></strong>: a named list of
+<code>data.frame</code>s, one per repertoire.</li>
+<li><strong><code>meta</code></strong>: (optional) a
+<code>data.frame</code> of sample metadata.</li>
+</ul></td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="output_folder">output_folder</code>
-</td>
-<td>
-Path to the output directory where the resulting ImmunData Parquet files
-will be stored. This directory will be created if it does not already
-exist.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="output_folder">output_folder</code></td>
+<td>Path to the output directory where the resulting ImmunData Parquet
+files will be stored. This directory will be created if it does not
+already exist.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="schema">schema</code>
-</td>
-<td>
-Character vector of column names that together define unique receptors
-(for example, <code>c(“CDR3.aa”, “V.name”, “J.name”)</code>).
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="schema">schema</code></td>
+<td>Character vector of column names that together define unique
+receptors (for example,
+<code>c("CDR3.aa", "V.name", "J.name")</code>).</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="temp_folder">temp_folder</code>
-</td>
-<td>
-Path to a directory where intermediate TSV files will be written.
-Defaults to <code>file.path(tempdir(), “temp_folder”)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="temp_folder">temp_folder</code></td>
+<td>Path to a directory where intermediate TSV files will be written.
+Defaults to <code>file.path(tempdir(), "temp_folder")</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Value

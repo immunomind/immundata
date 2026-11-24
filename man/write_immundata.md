@@ -32,86 +32,74 @@ biological unit.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object you want to save.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object you want to save.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="output_folder">output_folder</code>
-</td>
-<td>
-A character string or <code>NULL</code>. Directory in which to write
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="output_folder">output_folder</code></td>
+<td>A character string or <code>NULL</code>. Directory in which to write
 <code>annotations.parquet</code> and <code>metadata.json</code>. If
-<code>NULL</code>, the default, a managed snapshot is created at
-<code style="white-space: pre;">home_path/snapshots/\<tag\>/vNNN</code>.
-The home path comes from the object’s provenance.
-</td>
+<code>NULL</code>, the default, a managed snapshot is created at <code
+style="white-space: pre;">home_path/snapshots/&lt;tag&gt;/vNNN</code>.
+The home path comes from the object's provenance.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="tag">tag</code>
-</td>
-<td>
-A character string or <code>NULL</code>. Snapshot tag. With
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="tag">tag</code></td>
+<td>A character string or <code>NULL</code>. Snapshot tag. With
 <code>output_folder = NULL</code>, it names the managed snapshot series;
-if <code>tag</code> is also <code>NULL</code>, <code>“default”</code> is
+if <code>tag</code> is also <code>NULL</code>, <code>"default"</code> is
 used. With an explicit <code>output_folder</code>, a supplied tag is
-recorded in the lineage but does not change the output path.
-</td>
+recorded in the lineage but does not change the output path.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="rehome">rehome</code>
-</td>
-<td>
-A logical value. Whether an explicit <code>output_folder</code> becomes
-the home for future managed snapshots. The default is
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="rehome">rehome</code></td>
+<td>A logical value. Whether an explicit <code>output_folder</code>
+becomes the home for future managed snapshots. The default is
 <code>FALSE</code>, which preserves an existing home. If the object has
 no home yet, its first explicit output folder becomes the home with
 either value. <code>TRUE</code> requires an explicit
-<code>output_folder</code>.
-</td>
+<code>output_folder</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="compression">compression</code>
-</td>
-<td>
-A character string or <code>NULL</code>. Parquet compression codec
-passed to DuckDB. The default is <code>“zstd”</code>. Use
-<code>NULL</code> to let DuckDB choose.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="compression">compression</code></td>
+<td>A character string or <code>NULL</code>. Parquet compression codec
+passed to DuckDB. The default is <code>"zstd"</code>. Use
+<code>NULL</code> to let DuckDB choose.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="compression_level">compression_level</code>
-</td>
-<td>
-A number or <code>NULL</code>. Compression level for codecs that support
-it. The default is <code>9</code>. Use <code>NULL</code> to let DuckDB
-choose.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="compression_level">compression_level</code></td>
+<td>A number or <code>NULL</code>. Compression level for codecs that
+support it. The default is <code>9</code>. Use <code>NULL</code> to let
+DuckDB choose.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="verbose">verbose</code>
-</td>
-<td>
-A logical value. Whether to print progress and summary messages.
-Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="verbose">verbose</code></td>
+<td>A logical value. Whether to print progress and summary messages.
+Defaults to <code>getOption("immundata.verbose", TRUE)</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details
 
-Save to an explicit folder for a direct saved state, or use the object’s
+Save to an explicit folder for a direct saved state, or use the object's
 home to create a versioned managed snapshot.
 
 ## Value
@@ -129,10 +117,10 @@ dataset, its <code>annotations.parquet</code> and
 <code>metadata.json</code> are replaced.
 
 Leave <code>output_folder = NULL</code> to create a managed snapshot.
-The function uses the object’s home path and writes the next version
-under <code style="white-space: pre;">snapshots/\<tag\>/vNNN</code>, for
-example <code>snapshots/baseline/v001</code>. Later writes with the same
-tag create <code>v002</code>, <code>v003</code>, and so on; earlier
+The function uses the object's home path and writes the next version
+under <code style="white-space: pre;">snapshots/&lt;tag&gt;/vNNN</code>,
+for example <code>snapshots/baseline/v001</code>. Later writes with the
+same tag create <code>v002</code>, <code>v003</code>, and so on; earlier
 versions remain available. Use <code>read_immundata()</code> with
 <code>tag</code> and <code>version</code> to reopen one.
 

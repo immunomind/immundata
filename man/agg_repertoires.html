@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1885,40 +1885,36 @@ object. The original object is not changed.</p>
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object containing receptor observations and the columns
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object containing receptor observations and the columns
 named in <code>schema</code>. This is usually created by
-<code>read_repertoires()</code> or <code>read_immundata()</code>.
-</td>
+<code>read_repertoires()</code> or <code>read_immundata()</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="schema">schema</code>
-</td>
-<td>
-A non-empty character vector. One or more column names that together
-define a repertoire. For example, <code>“Sample”</code> creates one
-repertoire per sample, and <code>c(“Sample”, “TimePoint”)</code> creates
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="schema">schema</code></td>
+<td>A non-empty character vector. One or more column names that together
+define a repertoire. For example, <code>"Sample"</code> creates one
+repertoire per sample, and <code>c("Sample", "TimePoint")</code> creates
 one repertoire per sample and time-point combination. The default is
-<code>“repertoire_id”</code>; this column must exist if the default is
-used.
-</td>
+<code>"repertoire_id"</code>; this column must exist if the default is
+used.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="verbose">verbose</code>
-</td>
-<td>
-A logical value. Accepted for consistency with other aggregation
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="verbose">verbose</code></td>
+<td>A logical value. Accepted for consistency with other aggregation
 functions. It currently does not change the output. Defaults to
-<code>getOption(“immundata.verbose”, TRUE)</code>.
-</td>
+<code>getOption("immundata.verbose", TRUE)</code>.</td>
 </tr>
+</tbody>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
@@ -1934,53 +1930,33 @@ columns, <code>imd_repertoire_id</code>, <code>n_barcodes</code>, and
 <h2 id="what-the-function-calculates">What the function calculates<a class="headerlink" href="#what-the-function-calculates" title="Permanent link">&para;</a></h2>
 <p>The returned repertoire summary contains one row for each repertoire:</p>
 <ul>
-<li>
-
-<code>imd_repertoire_id</code>: a new integer identifier for the
-repertoire.
+<li> <code>imd_repertoire_id</code>: a new integer identifier for the repertoire.
 
 </li>
-<li>
-
-<code>n_barcodes</code>: the number of observed cells for single-cell
-data, or the total abundance for bulk data.
+<li> <code>n_barcodes</code>: the number of observed cells for single-cell data, or the
+total abundance for bulk data.
 
 </li>
-<li>
+<li> <code>n_receptors</code>: the number of distinct receptors in the repertoire.
 
-<code>n_receptors</code>: the number of distinct receptors in the
-repertoire.
-
-</li>
-</ul>
+</li></ul>
 
 <p>The function also adds these values to each chain row:</p>
 <ul>
-<li>
-
-<code>imd_repertoire_id</code>: the repertoire containing the row.
+<li> <code>imd_repertoire_id</code>: the repertoire containing the row.
 
 </li>
-<li>
-
-<code>imd_count</code>: the number of cells carrying that receptor in
-single-cell data, or its summed abundance in bulk data, within the
-repertoire.
+<li> <code>imd_count</code>: the number of cells carrying that receptor in single-cell
+data, or its summed abundance in bulk data, within the repertoire.
 
 </li>
-<li>
-
-<code>imd_proportion</code>: the receptor’s fraction of the repertoire,
-calculated as <code>imd_count / n_barcodes</code>.
+<li> <code>imd_proportion</code>: the receptor's fraction of the repertoire, calculated as
+<code>imd_count / n_barcodes</code>.
 
 </li>
-<li>
+<li> <code>n_repertoires</code>: the number of repertoires in which the receptor occurs.
 
-<code>n_repertoires</code>: the number of repertoires in which the
-receptor occurs.
-
-</li>
-</ul>
+</li></ul>
 
 <p>Values calculated for a receptor are repeated on all chain rows
 belonging to that receptor in the same repertoire.</p>
@@ -1993,12 +1969,12 @@ annotation data remain lazy when the input is lazy. The small repertoire
 summary is collected and stored in the returned object.</p>
 <p>Aggregation can be expensive for a large dataset. After checking the
 result, consider saving it so later analyses do not repeat the
-calculation. Use <code>write_immundata(idata, tag = “by-sample”)</code>
-to create a managed snapshot in the object’s project home. Managed
+calculation. Use <code>write_immundata(idata, tag = "by-sample")</code>
+to create a managed snapshot in the object's project home. Managed
 snapshots are versioned, so another write with the same tag creates a
 new version and keeps the earlier version.</p>
 <p>Use <code>write_immundata(idata, output_folder =
-“path/to/result”)</code> when you need a standalone saved state in a
+"path/to/result")</code> when you need a standalone saved state in a
 specific folder, for example to share it or to choose a new storage
 location. Unlike a managed snapshot, writing to an existing explicit
 folder replaces the ImmunData files in that folder. Both forms
@@ -2148,10 +2124,10 @@ object that can be reopened with <code>read_immundata()</code>.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

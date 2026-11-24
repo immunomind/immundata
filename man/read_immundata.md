@@ -2,16 +2,14 @@
 
 # Load an ImmunData object from disk
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/io_immundata_read.R#L112)
+[**Source code**](https://github.com/immunomind/immundata/tree/main/R/io_immundata_read.R#L111)
 
 ## Description
 
-Continue an analysis later by reopening an ImmunData dataset saved on
-disk. Use <code>read_immundata()</code> after restarting R, in another
-script, or when another person gives you a dataset created by
-<code>write_immundata()</code> or <code>read_repertoires()</code>. It is
-that simple, just don’t forget to save the <code>ImmunData</code> object
-first!
+Use <code>read_immundata()</code> to reopen an ImmunData dataset saved
+by <code>write_immundata()</code> or <code>read_repertoires()</code>.
+Use it to resume an analysis after restarting R or from another script.
+You can also open a dataset someone shares with you.
 
 The unit restored retains all information: chain rows, cell and receptor
 identifiers, repertoire and stratum definitions, and provenance. The
@@ -31,65 +29,58 @@ returns a new ImmunData object.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="path">path</code>
-</td>
-<td>
-A character string. Path to a saved dataset directory. The directory
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="path">path</code></td>
+<td>A character string. Path to a saved dataset directory. The directory
 must contain <code>annotations.parquet</code> and
 <code>metadata.json</code>. When <code>tag</code> is supplied, use the
 project home directory that contains the <code>snapshots</code>
-directory. Read more about snapshots on the website.
-</td>
+directory. Read more about snapshots on the website.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="tag">tag</code>
-</td>
-<td>
-A character string or <code>NULL</code>. Snapshot tag to read from
-<code style="white-space: pre;">path/snapshots/\<tag\>/vNNN</code>. If
-<code>NULL</code>, the default, <code>path</code> itself is read.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="tag">tag</code></td>
+<td>A character string or <code>NULL</code>. Snapshot tag to read from
+<code style="white-space: pre;">path/snapshots/&lt;tag&gt;/vNNN</code>.
+If <code>NULL</code>, the default, <code>path</code> itself is
+read.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="version">version</code>
-</td>
-<td>
-A non-negative integer or <code>NULL</code>. Snapshot version within
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="version">version</code></td>
+<td>A non-negative integer or <code>NULL</code>. Snapshot version within
 <code>tag</code>. For example, <code>1</code> reads <code>v001</code>.
 If <code>NULL</code>, the default, the latest available version for the
 tag is read. <code>version</code> can only be used with
-<code>tag</code>.
-</td>
+<code>tag</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="prudence">prudence</code>
-</td>
-<td>
-A character string. Memory protection used while reading the Parquet
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="prudence">prudence</code></td>
+<td>A character string. Memory protection used while reading the Parquet
 data. This controls whether duckplyr may convert an intermediate result
-from DuckDB-managed memory to an R data frame: <code>“stingy”</code>,
-the default here, never permits conversion; <code>“thrifty”</code>
+from DuckDB-managed memory to an R data frame: <code>"stingy"</code>,
+the default here, never permits conversion; <code>"thrifty"</code>
 permits up to 1 million table cells (rows multiplied by columns); and
-<code>“lavish”</code> permits conversion regardless of size. Here,
+<code>"lavish"</code> permits conversion regardless of size. Here,
 "table cells" does not mean biological cells. Passed to
-<code>duckplyr::read_parquet_duckdb()</code>.
-</td>
+<code>duckplyr::read_parquet_duckdb()</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="verbose">verbose</code>
-</td>
-<td>
-A logical value. Whether to print progress and summary messages.
-Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="verbose">verbose</code></td>
+<td>A logical value. Whether to print progress and summary messages.
+Defaults to <code>getOption("immundata.verbose", TRUE)</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details
@@ -122,9 +113,9 @@ complete table does not need to be loaded into R memory.
 receptor, repertoire, and stratum schemas, the repertoire table, the
 snapshot identifier, lineage events, and provenance paths.
 
-Receptor and stratum views are reconstructed from this serialized state;
-they are not stored as separate files. Please also mind, that the saved
-files is an ImmunData-specific serialization, not an RDS file.
+The function reconstructs receptor and stratum views from
+<code>annotations.parquet</code> and <code>metadata.json</code>.
+Together, these files form the ImmunData storage format.
 
 ## See Also
 

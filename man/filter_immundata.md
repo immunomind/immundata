@@ -41,73 +41,62 @@ filter_receptors(idata, receptors, keep_repertoires = TRUE)
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>, <code id=".data">.data</code>
-</td>
-<td>
-An ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code>, <code id=".data">.data</code></td>
+<td>An ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
-</td>
-<td>
-One or more conditions used to keep rows. Refer to annotation columns
-directly by name. Multiple conditions are combined with <code>&</code>.
-Conditions are applied before sequence matching.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="...">...</code></td>
+<td>One or more conditions used to keep rows. Refer to annotation
+columns directly by name. Multiple conditions are combined with
+<code>&amp;</code>. Conditions are applied before sequence
+matching.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="seq_options">seq_options</code>
-</td>
-<td>
-Options for matching sequences with reference sequences or patterns.
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="seq_options">seq_options</code></td>
+<td>Options for matching sequences with reference sequences or patterns.
 Create these options with <code>make_seq_options()</code>. If
-<code>NULL</code>, the default, no sequence matching is performed.
-</td>
+<code>NULL</code>, the default, no sequence matching is performed.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="keep_repertoires">keep_repertoires</code>
-</td>
-<td>
-If <code>TRUE</code>, the default, existing repertoire and strata
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="keep_repertoires">keep_repertoires</code></td>
+<td>If <code>TRUE</code>, the default, existing repertoire and strata
 summaries are recalculated from the filtered data. If
 <code>FALSE</code>, the returned object does not contain these
-summaries.
-</td>
+summaries.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id=".by">.by</code>, <code id=".preserve">.preserve</code>
-</td>
-<td>
-Accepted for compatibility with <code>dplyr::filter()</code>, but
-currently not used for ImmunData objects.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id=".by">.by</code>, <code id=".preserve">.preserve</code></td>
+<td>Accepted for compatibility with <code>dplyr::filter()</code>, but
+currently not used for ImmunData objects.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="barcodes">barcodes</code>
-</td>
-<td>
-A character, integer, or numeric vector of cell barcodes to keep with
-<code>filter_barcodes()</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="barcodes">barcodes</code></td>
+<td>A character, integer, or numeric vector of cell barcodes to keep
+with <code>filter_barcodes()</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="receptors">receptors</code>
-</td>
-<td>
-A character, integer, or numeric vector of receptor identifiers to keep
-with <code>filter_receptors()</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="receptors">receptors</code></td>
+<td>A character, integer, or numeric vector of receptor identifiers to
+keep with <code>filter_receptors()</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details
@@ -115,65 +104,47 @@ with <code>filter_receptors()</code>.
 You can filter an ImmunData object in three ways:
 
 <ul>
-<li>
-
-Supply conditions in <code>…</code> to filter using annotation columns.
-Refer to columns directly by name. For example, <code>Response ==
-“FR”</code> keeps rows from the <code>FR</code> response group.
+<li> Supply conditions in <code>...</code> to filter using annotation columns. Refer to
+columns directly by name. For example, <code>Response == "FR"</code> keeps rows from
+the <code>FR</code> response group.
 
 </li>
-<li>
-
-Supply <code>seq_options</code>, created with
-<code>make_seq_options()</code>, to find receptors containing a sequence
-that matches one or more reference sequences or patterns.
+<li> Supply <code>seq_options</code>, created with <code>make_seq_options()</code>, to find receptors
+containing a sequence that matches one or more reference sequences or
+patterns.
 
 </li>
-<li>
+<li> Use <code>filter_barcodes()</code> or <code>filter_receptors()</code> when you already have the
+identifiers that you want to keep.
 
-Use <code>filter_barcodes()</code> or <code>filter_receptors()</code>
-when you already have the identifiers that you want to keep.
+</li></ul>
 
-</li>
-</ul>
-
-Conditions in <code>…</code> are applied before sequence matching.
+Conditions in <code>...</code> are applied before sequence matching.
 Sequence matching then identifies receptors from the remaining rows.
 When one chain matches, all remaining chains belonging to the same
-receptor are kept. A chain removed by a condition in <code>…</code> is
+receptor are kept. A chain removed by a condition in <code>...</code> is
 not added back by sequence matching.
 
 Sequence matching methods are:
 
 <ul>
-<li>
-
-<code>“exact”</code>: the sequence must be identical to one of the
-references.
+<li> <code>"exact"</code>: the sequence must be identical to one of the references.
 
 </li>
-<li>
-
-<code>“regex”</code>: the sequence must match a regular-expression
-pattern. This is an advanced option for matching text patterns.
+<li> <code>"regex"</code>: the sequence must match a regular-expression pattern. This is
+an advanced option for matching text patterns.
 
 </li>
-<li>
-
-<code>“lev”</code>: the Levenshtein distance counts the substitutions,
-insertions, or deletions needed to change one sequence into the other.
+<li> <code>"lev"</code>: the Levenshtein distance counts the substitutions, insertions, or
+deletions needed to change one sequence into the other.
 
 </li>
-<li>
+<li> <code>"hamm"</code>: the Hamming distance counts different positions between
+sequences of the same length. Sequences of different lengths do not match.
 
-<code>“hamm”</code>: the Hamming distance counts different positions
-between sequences of the same length. Sequences of different lengths do
-not match.
+</li></ul>
 
-</li>
-</ul>
-
-For <code>“lev”</code> and <code>“hamm”</code>, provide
+For <code>"lev"</code> and <code>"hamm"</code>, provide
 <code>max_dist</code>. A sequence is accepted when its distance from at
 least one reference is less than or equal to this value. A distance of
 <code>0</code> means an exact match, and smaller values mean more
@@ -305,8 +276,8 @@ selected_cells |>
     #> # A tibble: 2 × 1
     #>   imd_barcode
     #> * <chr>      
-    #> 1 S1_1       
-    #> 2 S1_2
+    #> 1 S1_2       
+    #> 2 S1_1
 
 ``` r
 # Expected result:

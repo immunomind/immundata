@@ -25,47 +25,44 @@ ImmunData object. The original object is not changed.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object with repertoires already defined. Use
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object with repertoires already defined. Use
 <code>agg_repertoires()</code> first if the object does not contain
-repertoires.
-</td>
+repertoires.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="schema">schema</code>
-</td>
-<td>
-A non-empty character vector. One or more repertoire-level columns that
-define a stratum. For example, use <code>“Therapy”</code> for treatment
-arms or <code>c(“Tissue”, “Disease”)</code> for each tissue and disease
-combination. The columns must be present in
-<code>idata$repertoires</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="schema">schema</code></td>
+<td>A non-empty character vector. One or more repertoire-level columns
+that define a stratum. For example, use <code>"Therapy"</code> for
+treatment arms or <code>c("Tissue", "Disease")</code> for each tissue
+and disease combination. The columns must be present in
+<code>idata\$repertoires</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="prefix">prefix</code>
-</td>
-<td>
-A non-empty character string. Prefix for the automatic stratum labels.
-The default, <code>“Strata”</code>, produces labels such as
-<code>“Strata1”</code> and <code>“Strata2”</code>. You can use
-<code>rename_strata()</code> to assign meaningful labels later instead.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="prefix">prefix</code></td>
+<td>A non-empty character string. Prefix for the automatic stratum
+labels. The default, <code>"Strata"</code>, produces labels such as
+<code>"Strata1"</code> and <code>"Strata2"</code>. You can use
+<code>rename_strata()</code> to assign meaningful labels later
+instead.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details
 
 If <code>schema</code> contains several columns, a separate stratum is
-created for each observed combination. For example, <code>c(“Tissue”,
-“Therapy”)</code> can define separate blood and tumour strata within
+created for each observed combination. For example, <code>c("Tissue",
+"Therapy")</code> can define separate blood and tumour strata within
 each treatment arm.
 
 Calling <code>agg_strata()</code> again replaces the existing strata

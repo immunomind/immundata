@@ -26,36 +26,32 @@ changed.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object. For comparisons between repertoires, its
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object. For comparisons between repertoires, its
 repertoires should already be defined with
-<code>read_repertoires()</code> or <code>agg_repertoires()</code>.
-</td>
+<code>read_repertoires()</code> or <code>agg_repertoires()</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="n">n</code>
-</td>
-<td>
-A number. Sampling depth. Use a value strictly between 0 and 1 for a
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="n">n</code></td>
+<td>A number. Sampling depth. Use a value strictly between 0 and 1 for a
 fraction, or a whole number greater than or equal to 1 for an absolute
-number of cells or bulk sequence counts.
-</td>
+number of cells or bulk sequence counts.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="seed">seed</code>
-</td>
-<td>
-A non-negative integer or <code>NULL</code>. Used to reproduce the same
-random sample. The default is <code>NULL</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="seed">seed</code></td>
+<td>A non-negative integer or <code>NULL</code>. Used to reproduce the
+same random sample. The default is <code>NULL</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Value
@@ -67,19 +63,12 @@ the sampled data.
 ## Meaning of <code>n</code> for single-cell data
 
 <ul>
-<li>
-
-<code style="white-space: pre;">0 \< n \< 1</code> keeps
-<code style="white-space: pre;">floor(n \* number of cells)</code> cells
-from each repertoire.
+<li> <code style="white-space: pre;">0 &lt; n &lt; 1</code> keeps <code style="white-space: pre;">floor(n * number of cells)</code> cells from each repertoire.
 
 </li>
-<li>
+<li> <code>n &gt;= 1</code> keeps <code>n</code> cells from each repertoire.
 
-<code>n \>= 1</code> keeps <code>n</code> cells from each repertoire.
-
-</li>
-</ul>
+</li></ul>
 
 Cell barcodes are sampled without replacement. For paired receptors, all
 retained chains belonging to a selected cell stay together.
@@ -87,20 +76,13 @@ retained chains belonging to a selected cell stay together.
 ## Meaning of <code>n</code> for bulk data
 
 <ul>
-<li>
-
-<code style="white-space: pre;">0 \< n \< 1</code> keeps
-<code style="white-space: pre;">floor(n \* total abundance)</code>
-sequence counts from each repertoire.
-
-</li>
-<li>
-
-<code>n \>= 1</code> keeps a total abundance of <code>n</code> from each
+<li> <code style="white-space: pre;">0 &lt; n &lt; 1</code> keeps <code style="white-space: pre;">floor(n * total abundance)</code> sequence counts from each
 repertoire.
 
 </li>
-</ul>
+<li> <code>n &gt;= 1</code> keeps a total abundance of <code>n</code> from each repertoire.
+
+</li></ul>
 
 Counts are sampled without replacement according to their observed
 abundance. A retained receptor can therefore have a smaller abundance

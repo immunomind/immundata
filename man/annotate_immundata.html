@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2009,81 +2009,70 @@ annotate_chains(
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="annotations">annotations</code>
-</td>
-<td>
-A data frame containing the information to add. It must contain the
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="annotations">annotations</code></td>
+<td>A data frame containing the information to add. It must contain the
 columns used for matching and at most one row for each matching
-identifier or combination of identifiers.
-</td>
+identifier or combination of identifiers.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="by">by</code>
-</td>
-<td>
-A named character vector describing how columns are matched. Names are
-columns in <code>idata</code>; values are the corresponding columns in
-<code>annotations</code>. For example, <code>c(Response =
-“response_code”)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="by">by</code></td>
+<td>A named character vector describing how columns are matched. Names
+are columns in <code>idata</code>; values are the corresponding columns
+in <code>annotations</code>. For example,
+<code>c(Response = "response_code")</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="keep_repertoires">keep_repertoires</code>
-</td>
-<td>
-Whether to preserve existing repertoire and strata summaries without
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="keep_repertoires">keep_repertoires</code></td>
+<td>Whether to preserve existing repertoire and strata summaries without
 recalculation. The default is <code>TRUE</code>. If <code>FALSE</code>,
-these summaries and their derived annotation columns are removed.
-</td>
+these summaries and their derived annotation columns are removed.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="remove_limit">remove_limit</code>
-</td>
-<td>
-Whether to allow an annotation table with 100 or more columns. The
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="remove_limit">remove_limit</code></td>
+<td>Whether to allow an annotation table with 100 or more columns. The
 default is <code>FALSE</code>, which stops the operation for such
-tables. Set to <code>TRUE</code> only when the wide join is intentional.
-</td>
+tables. Set to <code>TRUE</code> only when the wide join is
+intentional.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="conflicts">conflicts</code>
-</td>
-<td>
-How to handle new annotation columns whose names already exist in
-<code>idata</code>. <code>“error”</code>, the default, stops the
-operation. <code>“replace”</code> replaces existing columns that are not
-protected by <code>ImmunData</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="conflicts">conflicts</code></td>
+<td>How to handle new annotation columns whose names already exist in
+<code>idata</code>. <code>"error"</code>, the default, stops the
+operation. <code>"replace"</code> replaces existing columns that are not
+protected by <code>ImmunData</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="annot_col">annot_col</code>
-</td>
-<td>
-Name of the identifier column in <code>annotations</code>. For
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="annot_col">annot_col</code></td>
+<td>Name of the identifier column in <code>annotations</code>. For
 <code>annotate_receptors()</code> and <code>annotate_chains()</code>,
 the default is the standard <code>ImmunData</code> receptor or chain
 identifier. For <code>annotate_barcodes()</code>, the default
-<code>“\<rownames\>”</code> uses the row names of
+<code>"&lt;rownames&gt;"</code> uses the row names of
 <code>annotations</code>. Supplying an explicit barcode column is
-usually clearer.
-</td>
+usually clearer.</td>
 </tr>
+</tbody>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
@@ -2097,29 +2086,19 @@ repertoire and strata summaries are preserved when
 <h2 id="choose-a-function">Choose a function<a class="headerlink" href="#choose-a-function" title="Permanent link">&para;</a></h2>
 <p>Use the function that matches the type of information you want to add:</p>
 <ul>
-<li>
-
-<code>annotate_barcodes()</code> matches cell or barcode identifiers.
+<li> <code>annotate_barcodes()</code> matches cell or barcode identifiers.
 
 </li>
-<li>
-
-<code>annotate_receptors()</code> matches receptor identifiers. All rows
-belonging to a matched receptor receive the new information.
+<li> <code>annotate_receptors()</code> matches receptor identifiers. All rows belonging to
+a matched receptor receive the new information.
 
 </li>
-<li>
-
-<code>annotate_chains()</code> matches chain identifiers.
+<li> <code>annotate_chains()</code> matches chain identifiers.
 
 </li>
-<li>
+<li> <code>annotate()</code> matches any one or more columns that you specify in <code>by</code>.
 
-<code>annotate()</code> matches any one or more columns that you specify
-in <code>by</code>.
-
-</li>
-</ul>
+</li></ul>
 
 <p>The first three functions select the correct <code>ImmunData</code>
 identifier for you. <code>annotate_immundata()</code> is an alternative
@@ -2128,16 +2107,16 @@ name for <code>annotate()</code>.</p>
 <p>For <code>annotate_barcodes()</code>, <code>annotate_receptors()</code>,
 and <code>annotate_chains()</code>, <code>annot_col</code> names the
 identifier column in <code>annotations</code>. For example,
-<code>annot_col = “barcode”</code> matches the <code>barcode</code>
+<code>annot_col = "barcode"</code> matches the <code>barcode</code>
 column in <code>annotations</code> with the barcode identifier in
 <code>idata</code>.</p>
 <p>For general matching, supply <code>by</code> in the form
-<code>c(immundata_column = “annotation_column”)</code>. For example,
-<code>by = c(Response = “response_code”)</code> matches the
+<code>c(immundata_column = "annotation_column")</code>. For example,
+<code>by = c(Response = "response_code")</code> matches the
 <code>Response</code> column in <code>idata</code> with the
 <code>response_code</code> column in <code>annotations</code>. To match
 columns with the same name, use a value such as <code>by = c(Response =
-“Response”)</code>. You can include more than one pair of columns in
+"Response")</code>. You can include more than one pair of columns in
 <code>by</code>.</p>
 <p>Columns from <code>annotations</code> that are not used for matching are
 added to the result. Rows in <code>idata</code> without a match receive
@@ -2156,7 +2135,7 @@ proportions, and other summaries incorrect.</p>
 <p>By default, the function stops if a new annotation column has the same
 name as a column already present in <code>idata</code>. This prevents
 accidental replacement.</p>
-<p>Use <code>conflicts = “replace”</code> to replace existing annotation
+<p>Use <code>conflicts = "replace"</code> to replace existing annotation
 columns. Columns that define receptors, repertoires, strata, or other
 <code>ImmunData</code> state are protected and cannot be replaced. The
 old column is removed before matching, so rows without a new match
@@ -2401,10 +2380,10 @@ ImmunData</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

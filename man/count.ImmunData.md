@@ -27,52 +27,44 @@ count(x, ..., wt = NULL, sort = FALSE, name = NULL)
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
-</td>
-<td>
-An ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="x">x</code></td>
+<td>An ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
-</td>
-<td>
-Additional arguments. Accepted for compatibility with
-<code>dplyr::count()</code>, but currently ignored.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="...">...</code></td>
+<td>Additional arguments. Accepted for compatibility with
+<code>dplyr::count()</code>, but currently ignored.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="wt">wt</code>
-</td>
-<td>
-Any value or <code>NULL</code>. Accepted for compatibility with
-<code>dplyr::count()</code>, but currently ignored.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="wt">wt</code></td>
+<td>Any value or <code>NULL</code>. Accepted for compatibility with
+<code>dplyr::count()</code>, but currently ignored.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="sort">sort</code>
-</td>
-<td>
-A logical value. Accepted for compatibility with
-<code>dplyr::count()</code>, but currently ignored.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="sort">sort</code></td>
+<td>A logical value. Accepted for compatibility with
+<code>dplyr::count()</code>, but currently ignored.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="name">name</code>
-</td>
-<td>
-A character string or <code>NULL</code>. Accepted for compatibility with
-<code>dplyr::count()</code>, but currently ignored. The result column is
-always named <code>n</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="name">name</code></td>
+<td>A character string or <code>NULL</code>. Accepted for compatibility
+with <code>dplyr::count()</code>, but currently ignored. The result
+column is always named <code>n</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1797,7 +1797,7 @@
 
 
 <h1 id="group-airr-sequence-rows-into-receptors">Group AIRR sequence rows into receptors<a class="headerlink" href="#group-airr-sequence-rows-into-receptors" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/immunomind/immundata/tree/main/R/operations_agg_receptors.R#L102"><strong>Source code</strong></a></p>
+<p><a href="https://github.com/immunomind/immundata/tree/main/R/operations_agg_receptors.R#L103"><strong>Source code</strong></a></p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p><code>agg_receptors()</code> is a low-level function used during AIRR
 data ingestion. It decides which sequence rows represent the same
@@ -1824,136 +1824,110 @@ analysis workflows should provide the same arguments to
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="dataset">dataset</code>
-</td>
-<td>
-A duckplyr table containing AIRR sequence data, with one row per chain
-or bulk clonotype. It must contain the columns named in
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="dataset">dataset</code></td>
+<td>A duckplyr table containing AIRR sequence data, with one row per
+chain or bulk clonotype. It must contain the columns named in
 <code>schema</code> and in any of <code>barcode_col</code>,
 <code>count_col</code>, <code>locus_col</code>, and <code>umi_col</code>
-that are supplied.
-</td>
+that are supplied.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="schema">schema</code>
-</td>
-<td>
-
-Definition of receptor identity. Supply either:
-
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="schema">schema</code></td>
+<td>Definition of receptor identity. Supply either:
 <ul>
-<li>
-
-A character vector naming the features that must match, such as
-<code>c(“v_call”, “j_call”, “junction_aa”)</code>.
-
-</li>
-<li>
-
-An object created by <code>make_receptor_schema()</code>. Its
+<li>A character vector naming the features that must match, such as
+<code>c("v_call", "j_call", "junction_aa")</code>.</li>
+<li>An object created by <code>make_receptor_schema()</code>. Its
 <code>features</code> define chain identity, while its optional
-<code>chains</code> select one locus or define a pair of loci.
-
-</li>
+<code>chains</code> select one locus or define a pair of loci.</li>
 </ul>
 A schema can contain at most two chain entries. Use syntax such as
-<code>c(“IGH”, “IGL|IGK”)</code> to accept either IGH-IGL or IGH-IGK
-pairs.
-</td>
+<code>c("IGH", "IGL|IGK")</code> to accept either IGH-IGL or IGH-IGK
+pairs.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="barcode_col">barcode_col</code>
-</td>
-<td>
-Name of the column containing cell barcodes. Supply this for single-cell
-data. <code>umi_col</code> is then also required, and
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="barcode_col">barcode_col</code></td>
+<td>Name of the column containing cell barcodes. Supply this for
+single-cell data. <code>umi_col</code> is then also required, and
 <code>count_col</code> cannot be supplied. If <code>imd_filename</code>
 is present, identical barcode values from different source files are
-treated as different cells. The default is <code>NULL</code>.
-</td>
+treated as different cells. The default is <code>NULL</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="count_col">count_col</code>
-</td>
-<td>
-Name of the column containing non-negative abundance values in bulk
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="count_col">count_col</code></td>
+<td>Name of the column containing non-negative abundance values in bulk
 repertoire data. These values are copied to <code>imd_n_chains</code>.
 <code>count_col</code> cannot be used together with
-<code>barcode_col</code>. The default is <code>NULL</code>.
-</td>
+<code>barcode_col</code>. The default is <code>NULL</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="locus_col">locus_col</code>
-</td>
-<td>
-Name of the column containing loci such as <code>“TRA”</code>,
-<code>“TRB”</code>, or <code>“IGH”</code>. It is required when
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="locus_col">locus_col</code></td>
+<td>Name of the column containing loci such as <code>"TRA"</code>,
+<code>"TRB"</code>, or <code>"IGH"</code>. It is required when
 <code>schema</code> specifies one or more chains. The column is renamed
 to the standard name <code>locus</code> when necessary. The default is
-<code>NULL</code>.
-</td>
+<code>NULL</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="umi_col">umi_col</code>
-</td>
-<td>
-Name of the column containing per-chain UMI or read counts. It is
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="umi_col">umi_col</code></td>
+<td>Name of the column containing per-chain UMI or read counts. It is
 required when <code>barcode_col</code> is supplied and is used to choose
 one chain when a cell contains several chains from the same locus. The
-default is <code>NULL</code>.
-</td>
+default is <code>NULL</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="verbose">verbose</code>
-</td>
-<td>
-Whether to print information about the selected processing mode and
-loci. Defaults to <code>getOption(“immundata.verbose”, TRUE)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="verbose">verbose</code></td>
+<td>Whether to print information about the selected processing mode and
+loci. Defaults to
+<code>getOption("immundata.verbose", TRUE)</code>.</td>
 </tr>
+</tbody>
 </table>
 
 <h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
 <p>The receptor features are the columns that define the identity of one
 chain. Two chains with the same values in all feature columns receive
 the same receptor identity in a single-chain analysis. Common features
-include V gene, J gene, and CDR3 amino acid sequence.</p>
+include V gene, J gene, and CDR3 amino acid sequence. Rows with a
+missing, empty, or whitespace-only receptor feature are excluded before
+chains are selected.</p>
 <p>The function supports three input modes:</p>
 <ul>
-<li>
-
-<strong>Uncounted sequence table:</strong> If neither
-<code>barcode_col</code> nor <code>count_col</code> is supplied, every
-input row is treated as one observed chain. A synthetic barcode is
-created for each row, and <code>imd_n_chains</code> is set to
-<code>1</code>.
+<li> <strong>Uncounted sequence table:</strong> If neither <code>barcode_col</code> nor <code>count_col</code> is
+supplied, every input row is treated as one observed chain. A synthetic
+barcode is created for each row, and <code>imd_n_chains</code> is set to <code>1</code>.
 
 </li>
-<li>
-
-<strong>Bulk repertoire:</strong> If <code>count_col</code> is supplied,
-every input row receives a synthetic barcode and its abundance is copied
-to <code>imd_n_chains</code>.
+<li> <strong>Bulk repertoire:</strong> If <code>count_col</code> is supplied, every input row receives a
+synthetic barcode and its abundance is copied to <code>imd_n_chains</code>.
 
 </li>
-<li>
+<li> <strong>Single-cell repertoire:</strong> If <code>barcode_col</code> is supplied, rows are grouped
+by cell. <code>umi_col</code> is required and <code>imd_n_chains</code> is set to <code>1</code> for every
+retained cell-chain observation.
 
-<strong>Single-cell repertoire:</strong> If <code>barcode_col</code> is
-supplied, rows are grouped by cell. <code>umi_col</code> is required and
-<code>imd_n_chains</code> is set to <code>1</code> for every retained
-cell-chain observation.
-
-</li>
-</ul>
+</li></ul>
 
 <p>When one chain is specified in <code>schema</code>, only that locus is
 retained. If a cell contains several chains from that locus, the row
@@ -1963,7 +1937,7 @@ highest values are tied, the first row is retained.</p>
 are retained. The selected chains are paired by barcode, and both rows
 receive the same <code>imd_receptor_id</code>. Cells with incomplete
 pairs are excluded.</p>
-<p>A relaxed pair such as <code>c(“IGH”, “IGL|IGK”)</code> requires IGH and
+<p>A relaxed pair such as <code>c("IGH", "IGL|IGK")</code> requires IGH and
 exactly one of the two alternative light-chain loci. Cells containing
 both IGL and IGK are excluded.</p>
 <p>Numeric <code>imd_receptor_id</code> values identify receptors within
@@ -1974,37 +1948,24 @@ again.</p>
 <p>A duckplyr table containing the retained input rows and these
 package-standard columns:</p>
 <ul>
-<li>
-
-<code>imd_receptor_id</code>: links rows that belong to the same
-receptor.
+<li> <code>imd_receptor_id</code>: links rows that belong to the same receptor.
 
 </li>
-<li>
-
-<code>imd_barcode</code>: contains the input cell barcode, or a
-synthetic row-level barcode for uncounted and bulk data.
+<li> <code>imd_barcode</code>: contains the input cell barcode, or a synthetic row-level
+barcode for uncounted and bulk data.
 
 </li>
-<li>
-
-<code>imd_chain_id</code>: identifies an individual retained chain row.
+<li> <code>imd_chain_id</code>: identifies an individual retained chain row.
 
 </li>
-<li>
-
-<code>imd_n_chains</code>: contains <code>1</code> for uncounted and
-single-cell data, or the value from <code>count_col</code> for bulk
-data.
+<li> <code>imd_n_chains</code>: contains <code>1</code> for uncounted and single-cell data, or the
+value from <code>count_col</code> for bulk data.
 
 </li>
-<li>
+<li> <code>imd_count</code>: initialized to <code>0</code>; receptor counts are calculated later by
+<code>agg_repertoires()</code>.
 
-<code>imd_count</code>: initialized to <code>0</code>; receptor counts
-are calculated later by <code>agg_repertoires()</code>.
-
-</li>
-</ul>
+</li></ul>
 
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><code>read_repertoires()</code>, <code>make_receptor_schema()</code>,
@@ -2093,10 +2054,10 @@ are calculated later by <code>agg_repertoires()</code>.
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

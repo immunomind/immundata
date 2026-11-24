@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1868,58 +1868,50 @@ make_barcode_prefix(prefix_col = "Prefix")
 </code></pre>
 
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="format">format</code>
-</td>
-<td>
-A character string. One input format: <code>“default”</code>,
-<code>“airr”</code>, or <code>“10x”</code>. The default is
-<code>“default”</code>. This choice controls which technical columns are
-removed. It does not rename columns.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="format">format</code></td>
+<td>A character string. One input format: <code>"default"</code>,
+<code>"airr"</code>, or <code>"10x"</code>. The default is
+<code>"default"</code>. This choice controls which technical columns are
+removed. It does not rename columns.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="cols">cols</code>
-</td>
-<td>
-A character vector. Columns to remove. The default is
-<code>imd_drop_cols(“airr”)</code>. Use <code>character()</code> to
-create a step that removes no columns.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="cols">cols</code></td>
+<td>A character vector. Columns to remove. The default is
+<code>imd_drop_cols("airr")</code>. Use <code>character()</code> to
+create a step that removes no columns.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="col_name">col_name</code>
-</td>
-<td>
-A character string. Column containing the productive-chain indicator.
-The default is <code>“productive”</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="col_name">col_name</code></td>
+<td>A character string. Column containing the productive-chain
+indicator. The default is <code>"productive"</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="truthy">truthy</code>
-</td>
-<td>
-A vector. Values that mean the chain is productive. Values are compared
-as text. The default is <code>TRUE</code>; use a character vector when
-the source uses several representations, for example <code>c(“TRUE”,
-“true”, “1”)</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="truthy">truthy</code></td>
+<td>A vector. Values that mean the chain is productive. Values are
+compared as text. The default is <code>TRUE</code>; use a character
+vector when the source uses several representations, for example
+<code>c("TRUE", "true", "1")</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="prefix_col">prefix_col</code>
-</td>
-<td>
-A character vector. One or more candidate columns containing the text to
-place before each cell barcode. The first candidate present in the data
-is used. The default is <code>“Prefix”</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="prefix_col">prefix_col</code></td>
+<td>A character vector. One or more candidate columns containing the
+text to place before each cell barcode. The first candidate present in
+the data is used. The default is <code>"Prefix"</code>.</td>
 </tr>
+</tbody>
 </table>
 
 <h2 id="value">Value<a class="headerlink" href="#value" title="Permanent link">&para;</a></h2>
@@ -1927,59 +1919,44 @@ is used. The default is <code>“Prefix”</code>.
 <code>make_default_postprocessing()</code> return named lists of
 processing functions. The other functions return one processing
 function. Each processing function accepts a duckplyr table as its first
-argument, accepts unused arguments through <code>…</code>, and returns a
-new duckplyr table.</p>
+argument, accepts unused arguments through <code>...</code>, and returns
+a new duckplyr table.</p>
 <h2 id="choose-processing-steps">Choose processing steps<a class="headerlink" href="#choose-processing-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li>
-
-<code>make_default_preprocessing()</code> returns two steps. The first
-removes common technical columns. The second keeps rows whose
-<code>productive</code> value indicates a productive chain. If the
-<code>productive</code> column is absent, the filtering step gives a
-warning and keeps all rows.
+<li> <code>make_default_preprocessing()</code> returns two steps. The first removes common
+technical columns. The second keeps rows whose <code>productive</code> value indicates
+a productive chain. If the <code>productive</code> column is absent, the filtering
+step gives a warning and keeps all rows.
 
 </li>
-<li>
-
-<code>make_default_postprocessing()</code> returns one step that adds a
-sample-specific prefix to cell barcodes. If the prefix column is absent,
-the step gives a warning and leaves barcodes unchanged.
+<li> <code>make_default_postprocessing()</code> returns one step that adds a sample-specific
+prefix to cell barcodes. If the prefix column is absent, the step gives a
+warning and leaves barcodes unchanged.
 
 </li>
-<li>
-
-<code>make_exclude_columns()</code> creates one step that removes the
-columns in <code>cols</code>. Column names that are not present are
-ignored.
+<li> <code>make_exclude_columns()</code> creates one step that removes the columns in
+<code>cols</code>. Column names that are not present are ignored.
 
 </li>
-<li>
-
-<code>make_productive_filter()</code> creates one step that keeps rows
-whose value in <code>col_name</code> matches any value in
-<code>truthy</code>.
+<li> <code>make_productive_filter()</code> creates one step that keeps rows whose value in
+<code>col_name</code> matches any value in <code>truthy</code>.
 
 </li>
-<li>
+<li> <code>make_barcode_prefix()</code> creates one step that joins a prefix, such as
+<code>"Tumor_"</code>, to the start of each <code>imd_barcode</code> value.
 
-<code>make_barcode_prefix()</code> creates one step that joins a prefix,
-such as <code>“Tumor\_”</code>, to the start of each
-<code>imd_barcode</code> value.
-
-</li>
-</ul>
+</li></ul>
 
 <p><code>read_repertoires()</code> applies functions in list order. You can
 therefore add, remove, or reorder steps in a custom list.</p>
 <h2 id="input-formats">Input formats<a class="headerlink" href="#input-formats" title="Permanent link">&para;</a></h2>
 <p>For <code>make_default_preprocessing()</code>, <code>format =
-“default”</code> removes the union of the standard AIRR and 10x
-technical columns. Use <code>format = “airr”</code> or <code>format =
-“10x”</code> to remove only the columns expected for that format. All
+"default"</code> removes the union of the standard AIRR and 10x
+technical columns. Use <code>format = "airr"</code> or <code>format =
+"10x"</code> to remove only the columns expected for that format. All
 three defaults recognize common text representations of a productive
-value, including <code>“TRUE”</code>, <code>“true”</code>,
-<code>“yes”</code>, and <code>“1”</code>.</p>
+value, including <code>"TRUE"</code>, <code>"true"</code>,
+<code>"yes"</code>, and <code>"1"</code>.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <p><code>read_repertoires()</code>, <code>imd_drop_cols()</code>,
 <code>imd_rename_cols()</code></p>
@@ -2113,10 +2090,10 @@ value, including <code>“TRUE”</code>, <code>“true”</code>,
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

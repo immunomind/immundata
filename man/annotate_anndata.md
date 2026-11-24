@@ -2,13 +2,12 @@
 
 # Annotate an AnnData object from ImmunData (by barcode)
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/operations_external_annotate_anndatar.R#L15)
+[**Source code**](https://github.com/immunomind/immundata/tree/main/R/operations_external_annotate_anndatar.R#L14)
 
 ## Description
 
-Copy selected columns from <code>idata$annotations</code> to
-<code>adata$obs</code>, matching by cell barcode
-(<code>adata$obs_names</code>).
+Copy selected columns from <code>idata</code> to <code>adata$obs</code>.
+Match rows by cell barcode (<code>adata$obs_names</code>).
 
 ## Usage
 
@@ -17,32 +16,28 @@ Copy selected columns from <code>idata$annotations</code> to
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="adata">adata</code>
-</td>
-<td>
-An anndataR::AbstractAnnData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="adata">adata</code></td>
+<td>An anndataR::AbstractAnnData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="cols">cols</code>
-</td>
-<td>
-Character vector with column names to transfer from
-<code>idata$annotations</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="cols">cols</code></td>
+<td>Character vector with names of columns in <code>idata</code> to
+copy.</td>
 </tr>
+</tbody>
 </table>
 
 ## Value

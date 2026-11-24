@@ -8,11 +8,11 @@
 
 Use <code>rename_strata()</code> to replace automatic stratum labels
 with names that are clear in figures and result tables, such as
-<code>“Control”</code>, <code>“Treated”</code>, or <code>“Tumour
-tissue”</code>.
+<code>"Control"</code>, <code>"Treated"</code>, or <code>"Tumour
+tissue"</code>.
 
 Use this function after <code>agg_strata()</code> when labels such as
-<code>“Strata1”</code> do not describe the biological groups. The unit
+<code>"Strata1"</code> do not describe the biological groups. The unit
 being changed is the stratum label. Stratum membership and the
 repertoires, receptors, cells, and chains remain unchanged.
 
@@ -31,62 +31,51 @@ changed.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="idata">idata</code>
-</td>
-<td>
-An ImmunData object with strata already created by
-<code>agg_strata()</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="idata">idata</code></td>
+<td>An ImmunData object with strata already created by
+<code>agg_strata()</code>.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="names">names</code>
-</td>
-<td>
-
-A named character vector or a data frame. New labels matched to
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="names">names</code></td>
+<td>A named character vector or a data frame. New labels matched to
 <code>imd_strata_id</code>. Supply either:
-
 <ul>
-<li>
-
-a named character vector, such as <code>c(“1” = “Control”, “2” =
-“Treated”)</code>; or
-
-</li>
-<li>
-
-a data frame with columns <code>imd_strata_id</code> and
-<code>strata_name</code>.
-
-</li>
+<li>a named character vector, such as
+<code>c("1" = "Control", "2" = "Treated")</code>; or</li>
+<li>a data frame with columns <code>imd_strata_id</code> and
+<code>strata_name</code>.</li>
 </ul>
-Every new label must be non-empty and unique.
-</td>
+Every new label must be non-empty and unique.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unnamed">unnamed</code>
-</td>
-<td>
-A character string. What to do when <code>names</code> does not include
-every stratum. The default, <code>“error”</code>, asks for a complete
-mapping. Use <code>“auto”</code> to generate labels for missing strata
-or <code>“keep”</code> to preserve their current labels.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="unnamed">unnamed</code></td>
+<td>A character string. What to do when <code>names</code> does not
+include every stratum. The default, <code>"error"</code>, asks for a
+complete mapping. Use <code>"auto"</code> to generate labels for missing
+strata or <code>"keep"</code> to preserve their current labels.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="auto_prefix">auto_prefix</code>
-</td>
-<td>
-A non-empty character string. Prefix used to generate labels when
-<code>unnamed = “auto”</code>. The default is <code>“Strata”</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="auto_prefix">auto_prefix</code></td>
+<td>A non-empty character string. Prefix used to generate labels when
+<code>unnamed = "auto"</code>. The default is
+<code>"Strata"</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details

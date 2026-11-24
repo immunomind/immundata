@@ -14,21 +14,19 @@ dimnames(x) &lt;- value
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
-</td>
-<td>
-ImmunData object.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="x">x</code></td>
+<td>ImmunData object.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="value">value</code>
-</td>
-<td>
-Not used.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="value">value</code></td>
+<td>Not used.</td>
 </tr>
+</tbody>
 </table>

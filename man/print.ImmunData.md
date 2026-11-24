@@ -26,23 +26,21 @@ print(x, ...)
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
-</td>
-<td>
-An ImmunData object to display.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="x">x</code></td>
+<td>An ImmunData object to display.</td>
 </tr>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
-</td>
-<td>
-Additional arguments. Currently not used.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="...">...</code></td>
+<td>Additional arguments. Currently not used.</td>
 </tr>
+</tbody>
 </table>
 
 ## Details

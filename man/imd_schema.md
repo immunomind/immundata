@@ -2,7 +2,7 @@
 
 # Get a standard ImmunData column name
 
-[**Source code**](https://github.com/immunomind/immundata/tree/main/R/globals.R#L169)
+[**Source code**](https://github.com/immunomind/immundata/tree/main/R/globals.R#L172)
 
 ## Description
 
@@ -12,7 +12,7 @@ the cell barcode, receptor identifier, repertoire identifier, count, or
 proportion.
 
 Use this helper in reusable analysis code or package extensions instead
-of writing an internal name such as <code>“imd_barcode”</code> directly.
+of writing an internal name such as <code>"imd_barcode"</code> directly.
 It only returns names; it does not inspect or change an ImmunData
 object.
 
@@ -23,19 +23,19 @@ object.
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="key">key</code>
-</td>
-<td>
-A character string or <code>NULL</code>. One schema key, for example
-<code>“barcode”</code>, <code>“receptor”</code>,
-<code>“repertoire”</code>, <code>“count”</code>, or
-<code>“proportion”</code>. Use <code>NULL</code>, the default, to return
-all available keys and column names.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="key">key</code></td>
+<td>A character string or <code>NULL</code>. One schema key, for example
+<code>"barcode"</code>, <code>"receptor"</code>,
+<code>"repertoire"</code>, <code>"count"</code>, or
+<code>"proportion"</code>. Use <code>NULL</code>, the default, to return
+all available keys and column names.</td>
 </tr>
+</tbody>
 </table>
 
 ## Value

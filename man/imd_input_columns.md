@@ -22,26 +22,26 @@ imd_drop_cols(format = "airr")
 
 ## Arguments
 
-<table role="presentation">
+<table data-quarto-postprocess="true" role="presentation">
+<tbody>
 <tr>
-<td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="format">format</code>
-</td>
-<td>
-A character string. The input format preset. For
-<code>imd_rename_cols()</code>, use <code>“default”</code> or
-<code>“10x”</code>; the default is <code>“default”</code>. For
-<code>imd_drop_cols()</code>, use <code>“universal”</code>,
-<code>“airr”</code>, or <code>“10x”</code>; the default is
-<code>“airr”</code>.
-</td>
+<td
+style="white-space: nowrap; font-family: monospace; vertical-align: top"><code
+id="format">format</code></td>
+<td>A character string. The input format preset. For
+<code>imd_rename_cols()</code>, use <code>"default"</code> or
+<code>"10x"</code>; the default is <code>"default"</code>. For
+<code>imd_drop_cols()</code>, use <code>"universal"</code>,
+<code>"airr"</code>, or <code>"10x"</code>; the default is
+<code>"airr"</code>.</td>
 </tr>
+</tbody>
 </table>
 
 ## Value
 
 <code>imd_rename_cols()</code> returns a named character vector in the
-form <code>c(new_name = “source_name”)</code>.
+form <code>c(new_name = "source_name")</code>.
 <code>imd_drop_cols()</code> returns a character vector of source
 columns to remove.
 
