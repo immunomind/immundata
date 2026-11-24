@@ -237,16 +237,9 @@ annotate_immundata <- function(idata,
   conflicts <- match.arg(conflicts)
 
   if (!remove_limit && length(annotations) >= 100) {
-    rlang::abort(cli::format_inline(paste0(
-      "Well, well, well, would you look at that... ",
-      "Decided to dump all tens of thousands genes into your repertoire data, I guess?",
-      "\nI mean, sure, do whataver you want. But I'm not responsible for the freezes or crashes.",
-      "\nPass ",
-      cli::col_cyan("`remove_limit = True`"),
-      " to {.code left_join} to allow working with annotations of arbitrary size.",
-      "\nBut remember:\n\n",
-      cli::col_red("\tyou have been warned.\n\n")
-    )))
+    cli::cli_abort(
+      "The annotation table has 100 or more columns. Set {.code remove_limit = TRUE} to continue."
+    )
   }
 
   ann_tbl <- as_duckdb_tibble(annotations)

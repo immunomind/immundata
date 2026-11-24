@@ -360,7 +360,7 @@ test_that("annotate_immundata enforces and can bypass the wide annotation guard"
       annotations = wide,
       by = c("v_call" = "v_call")
     ),
-    "you have been warned"
+    "remove_limit = TRUE"
   )
 
   out <- annotate_immundata(

@@ -141,9 +141,8 @@ agg_repertoires <- function(idata, schema = "repertoire_id",
 
   missing_cols <- setdiff(schema, colnames(idata$annotations))
   if (length(missing_cols) > 0) {
-    stop(
-      "Missing columns in `annotations`: ",
-      paste(missing_cols, collapse = ", ")
+    cli::cli_abort(
+      "The repertoire schema refers to missing ImmunData columns {.field {missing_cols}}."
     )
   }
 

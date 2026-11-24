@@ -48,8 +48,8 @@ annotate_seurat <- function(idata,
 
   missing_cols <- setdiff(c(bcname, cols), colnames(ann))
   if (length(missing_cols) > 0) {
-    rlang::abort(
-      cli::format_inline("Column(s) {cli::col_cyan(missing_cols)} not found in idata$annotations.")
+    cli::cli_abort(
+      "Column(s) {.field {missing_cols}} not found in idata$annotations."
     )
   }
 
