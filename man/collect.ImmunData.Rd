@@ -10,7 +10,7 @@
 \item{x}{ImmunData object.}
 
 \item{...}{Additional arguments passed to \code{\link[dplyr:collect]{dplyr::collect()}} for
-\code{x$annotations}.}
+the annotation table.}
 }
 \value{
 A tibble with collected annotations.

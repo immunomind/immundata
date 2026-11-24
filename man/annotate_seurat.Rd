@@ -11,14 +11,14 @@ annotate_seurat(idata, sdata, cols)
 
 \item{sdata}{A Seurat object (cells are columns; barcodes are \code{colnames(sdata)}).}
 
-\item{cols}{Character vector with column names to transfer from \code{idata$annotations}.
+\item{cols}{Character vector with names of columns in \code{idata} to copy.
 Typical choices: \code{"clonal_prop_bin"} or \code{"clonal_rank_bin"}.}
 }
 \value{
 The updated Seurat object with new metadata columns.
 }
 \description{
-Copy selected columns from \code{idata$annotations} to Seurat metadata using
+Copy selected columns from \code{idata} to Seurat metadata using
 the cell barcode. This is the simplest way to transfer data from \code{immundata}
 to Seurat object, e.g., for plotting data on UMAP.
 }

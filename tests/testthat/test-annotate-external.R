@@ -135,7 +135,8 @@ testthat::test_that("annotate_seurat errors for missing annotation columns", {
 
   testthat::expect_error(
     annotate_seurat(idata, sdata, cols = "column_does_not_exist"),
-    "not found in idata\\$annotations"
+    "colnames(idata)",
+    fixed = TRUE
   )
 })
 
@@ -194,6 +195,7 @@ testthat::test_that("annotate_anndata validates obs_names and requested columns"
   adata_ok <- make_mock_adata(c("cell_1", "cell_2"))
   testthat::expect_error(
     annotate_anndata(idata, adata_ok, cols = "column_does_not_exist"),
-    "not found in idata\\$annotations"
+    "colnames(idata)",
+    fixed = TRUE
   )
 })

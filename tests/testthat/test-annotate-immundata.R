@@ -235,7 +235,8 @@ test_that("annotate_immundata validates join inputs", {
       annotations = tibble::tibble(external_v = "V1", receptor_family = "alpha"),
       by = c("missing_col" = "external_v")
     ),
-    "not found in ImmunData"
+    "colnames(idata)",
+    fixed = TRUE
   )
 
   expect_error(

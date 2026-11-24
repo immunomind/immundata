@@ -11,13 +11,12 @@ annotate_anndata(idata, adata, cols)
 
 \item{adata}{An \link[anndataR:AbstractAnnData]{anndataR::AbstractAnnData} object.}
 
-\item{cols}{Character vector with column names to transfer from
-\code{idata$annotations}.}
+\item{cols}{Character vector with names of columns in \code{idata} to copy.}
 }
 \value{
 The updated AnnData object.
 }
 \description{
-Copy selected columns from \code{idata$annotations} to \code{adata$obs}, matching by
-cell barcode (\code{adata$obs_names}).
+Copy selected columns from \code{idata} to \code{adata$obs}.
+Match rows by cell barcode (\code{adata$obs_names}).
 }

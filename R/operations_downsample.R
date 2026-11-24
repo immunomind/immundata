@@ -148,7 +148,7 @@ downsample_immundata <- function(idata, n, seed = NULL) {
   has_repertoire <- !is.null(idata$schema_repertoire)
   if (has_repertoire && !(repertoire_col %in% colnames(annotations_base))) {
     cli::cli_abort(
-      "Repertoire aggregation is incomplete: {.field {repertoire_col}} is missing from {.field idata$annotations}."
+      "Repertoire aggregation is incomplete. ImmunData is missing {.field {repertoire_col}}."
     )
   }
   unit_cols <- c(if (has_repertoire) repertoire_col else character(0), barcode_col)

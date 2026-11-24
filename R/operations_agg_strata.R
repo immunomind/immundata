@@ -96,7 +96,7 @@ agg_strata <- function(idata, schema, prefix = "Strata") {
   }
   if (!(repertoire_col %in% colnames(idata$annotations))) {
     cli::cli_abort(
-      "Required column {.field {repertoire_col}} is missing in {.field idata$annotations}."
+      "ImmunData is missing the required repertoire column {.field {repertoire_col}}."
     )
   }
 

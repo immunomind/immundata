@@ -247,8 +247,11 @@ annotate_immundata <- function(idata,
   if (length(setdiff(by, colnames(ann_tbl)))) {
     cli_abort("Column(s) '{setdiff(by, colnames(ann_tbl))}' not found in annotations.")
   }
-  if (!all(names(by) %in% colnames(idata$annotations))) {
-    cli_abort("Column(s) '{names(by)[! names(by) %in% colnames(idata$annotations)]}' are not found in ImmunData. Please double-check the column names: {.code colnames(idata$annotations)}.")
+  missing_cols <- setdiff(names(by), colnames(idata))
+  if (length(missing_cols) > 0) {
+    cli_abort(
+      "ImmunData is missing {.field {missing_cols}}. Use {.code colnames(idata)} to list the available columns."
+    )
   }
 
   annotation_value_cols <- setdiff(colnames(ann_tbl), unname(by))
