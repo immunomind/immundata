@@ -441,6 +441,47 @@ test_that("read_repertoires() creates one repertoire per manifest row with <mani
   expect_true(all(file_to_repertoire$n_repertoires == 1))
 })
 
+test_that("read_manifest() rejects repeated file paths after normalization", {
+  folder <- withr::local_tempdir()
+  input_file <- file.path(folder, "sample.tsv")
+  writeLines(c("cdr3_aa", "AB"), input_file)
+
+  expect_error(
+    read_manifest(data.frame(file = rep(normalizePath(input_file), 2))),
+    "duplicated repertoire file paths after normalization"
+  )
+
+  manifest_file <- file.path(folder, "manifest.csv")
+  writeLines(c("file", "sample.tsv", "./sample.tsv"), manifest_file)
+  expect_error(
+    read_manifest(manifest_file),
+    "duplicated repertoire file paths after normalization"
+  )
+})
+
+test_that("read_manifest() handles Windows drive paths with backslashes", {
+  skip_if(.Platform$OS.type != "windows")
+
+  folder <- withr::local_tempdir()
+  input_file <- file.path(folder, "sample.tsv")
+  writeLines(c("cdr3_aa", "AB"), input_file)
+  manifest <- read_manifest(data.frame(
+    file = normalizePath(input_file, winslash = "\\"),
+    sample_id = "S1"
+  ))
+
+  idata <- read_repertoires(
+    path = "<manifest>",
+    schema = "cdr3_aa",
+    manifest = manifest,
+    output_folder = file.path(folder, "output"),
+    preprocess = NULL,
+    postprocess = NULL,
+    rename_columns = NULL
+  )
+  expect_identical(collect(idata)$sample_id, "S1")
+})
+
 test_that("read_repertoires() rejects repeated manifest paths", {
   output_dir <- create_test_output_dir()
   on.exit(cleanup_output_dir(output_dir), add = TRUE)

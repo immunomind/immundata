@@ -44,6 +44,7 @@ for loading bulk or single-cell immune repertoire data across samples.
 If the input is a file path, the function reads it with \code{readr::read_delim}.
 If the input is a data frame, it checks whether file paths are absolute;
 relative paths are only allowed when the manifest is loaded from a file.
+Each repertoire file must appear only once.
 
 It warns the user if many of the files listed in the manifest are missing,
 and stops execution if none of the files exist.

@@ -9,6 +9,7 @@
 #' If the input is a file path, the function reads it with `readr::read_delim`.
 #' If the input is a data frame, it checks whether file paths are absolute;
 #' relative paths are only allowed when the manifest is loaded from a file.
+#' Each repertoire file must appear only once.
 #'
 #' It warns the user if many of the files listed in the manifest are missing,
 #' and stops execution if none of the files exist.
@@ -80,8 +81,13 @@ read_manifest <- function(manifest, file_col = "file", delim = NULL, ...,
   # Preprocess the files:
   # - either they are in the same folder as manifest
   # - or those are full paths to the files
+  absolute_path_pattern <- if (.Platform$OS.type == "windows") {
+    r"{^(?:[A-Za-z]:[/\\]|/|\\\\)}"
+  } else {
+    "^(?:[A-Za-z]:/|/)"
+  }
   manifest_table[[file_col]] <- sapply(manifest_table[[file_col]], function (path) {
-    if (!grepl("^(?:[A-Za-z]:/|/)", path)) {
+    if (!grepl(absolute_path_pattern, path)) {
       # The path is not a full path, so we should add the manifest directory.
       if (manifest_source == "file") {
         path <- file.path(dirname(manifest), path)
@@ -96,8 +102,10 @@ read_manifest <- function(manifest, file_col = "file", delim = NULL, ...,
   })
   names(manifest_table[[file_col]]) <- NULL
 
-  # Check how many files from the file column exist:
   file_list <- manifest_table[[file_col]]
+  assert_unique_manifest_paths(file_list)
+
+  # Check how many files from the file column exist:
   file_existed <- sapply(file_list, test_file_exists)
   n_existed <- sum(file_existed)
   n_threshold <- round(length(file_list) * 0.1) + 1
