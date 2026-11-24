@@ -216,11 +216,12 @@ annotate_tbl_regex <- function(tbl_data,
 
   col_prefix <- imd_schema("sim_regex")
 
-  dist_cols <- make_pattern_columns(
-    patterns = patterns,
-    col_prefix = col_prefix,
-    name_type = name_type
-  )
+  if (filter_out) {
+    indexed_names <- paste0(col_prefix, seq_along(patterns))
+    dist_cols <- make.unique(c(tolower(query_col), indexed_names), sep = "_")[-1L]
+  } else {
+    dist_cols <- make_pattern_columns(patterns, col_prefix, name_type)
+  }
 
   # TODO: Optimize it via SQL instead of cycles - if it is even needed...
   for (i in seq_along(patterns)) {
