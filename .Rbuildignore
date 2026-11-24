@@ -10,8 +10,6 @@
 .venv_altdoc
 ^docs$
 ^altdoc$
-^_pkgdown\.yml$
-^pkgdown$
 ^.venv_altdoc$
 ^edit-bench$
 ^immdata-test$
