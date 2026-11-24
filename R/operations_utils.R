@@ -41,7 +41,7 @@ rebuild_repertoire_and_strata <- function(idata, source_idata) {
     collect()
 
   strata_names <- rebuilt_strata_labels[[strata_name_col]]
-  if (all(!is.na(strata_names))) {
+  if (length(strata_names) && all(!is.na(strata_names))) {
     rebuilt <- rename_strata(
       rebuilt,
       names = stats::setNames(

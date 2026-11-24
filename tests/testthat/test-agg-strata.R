@@ -237,7 +237,7 @@ test_that("agg_strata errors clearly when repertoire id column is missing", {
 
   expect_error(
     agg_strata(bad_ann_idata, schema = "Response"),
-    "missing in .*idata\\$annotations"
+    paste0("required repertoire column .*", repertoire_col)
   )
 
   bad_repertoires <- idata$repertoires

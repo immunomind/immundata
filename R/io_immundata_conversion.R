@@ -72,7 +72,10 @@ from_immunarch <- function(
       cli::cli_alert_info("{nm}: Found `repertoire_id` column; we will use it for compatability with `immundata`.")
     }
     out_path <- file.path(temp_folder, paste0(nm, ".tsv"))
-    readr::write_tsv(df, out_path)
+    # DuckDB's CSV reader treats empty fields as NULL by default. Match that
+    # representation so typed R missing values are not read back as the string
+    # "NA", which can break numeric type inference.
+    readr::write_tsv(df, out_path, na = "")
     file_paths <- c(file_paths, out_path)
   }
   names(file_paths) <- names(rep_list)

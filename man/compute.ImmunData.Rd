@@ -10,7 +10,7 @@
 \item{x}{ImmunData object.}
 
 \item{...}{Additional arguments passed to \code{\link[dplyr:compute]{dplyr::compute()}} for
-\code{x$annotations}.}
+the annotation table.}
 }
 \value{
 A new \code{ImmunData} object with computed annotations and the input

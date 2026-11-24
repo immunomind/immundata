@@ -235,7 +235,8 @@ test_that("annotate_immundata validates join inputs", {
       annotations = tibble::tibble(external_v = "V1", receptor_family = "alpha"),
       by = c("missing_col" = "external_v")
     ),
-    "not found in ImmunData"
+    "colnames(idata)",
+    fixed = TRUE
   )
 
   expect_error(
@@ -360,7 +361,7 @@ test_that("annotate_immundata enforces and can bypass the wide annotation guard"
       annotations = wide,
       by = c("v_call" = "v_call")
     ),
-    "you have been warned"
+    "remove_limit = TRUE"
   )
 
   out <- annotate_immundata(

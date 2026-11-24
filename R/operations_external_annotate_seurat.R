@@ -1,13 +1,13 @@
 #' @title Annotate a Seurat object from ImmunData (by barcode)
 #'
 #' @description
-#' Copy selected columns from `idata$annotations` to Seurat metadata using
+#' Copy selected columns from `idata` to Seurat metadata using
 #' the cell barcode. This is the simplest way to transfer data from `immundata`
 #' to Seurat object, e.g., for plotting data on UMAP.
 #'
 #' @param idata An [immundata::ImmunData] object.
 #' @param sdata A Seurat object (cells are columns; barcodes are `colnames(sdata)`).
-#' @param cols Character vector with column names to transfer from `idata$annotations`.
+#' @param cols Character vector with names of columns in `idata` to copy.
 #'   Typical choices: `"clonal_prop_bin"` or `"clonal_rank_bin"`.
 #'
 #' @return The updated Seurat object with new metadata columns.
@@ -48,8 +48,8 @@ annotate_seurat <- function(idata,
 
   missing_cols <- setdiff(c(bcname, cols), colnames(ann))
   if (length(missing_cols) > 0) {
-    rlang::abort(
-      cli::format_inline("Column(s) {cli::col_cyan(missing_cols)} not found in idata$annotations.")
+    cli::cli_abort(
+      "ImmunData is missing {.field {missing_cols}}. Use {.code colnames(idata)} to list the available columns."
     )
   }
 

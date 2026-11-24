@@ -52,7 +52,8 @@
 #' The receptor features are the columns that define the identity of one chain.
 #' Two chains with the same values in all feature columns receive the same
 #' receptor identity in a single-chain analysis. Common features include V gene,
-#' J gene, and CDR3 amino acid sequence.
+#' J gene, and CDR3 amino acid sequence. Rows with a missing, empty, or
+#' whitespace-only receptor feature are excluded before chains are selected.
 #'
 #' The function supports three input modes:
 #'
@@ -237,6 +238,15 @@ agg_receptors <- function(dataset, schema, barcode_col = NULL, count_col = NULL,
       }
     }
   }
+
+  complete_receptor_features <- lapply(
+    rlang::syms(receptor_features),
+    function(feature) {
+      rlang::expr(!is.na(!!feature) & dd$trim(!!feature) != "")
+    }
+  )
+  dataset <- dataset |>
+    filter(!!!complete_receptor_features)
 
 
   #

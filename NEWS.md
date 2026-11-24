@@ -1,9 +1,63 @@
-# immundata 0.1.0
+# Releases
+
+---
+
+## immundata 0.2.0 (November 2026)
+
+This release adds abundance-based receptor selection and improves handling of
+incomplete receptor features, missing values, and empty filtered datasets.
+
+### New features and improvements
+
+* Added `top_n()` to keep the most abundant receptors in each repertoire, or
+  across the whole dataset when repertoires are undefined. Selection supports
+  counts or proportions, deterministic tie-breaking, and optional inclusion of
+  all receptors tied at the cutoff with `with_ties = TRUE`. All observations of
+  selected receptors are retained, including paired chains, and existing
+  repertoire and strata summaries are recalculated.
+* `agg_receptors()` now excludes rows with missing, empty, or whitespace-only
+  values in the receptor-defining features before chain selection. This also
+  applies during `read_repertoires()` ingestion. For paired receptors, a complete
+  chain can now be selected even when an incomplete chain has a higher UMI count.
+* `filter_immundata()` skips a redundant join when `seq_options` is `NULL`.
+* Count-mode downsampling detects duplicate units during its existing
+  aggregation. It still warns and collapses duplicate rows.
+
+### Bug fixes
+
+* Filtering out all observations now returns an empty `ImmunData` object while
+  preserving repertoire and strata definitions, instead of failing when
+  restoring stratum labels. Regex filters retain matches when different
+  patterns produce the same column name.
+* `read_manifest()` now rejects duplicate paths after normalization. On Windows,
+  it recognizes drive and UNC paths written with backslashes.
+* `from_immunarch()` now preserves typed missing values during conversion,
+  preventing numeric columns from being read as text while retaining literal
+  `"NA"` strings.
+* Annotation column-limit checks no longer materialize lazy duckplyr tables
+  just to count their columns.
+* Fixed spurious progress-list warnings from `read_repertoires()` when running
+  preprocessing or postprocessing strategies with verbose output.
+
+### Documentation and maintenance
+
+* Clarified in the README that receptor definitions are set during ingestion
+  and that changing the receptor schema requires re-reading the source data.
+* Clarified the `read_immundata()` help and updated the README clone example to
+  use `collect(idata)`.
+* Annotation errors for missing columns now point users to `colnames(idata)`.
+  The annotation limit error shows `remove_limit = TRUE`.
+* Reduced verbosity in test helpers and made test-wide options and environment
+  settings consistent across test entry points, restoring them after each run.
+  
+---
+
+## immundata 0.1.0 (August 2026)
 
 This release introduces manifests as the input-file annotation interface and
 makes repertoire, strata, and provenance state more explicit and reliable.
 
-## Breaking changes
+### Breaking changes
 
 * Renamed the input repertoire metadata interface to avoid confusion with the
   `metadata.json` snapshot file. `read_metadata()` is replaced by
@@ -24,7 +78,7 @@ makes repertoire, strata, and provenance state more explicit and reliable.
   `imd_schema("manifest_filename")`, and the unused `imd_files()$receptors`
   entry has been removed.
 
-## New features and improvements
+### New features and improvements
 
 * `read_repertoires()` now works approximately 60 times faster by 
   combining CSV, TSV, and compressed text inputs into
@@ -61,7 +115,7 @@ makes repertoire, strata, and provenance state more explicit and reliable.
 * Provenance now includes derived artifact locations (`artifacts_root` and
   `artifacts_path`) associated with the project home and current snapshot.
 
-## Bug fixes
+### Bug fixes
 
 * Corrected repertoire-level cell and receptor counts for paired-chain data and
   prevented chain rows from inflating `n_barcodes`, `n_receptors`, receptor
@@ -85,7 +139,7 @@ makes repertoire, strata, and provenance state more explicit and reliable.
   receptor-schema, repertoire-schema, or strata-defining columns.
 * Fixed Windows path handling in the test and example infrastructure.
 
-## Documentation and maintenance
+### Documentation and maintenance
 
 * Reworked the package documentation around biological units, lazy duckplyr
   workflows, ingestion, aggregation, filtering, annotation, snapshots, and

@@ -1,13 +1,12 @@
 #' @title Annotate an AnnData object from ImmunData (by barcode)
 #'
 #' @description
-#' Copy selected columns from `idata$annotations` to `adata$obs`, matching by
-#' cell barcode (`adata$obs_names`).
+#' Copy selected columns from `idata` to `adata$obs`.
+#' Match rows by cell barcode (`adata$obs_names`).
 #'
 #' @param idata An [immundata::ImmunData] object.
 #' @param adata An [anndataR::AbstractAnnData] object.
-#' @param cols Character vector with column names to transfer from
-#'   `idata$annotations`.
+#' @param cols Character vector with names of columns in `idata` to copy.
 #'
 #' @return The updated AnnData object.
 #'
@@ -37,7 +36,7 @@ annotate_anndata <- function(idata,
   missing_cols <- setdiff(c(bcname, cols), colnames(ann))
   if (length(missing_cols) > 0) {
     cli::cli_abort(
-      "Column(s) {cli::col_cyan(missing_cols)} not found in idata$annotations."
+      "ImmunData is missing {.field {missing_cols}}. Use {.code colnames(idata)} to list the available columns."
     )
   }
 

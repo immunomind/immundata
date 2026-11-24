@@ -6,7 +6,7 @@
 #'
 #' @param x ImmunData object.
 #' @param ... Additional arguments passed to [dplyr::compute()] for
-#'   `x$annotations`.
+#'   the annotation table.
 #'
 #' @return A new `ImmunData` object with computed annotations and the input
 #'   repertoire, strata, schema, and provenance state preserved.
@@ -30,7 +30,7 @@ compute.ImmunData <- function(x, ...) {
 #'
 #' @param x ImmunData object.
 #' @param ... Additional arguments passed to [dplyr::collect()] for
-#'   `x$annotations`.
+#'   the annotation table.
 #'
 #' @return A tibble with collected annotations.
 #'

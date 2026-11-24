@@ -49,6 +49,7 @@ export(read_manifest)
 export(read_repertoires)
 export(rename_strata)
 export(test_receptor_schema)
+export(top_n)
 export(write_immundata)
 importFrom(R6,R6Class)
 importFrom(checkmate,

@@ -528,7 +528,6 @@ read_repertoires <- function(path,
 
     if (verbose) {
       ol <- cli::cli_ol()
-      cli::cli_ol()
     }
     for (strategy_i in seq_along(preprocess)) {
       if (verbose) {
@@ -539,7 +538,6 @@ read_repertoires <- function(path,
       }
     }
     if (verbose) {
-      cli::cli_end()
       cli::cli_end(ol)
     }
 
@@ -616,7 +614,6 @@ read_repertoires <- function(path,
 
     if (verbose) {
       ol <- cli::cli_ol()
-      cli::cli_ol()
     }
     for (strategy_i in seq_along(postprocess)) {
       if (verbose) {
@@ -627,7 +624,6 @@ read_repertoires <- function(path,
       }
     }
     if (verbose) {
-      cli::cli_end()
       cli::cli_end(ol)
     }
 

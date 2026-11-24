@@ -1,11 +1,10 @@
 #' @title Load an ImmunData object from disk
 #'
 #' @description
-#' Continue an analysis later by reopening an [ImmunData] dataset saved on disk.
-#' Use `read_immundata()` after restarting R, in another script, or when another
-#' person gives you a dataset created by [write_immundata()] or
-#' [read_repertoires()]. It is that simple, just don't forget to save the
-#' `ImmunData` object first!
+#' Use `read_immundata()` to reopen an [ImmunData] dataset saved by
+#' [write_immundata()] or [read_repertoires()].
+#' Use it to resume an analysis after restarting R or from another script.
+#' You can also open a dataset someone shares with you.
 #'
 #' The unit restored retains all information: chain rows,
 #' cell and receptor identifiers, repertoire and stratum definitions, and
@@ -53,9 +52,9 @@
 #' versions, receptor, repertoire, and stratum schemas, the repertoire
 #' table, the snapshot identifier, lineage events, and provenance paths.
 #'
-#' Receptor and stratum views are reconstructed from this serialized state; they
-#' are not stored as separate files. Please also mind, that the saved files
-#' is an ImmunData-specific serialization, not an RDS file.
+#' The function reconstructs receptor and stratum views from
+#' `annotations.parquet` and `metadata.json`.
+#' Together, these files form the ImmunData storage format.
 #'
 #' @return A new, disk-backed [ImmunData] object representing the selected saved
 #'   state. Its provenance records the directory that was read.

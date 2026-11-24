@@ -236,17 +236,10 @@ annotate_immundata <- function(idata,
   checkmate::assert_logical(keep_repertoires)
   conflicts <- match.arg(conflicts)
 
-  if (!remove_limit && ncol(annotations) >= 100) {
-    rlang::abort(cli::format_inline(paste0(
-      "Well, well, well, would you look at that... ",
-      "Decided to dump all tens of thousands genes into your repertoire data, I guess?",
-      "\nI mean, sure, do whataver you want. But I'm not responsible for the freezes or crashes.",
-      "\nPass ",
-      cli::col_cyan("`remove_limit = True`"),
-      " to {.code left_join} to allow working with annotations of arbitrary size.",
-      "\nBut remember:\n\n",
-      cli::col_red("\tyou have been warned.\n\n")
-    )))
+  if (!remove_limit && length(annotations) >= 100) {
+    cli::cli_abort(
+      "The annotation table has 100 or more columns. Set {.code remove_limit = TRUE} to continue."
+    )
   }
 
   ann_tbl <- as_duckdb_tibble(annotations)
@@ -254,8 +247,11 @@ annotate_immundata <- function(idata,
   if (length(setdiff(by, colnames(ann_tbl)))) {
     cli_abort("Column(s) '{setdiff(by, colnames(ann_tbl))}' not found in annotations.")
   }
-  if (!all(names(by) %in% colnames(idata$annotations))) {
-    cli_abort("Column(s) '{names(by)[! names(by) %in% colnames(idata$annotations)]}' are not found in ImmunData. Please double-check the column names: {.code colnames(idata$annotations)}.")
+  missing_cols <- setdiff(names(by), colnames(idata))
+  if (length(missing_cols) > 0) {
+    cli_abort(
+      "ImmunData is missing {.field {missing_cols}}. Use {.code colnames(idata)} to list the available columns."
+    )
   }
 
   annotation_value_cols <- setdiff(colnames(ann_tbl), unname(by))

@@ -1,5 +1,8 @@
-# TODO: Use rlang::.data
-utils::globalVariables(c("dd", "meta", "n_cells", "n_barcodes", "p", "tmp_receptor_cells", "temp__reads"))
+# Declare column names used in data-masked expressions for R CMD check.
+utils::globalVariables(c(
+  "dd", "meta", "n_cells", "n_barcodes", "p", "tmp_receptor_cells", "temp__reads",
+  ".rank", ".weight", "imd_count", "imd_n_chains", "imd_receptor_id"
+))
 
 # TODO: move globals to config file to share between R and Python
 

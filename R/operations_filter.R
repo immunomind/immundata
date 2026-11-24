@@ -246,16 +246,6 @@ filter_immundata <- function(idata, ..., seq_options = NULL, keep_repertoires = 
     }
   }
 
-  #
-  # No sequence filters
-  #
-  else {
-    keep_ids <- new_annotations |> select({{ receptor_id }})
-
-    new_annotations <- new_annotations |>
-      semi_join(keep_ids, by = receptor_id)
-  }
-
   keep_repertoires <- keep_repertoires && !is.null(idata$schema_repertoire)
   if (!keep_repertoires) {
     new_annotations <- drop_repertoire_state(new_annotations)
